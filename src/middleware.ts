@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export function middleware(request: NextRequest) {
   const hostname = request.headers.get('host') || '';
+  const pathname = request.nextUrl.pathname;
   
   // Extract subdomain
   const subdomain = hostname.split('.')[0];
@@ -15,20 +16,26 @@ export function middleware(request: NextRequest) {
   switch (subdomain) {
     case 'diners':
     case 'explore':
-      // Both diners and explore point to the same app
+      // Rewrite root path to diners app
+      if (pathname === '/') {
+        return NextResponse.rewrite(new URL('/diners', request.url));
+      }
       const dinersResponse = NextResponse.next();
       dinersResponse.headers.set('x-app-version', 'diners');
       return dinersResponse;
     
     case 'restaurants':
-      // Restaurants app
+      // Rewrite root path to restaurants app
+      if (pathname === '/') {
+        return NextResponse.rewrite(new URL('/restaurants', request.url));
+      }
       const restaurantsResponse = NextResponse.next();
       restaurantsResponse.headers.set('x-app-version', 'restaurants');
       return restaurantsResponse;
     
     default:
       // Main domain (mirch.app) - redirect to landing page
-      return NextResponse.redirect(new URL('https://mirch.app' + request.nextUrl.pathname));
+      return NextResponse.redirect(new URL('https://mirch.app' + pathname));
   }
 }
 
