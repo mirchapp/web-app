@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BottomNavigation } from '@/components/ui/bottom-navigation';
+import { MapView } from '@/components/apps/MapView';
 import { cn } from '@/lib/utils';
 
 interface AppLayoutProps {
@@ -18,12 +19,7 @@ const DiscoverTab = () => (
   </div>
 );
 
-const MapTab = () => (
-  <div className="p-6 text-center">
-    <h2 className="text-2xl font-semibold mb-4">Map</h2>
-    <p className="text-muted-foreground">Explore restaurants near you</p>
-  </div>
-);
+const MapTab = () => <MapView />;
 
 const FavouritesTab = () => (
   <div className="p-6 text-center">
@@ -58,7 +54,10 @@ export function AppLayout({ children, className }: AppLayoutProps) {
   return (
     <div className={cn("min-h-screen bg-background text-foreground", className)}>
       {/* Main content area with bottom padding for navigation */}
-      <main className="pb-16">
+      <main className={cn(
+        "pb-16",
+        activeTab === 'map' ? "h-screen" : ""
+      )}>
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
@@ -72,7 +71,10 @@ export function AppLayout({ children, className }: AppLayoutProps) {
               stiffness: 300,
               damping: 30
             }}
-            className="h-full"
+            className={cn(
+              "h-full",
+              activeTab === 'map' ? "h-screen" : ""
+            )}
           >
             {children || <ActiveComponent />}
           </motion.div>
