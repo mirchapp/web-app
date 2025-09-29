@@ -97,6 +97,10 @@ export function GoogleMap({
         return;
       }
 
+      if (!mapRef.current) {
+        return;
+      }
+
       const mapInstance = new window.google.maps.Map(mapRef.current, {
         center,
         zoom,
