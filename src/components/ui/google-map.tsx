@@ -5,7 +5,7 @@ import * as React from 'react';
 // Extend the Window interface to include google
 declare global {
   interface Window {
-    google: any;
+    google: typeof google;
     initMap: () => void;
   }
 }
@@ -70,7 +70,7 @@ export function GoogleMap({
 }: GoogleMapProps) {
   const mapRef = React.useRef<HTMLDivElement>(null);
   const [isLoaded, setIsLoaded] = React.useState(false);
-  const [map, setMap] = React.useState<any>(null);
+  const [map, setMap] = React.useState<google.maps.Map | null>(null);
 
   // Load Google Maps script with singleton pattern
   React.useEffect(() => {

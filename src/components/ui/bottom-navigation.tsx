@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { Compass, MapPin, Heart, User } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 interface Tab {
