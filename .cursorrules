@@ -1,6 +1,6 @@
 # Cursor Rules — Mirch UI/UX
 
-Goal: Always produce an "uber elegant, sleek" UI, mobile‑first and responsive by default. We primarily design against iPhone 14 Pro Max (viewport ~430×932, viewport-fit=cover), and scale up.
+Goal: Always produce an "uber elegant, sleek, liquid glass" UI, mobile‑first and responsive by default. We primarily design against iPhone 14 Pro Max (viewport ~430×932, viewport-fit=cover), and scale up.
 
 ## Authoring Principles
 - Mobile first: implement base styles for 430px width; extend with `sm`, `md`, `lg` breakpoints.

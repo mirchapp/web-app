@@ -1,10 +1,9 @@
-import { DinersLayout } from '@/components/layouts/DinersLayout';
-import { DinersHome } from '@/components/apps/DinersHome';
+import { AppLayout } from '@/components/layouts/AppLayout';
 
 export default function DinersPage() {
   return (
-    <DinersLayout>
-      <DinersHome />
-    </DinersLayout>
+    <AppLayout>
+      {/* Empty diners page with navigation */}
+    </AppLayout>
   );
 }
