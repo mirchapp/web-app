@@ -142,19 +142,18 @@ export function BottomNavigation({
         />
         
         {/* Tab container */}
-        <div className="relative flex items-center justify-around px-4 py-1.5">
+        <div className="relative flex items-center justify-between px-4 py-1.5">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
-            const pillWidth = '4.6rem';
- 
+            
             return (
               <motion.button
                 key={tab.id}
                 onClick={() => onTabChange(tab.id)}
                 whileTap={{ scale: 0.95 }}
                 className={cn(
-                  "relative flex flex-col items-center justify-center gap-[1px]",
+                  "relative flex flex-col items-center justify-center gap-[0.5px]",
                   "min-h-[52px] min-w-[64px] px-2.5 py-1",
                   "transition-all duration-200 ease-out",
                   "focus-visible:outline-none",
