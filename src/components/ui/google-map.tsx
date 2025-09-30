@@ -23,44 +23,55 @@ interface GoogleMapProps {
 // Global state to track script loading
 let isScriptLoading = false;
 let isScriptLoaded = false;
-const scriptLoadPromise = new Promise<void>((resolve, reject) => {
-  if (isScriptLoaded) {
-    resolve();
-    return;
-  }
 
-  if (isScriptLoading) {
-    // Wait for existing load to complete
-    const checkLoaded = () => {
-      if (isScriptLoaded) {
-        resolve();
-      } else if (!isScriptLoading) {
-        reject(new Error('Script loading failed'));
-      } else {
-        setTimeout(checkLoaded, 100);
-      }
+// Function to load Google Maps script
+const loadGoogleMapsScript = (): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    if (isScriptLoaded) {
+      resolve();
+      return;
+    }
+
+    if (isScriptLoading) {
+      // Wait for existing load to complete
+      const checkLoaded = () => {
+        if (isScriptLoaded) {
+          resolve();
+        } else if (!isScriptLoading) {
+          reject(new Error('Script loading failed'));
+        } else {
+          setTimeout(checkLoaded, 100);
+        }
+      };
+      checkLoaded();
+      return;
+    }
+
+    // Check if we're on the client side
+    if (typeof window === 'undefined' || typeof document === 'undefined') {
+      reject(new Error('Document not available - running on server'));
+      return;
+    }
+
+    isScriptLoading = true;
+    
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`;
+    script.async = true;
+    script.defer = true;
+    script.onload = () => {
+      isScriptLoaded = true;
+      isScriptLoading = false;
+      resolve();
     };
-    checkLoaded();
-    return;
-  }
-
-  isScriptLoading = true;
-  const script = document.createElement('script');
-  script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`;
-  script.async = true;
-  script.defer = true;
-  script.onload = () => {
-    isScriptLoaded = true;
-    isScriptLoading = false;
-    resolve();
-  };
-  script.onerror = () => {
-    isScriptLoading = false;
-    reject(new Error('Failed to load Google Maps'));
-  };
-  
-  document.head.appendChild(script);
-});
+    script.onerror = () => {
+      isScriptLoading = false;
+      reject(new Error('Failed to load Google Maps'));
+    };
+    
+    document.head.appendChild(script);
+  });
+};
 
 export function GoogleMap({ 
   className = '',
@@ -74,12 +85,17 @@ export function GoogleMap({
 
   // Load Google Maps script with singleton pattern
   React.useEffect(() => {
+    // Only run on client side
+    if (typeof window === 'undefined') {
+      return;
+    }
+
     if (isScriptLoaded) {
       setIsLoaded(true);
       return;
     }
 
-    scriptLoadPromise
+    loadGoogleMapsScript()
       .then(() => setIsLoaded(true))
       .catch((error) => {
         console.error('Failed to load Google Maps:', error);
@@ -89,6 +105,11 @@ export function GoogleMap({
 
   // Initialize map when Google Maps is loaded
   React.useEffect(() => {
+    // Only run on client side
+    if (typeof window === 'undefined') {
+      return;
+    }
+
     if (!isLoaded || !mapRef.current || map) return;
 
     const initMap = () => {
@@ -108,6 +129,9 @@ export function GoogleMap({
         streetViewControl: false,
         fullscreenControl: false,
         zoomControl: false,
+        gestureHandling: 'greedy',
+        disableDoubleClickZoom: false,
+        scrollwheel: true,
         styles: [
           {
             featureType: 'poi',
@@ -164,8 +188,11 @@ export function GoogleMap({
   return (
     <div 
       ref={mapRef} 
-      className={`w-full ${className}`}
-      style={{ height }}
+      className={`w-full touch-pan-x touch-pan-y map-container ${className}`}
+      style={{ 
+        height,
+        touchAction: 'pan-x pan-y'
+      }}
     />
   );
 }

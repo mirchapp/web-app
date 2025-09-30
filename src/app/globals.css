@@ -191,4 +191,28 @@
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
   }
   
+  /* Touch handling for maps */
+  .touch-pan-x {
+    touch-action: pan-x;
+  }
+  
+  .touch-pan-y {
+    touch-action: pan-y;
+  }
+  
+  .touch-pan-x.touch-pan-y {
+    touch-action: pan-x pan-y;
+  }
+  
+  /* Prevent text selection and callouts on map */
+  .map-container {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
 }
