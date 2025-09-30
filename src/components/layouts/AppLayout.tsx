@@ -14,7 +14,7 @@ interface AppLayoutProps {
 // Placeholder components for each tab
 const DiscoverTab = () => (
   <div className="p-6 text-center">
-    <h2 className="text-2xl font-semibold mb-4">Discover</h2>
+    <h2 className="text-2xl font-semibold mb-4">Find</h2>
     <p className="text-muted-foreground">Find amazing restaurants and dishes</p>
   </div>
 );

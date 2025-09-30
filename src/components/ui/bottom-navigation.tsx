@@ -18,7 +18,7 @@ interface Tab {
 }
 
 const tabs: Tab[] = [
-  { id: 'discover', label: 'Discover', icon: MapSolidIcon },
+  { id: 'discover', label: 'Find', icon: MapSolidIcon },
   { id: 'map', label: 'Map', icon: MapPinSolidIcon },
   { id: 'liked', label: 'Liked', icon: HeartSolidIcon },
   { id: 'videos', label: 'Videos', icon: VideoCameraSolidIcon },
