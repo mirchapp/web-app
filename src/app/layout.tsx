@@ -14,13 +14,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "My PWA App",
+  title: "Mirch",
   description: "A Progressive Web App built with Next.js",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "My PWA App",
+    title: "Mirch",
     startupImage: [
       {
         url: "/ios/1024.png",
@@ -76,7 +76,7 @@ export const metadata: Metadata = {
   other: {
     "apple-mobile-web-app-capable": "yes",
     "apple-mobile-web-app-status-bar-style": "default",
-    "apple-mobile-web-app-title": "My PWA App",
+    "apple-mobile-web-app-title": "Mirch",
     "format-detection": "telephone=no",
     "mobile-web-app-capable": "yes",
     "msapplication-TileColor": "#ffffff",
