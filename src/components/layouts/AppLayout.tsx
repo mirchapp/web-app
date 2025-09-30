@@ -61,9 +61,9 @@ export function AppLayout({ children, className }: AppLayoutProps) {
 
   return (
     <div className={cn("min-h-screen bg-background text-foreground", className)}>
-      {/* Main content area with bottom padding for navigation */}
+      {/* Main content area with bottom padding for floating navigation */}
       <main className={cn(
-        "pb-16",
+        "pb-24 sm:pb-28",
         activeTab === 'map' ? "h-screen" : ""
       )}>
         <AnimatePresence mode="wait">
@@ -89,7 +89,7 @@ export function AppLayout({ children, className }: AppLayoutProps) {
         </AnimatePresence>
       </main>
       
-      {/* Bottom Navigation */}
+      {/* Floating Bottom Navigation */}
       <BottomNavigation 
         activeTab={activeTab} 
         onTabChange={handleTabChange}
