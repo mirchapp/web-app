@@ -28,6 +28,13 @@ const FavouritesTab = () => (
   </div>
 );
 
+const VideosTab = () => (
+  <div className="p-6 text-center">
+    <h2 className="text-2xl font-semibold mb-4">Videos</h2>
+    <p className="text-muted-foreground">Discover amazing food content and cooking tutorials</p>
+  </div>
+);
+
 const ProfileTab = () => (
   <div className="p-6 text-center">
     <h2 className="text-2xl font-semibold mb-4">Profile</h2>
@@ -39,6 +46,7 @@ const tabComponents = {
   discover: DiscoverTab,
   map: MapTab,
   favourites: FavouritesTab,
+  videos: VideosTab,
   profile: ProfileTab,
 };
 

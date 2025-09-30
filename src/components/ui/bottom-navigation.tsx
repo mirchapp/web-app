@@ -1,7 +1,13 @@
 'use client';
 
 import * as React from 'react';
-import { Compass, MapPin, Heart, User } from 'lucide-react';
+import { 
+  MapIcon, 
+  MapPinIcon, 
+  HeartIcon, 
+  VideoCameraIcon, 
+  UserCircleIcon 
+} from '@heroicons/react/24/outline';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
@@ -12,10 +18,11 @@ interface Tab {
 }
 
 const tabs: Tab[] = [
-  { id: 'discover', label: 'Discover', icon: Compass },
-  { id: 'map', label: 'Map', icon: MapPin },
-  { id: 'favourites', label: 'Favourites', icon: Heart },
-  { id: 'profile', label: 'Profile', icon: User },
+  { id: 'discover', label: 'Discover', icon: MapIcon },
+  { id: 'map', label: 'Map', icon: MapPinIcon },
+  { id: 'favourites', label: 'Favourites', icon: HeartIcon },
+  { id: 'videos', label: 'Videos', icon: VideoCameraIcon },
+  { id: 'profile', label: 'Profile', icon: UserCircleIcon },
 ];
 
 interface BottomNavigationProps {
@@ -43,7 +50,7 @@ export function BottomNavigation({
         className
       )}
     >
-      <div className="flex items-center justify-around px-4 py-2">
+      <div className="flex items-center justify-around px-4 py-2 pb-8">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -76,7 +83,7 @@ export function BottomNavigation({
               >
                 <Icon 
                   className={cn(
-                    "h-7 w-7 transition-colors duration-200",
+                    "h-6 w-6 transition-colors duration-200",
                     "stroke-[1.3]",
                     isActive ? "text-primary" : "text-gray-600 dark:text-gray-400"
                   )}
@@ -91,7 +98,7 @@ export function BottomNavigation({
                 }}
                 transition={{ duration: 0.2, ease: "easeOut" }}
                 className={cn(
-                  "text-[12px] mt-1 transition-all duration-200",
+                  "text-[11px] mt-1 transition-all duration-200",
                   "tracking-tight",
                   isActive 
                     ? "text-primary font-semibold" 
