@@ -21,9 +21,9 @@ const DiscoverTab = () => (
 
 const MapTab = () => <MapView />;
 
-const FavouritesTab = () => (
+const LikedTab = () => (
   <div className="p-6 text-center">
-    <h2 className="text-2xl font-semibold mb-4">Favourites</h2>
+    <h2 className="text-2xl font-semibold mb-4">Liked</h2>
     <p className="text-muted-foreground">Your saved restaurants and dishes</p>
   </div>
 );
@@ -45,7 +45,7 @@ const ProfileTab = () => (
 const tabComponents = {
   discover: DiscoverTab,
   map: MapTab,
-  favourites: FavouritesTab,
+  liked: LikedTab,
   videos: VideosTab,
   profile: ProfileTab,
 };
