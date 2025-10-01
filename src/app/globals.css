@@ -45,6 +45,8 @@
 
 :root {
   --radius: 0.625rem;
+  --safe-area-inset-bottom: env(safe-area-inset-bottom, 0.75rem);
+  
   /* Primary Theme Colors */
   --background: #FDFCFE;
   --foreground: #100C14;

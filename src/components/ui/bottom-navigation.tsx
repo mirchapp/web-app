@@ -31,7 +31,7 @@ const tabs: Tab[] = [
   { id: 'discover', label: 'Find', icon: { filled: MapSolidIcon, outline: MapIcon } },
   { id: 'map', label: 'Map', icon: { filled: MapPinSolidIcon, outline: MapPinIcon } },
   { id: 'liked', label: 'Liked', icon: { filled: HeartSolidIcon, outline: HeartIcon } },
-  { id: 'videos', label: 'Videos', icon: { filled: VideoCameraSolidIcon, outline: VideoCameraIcon } },
+  { id: 'videos', label: 'Flix', icon: { filled: VideoCameraSolidIcon, outline: VideoCameraIcon } },
   { id: 'profile', label: 'Profile', icon: { filled: UserSolidIcon, outline: UserCircleIcon } },
 ];
 
@@ -52,6 +52,7 @@ export function BottomNavigation({
   const [isDragging, setIsDragging] = React.useState(false);
   const [dragX, setDragX] = React.useState<number | null>(null);
   const [pillLayout, setPillLayout] = React.useState<{ left: number; width: number; top: number; bottom: number }>({ left: 4, width: 0, top: 4, bottom: 4 });
+  const [isDarkBackground, setIsDarkBackground] = React.useState(false);
   
   const tintMap: Record<string, { light: string; glow: string }> = {
     discover: { light: 'rgba(96, 165, 250, 0.06)', glow: 'rgba(59, 130, 246, 0.1)' },
@@ -66,23 +67,33 @@ export function BottomNavigation({
     const clientX = 'touches' in event ? event.touches[0].clientX : event.clientX;
     setDragX(clientX);
     
+    // Find the tab whose center is closest to the drag position
+    let closestTab: string | null = null;
+    let closestDistance = Infinity;
+    
     for (const tab of tabs) {
       const element = tabRefs.current[tab.id];
       if (element) {
         const rect = element.getBoundingClientRect();
-        if (clientX >= rect.left && clientX <= rect.right) {
-          if (activeTab !== tab.id) {
-            onTabChange(tab.id);
-          }
-          break;
+        const centerX = rect.left + rect.width / 2;
+        const distance = Math.abs(clientX - centerX);
+        
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestTab = tab.id;
         }
       }
     }
+    
+    // Only change tab if we're reasonably close to a tab center (within half tab width)
+    if (closestTab && closestDistance < 80 && activeTab !== closestTab) {
+      onTabChange(closestTab);
+    }
   }, [activeTab, onTabChange]);
 
-  // Snap to nearest tab center based on last pointer x
+  // Snap to nearest tab center based on last pointer x with velocity consideration
   const handleRelease = React.useCallback((event?: MouseEvent | TouchEvent | PointerEvent) => {
-    // Robustly read the last known x position without using 'any'
+    // Get the release position
     let x: number | null = null;
     if (event) {
       if ('changedTouches' in event && event.changedTouches && event.changedTouches.length > 0) {
@@ -93,33 +104,46 @@ export function BottomNavigation({
         x = (event as MouseEvent | PointerEvent).clientX;
       }
     }
+    
+    // Use dragX as fallback
     if (x == null) x = dragX ?? null;
+    
+    // If still no position, use current active tab center
     if (x == null) {
-      const containerBounds = containerRef.current?.getBoundingClientRect();
-      if (containerBounds) {
-        x = containerBounds.left + (pillLayout.left + (pillLayout.width || 0) / 2);
+      const activeElement = tabRefs.current[activeTab];
+      if (activeElement) {
+        const rect = activeElement.getBoundingClientRect();
+        x = rect.left + rect.width / 2;
       }
     }
+    
     if (x == null) return;
+    
+    // Find the nearest tab center
     let nearestId: string | null = null;
     let nearestDistance = Number.POSITIVE_INFINITY;
+    
     for (const tab of tabs) {
       const el = tabRefs.current[tab.id];
       if (!el) continue;
       const rect = el.getBoundingClientRect();
       const centerX = rect.left + rect.width / 2;
       const distance = Math.abs(x - centerX);
+      
       if (distance < nearestDistance) {
         nearestDistance = distance;
         nearestId = tab.id;
       }
     }
-    if (nearestId && nearestId !== activeTab) {
+    
+    // Always snap to the nearest tab on release
+    if (nearestId) {
       onTabChange(nearestId);
     }
-    // Clear dragX so future releases don't use stale coordinates
+    
+    // Clear dragX
     setDragX(null);
-  }, [activeTab, dragX, onTabChange, pillLayout.left, pillLayout.width]);
+  }, [activeTab, dragX, onTabChange]);
   
   // Compute pill layout and update state on mount and whenever dependencies change
   React.useLayoutEffect(() => {
@@ -165,17 +189,107 @@ export function BottomNavigation({
       if (observer && containerElForObserver) observer.disconnect();
     };
   }, [activeTab, isDragging, dragX]);
+
+  // Detect background brightness
+  React.useEffect(() => {
+    const detectBackground = () => {
+      if (!containerRef.current) return;
+      
+      const rect = containerRef.current.getBoundingClientRect();
+      
+      try {
+        // Temporarily hide navbar to sample what's behind it
+        const originalPointerEvents = containerRef.current.style.pointerEvents;
+        const originalVisibility = containerRef.current.style.visibility;
+        
+        containerRef.current.style.pointerEvents = 'none';
+        containerRef.current.style.visibility = 'hidden';
+        
+        // Sample multiple points across the navbar area
+        let totalLuminance = 0;
+        let sampleCount = 0;
+        
+        // Sample 5 points horizontally across the navbar
+        for (let i = 0; i < 5; i++) {
+          const x = rect.left + (rect.width * (i + 1)) / 6;
+          const y = rect.top + rect.height / 2; // Middle of navbar height
+          
+          const elementsAtPoint = document.elementsFromPoint(x, y);
+          
+          // Find first non-transparent element
+          for (const element of elementsAtPoint) {
+            const styles = window.getComputedStyle(element);
+            let bgColor = styles.backgroundColor;
+            
+            // Parse RGB values
+            const rgbMatch = bgColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?/);
+            if (rgbMatch) {
+              const r = parseInt(rgbMatch[1]);
+              const g = parseInt(rgbMatch[2]);
+              const b = parseInt(rgbMatch[3]);
+              const a = rgbMatch[4] ? parseFloat(rgbMatch[4]) : 1;
+              
+              // Only use opaque or semi-opaque backgrounds
+              if (a > 0.1) {
+                // Calculate relative luminance (WCAG formula)
+                const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+                totalLuminance += luminance;
+                sampleCount++;
+                break; // Found a valid background, stop checking this point
+              }
+            }
+          }
+        }
+        
+        // Restore navbar visibility
+        containerRef.current.style.pointerEvents = originalPointerEvents;
+        containerRef.current.style.visibility = originalVisibility;
+        
+        if (sampleCount > 0) {
+          const avgLuminance = totalLuminance / sampleCount;
+          setIsDarkBackground(avgLuminance < 0.5);
+        } else {
+          // Fallback to light background
+          setIsDarkBackground(false);
+        }
+      } catch (e) {
+        // Restore visibility in case of error
+        if (containerRef.current) {
+          containerRef.current.style.pointerEvents = '';
+          containerRef.current.style.visibility = '';
+        }
+        setIsDarkBackground(false);
+      }
+    };
+    
+    // Run initially and on scroll/resize
+    detectBackground();
+    const interval = setInterval(detectBackground, 100);
+    
+    window.addEventListener('scroll', detectBackground, true);
+    window.addEventListener('resize', detectBackground);
+    
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('scroll', detectBackground, true);
+      window.removeEventListener('resize', detectBackground);
+    };
+  }, [activeTab]);
+
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none px-4 pb-[env(safe-area-inset-bottom,0.75rem)]">
+    <div 
+      className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none px-4"
+      style={{
+        paddingBottom: 'var(--safe-area-inset-bottom)',
+      }}
+    >
       <motion.nav 
-        initial={{ y: 100, opacity: 0 }}
+        initial={{ y: 0, opacity: 1 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
         style={{
           backdropFilter: 'blur(3px) saturate(140%)',
           WebkitBackdropFilter: 'blur(3px) saturate(140%)',
           boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
-          marginBottom: '0.75rem',
         }}
         className={cn(
           "relative w-full max-w-md mx-auto pointer-events-auto overflow-visible",
@@ -191,20 +305,26 @@ export function BottomNavigation({
             </filter>
           </defs>
         </svg>
-        {/* Solid base layer for visibility against dark backgrounds */}
+        {/* Adaptive base layer */}
         <div
-          className="absolute inset-0 rounded-[2.5rem] pointer-events-none"
+          className="absolute inset-0 rounded-[2.5rem] pointer-events-none transition-all duration-300"
           style={{
-            background: 'rgba(255, 255, 255, 0.75)',
+            background: isDarkBackground 
+              ? 'rgba(0, 0, 0, 0.4)' 
+              : 'rgba(255, 255, 255, 0.6)',
           }}
         />
         {/* Dock-style edge system */}
         <div
-          className="absolute inset-0 rounded-[2.5rem] pointer-events-none"
+          className="absolute inset-0 rounded-[2.5rem] pointer-events-none transition-all duration-300"
           style={{
-            border: '1px solid rgba(255,255,255,0.26)',
-            background: 'linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.05) 65%, transparent 100%)',
-            mixBlendMode: 'screen',
+            border: isDarkBackground 
+              ? '1px solid rgba(255,255,255,0.15)' 
+              : '1px solid rgba(0,0,0,0.1)',
+            background: isDarkBackground
+              ? 'linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.02) 65%, transparent 100%)'
+              : 'linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.1) 65%, transparent 100%)',
+            mixBlendMode: 'normal',
           }}
         />
         <div
@@ -281,25 +401,45 @@ export function BottomNavigation({
         <div 
           ref={containerRef}
           className="relative flex items-center justify-between px-4 py-1.5 touch-none select-none overflow-visible"
-          onPointerDown={(e) => { setIsDragging(true); handleDrag(e.nativeEvent); }}
+          onPointerDown={(e) => { 
+            e.preventDefault();
+            setIsDragging(true); 
+            handleDrag(e.nativeEvent); 
+          }}
           onPointerMove={(e) => {
             if (isDragging) {
+              e.preventDefault();
               handleDrag(e.nativeEvent);
             }
           }}
-          onPointerUp={(e) => { handleRelease(e.nativeEvent); setIsDragging(false); }}
-          onPointerCancel={(e) => { handleRelease(e.nativeEvent); setIsDragging(false); }}
-          onTouchStart={(e) => { setIsDragging(true); handleDrag(e.nativeEvent); }}
+          onPointerUp={(e) => { 
+            e.preventDefault();
+            setIsDragging(false);
+            handleRelease(e.nativeEvent);
+          }}
+          onPointerCancel={(e) => { 
+            e.preventDefault();
+            setIsDragging(false);
+            handleRelease(e.nativeEvent);
+          }}
+          onTouchStart={(e) => { 
+            setIsDragging(true); 
+            handleDrag(e.nativeEvent); 
+          }}
           onTouchMove={(e) => {
             if (isDragging) {
+              e.preventDefault();
               handleDrag(e.nativeEvent);
             }
           }}
-          onTouchEnd={(e) => { handleRelease(e.nativeEvent); setIsDragging(false); }}
+          onTouchEnd={(e) => { 
+            setIsDragging(false);
+            handleRelease(e.nativeEvent);
+          }}
         >
           {/* Floating pill that follows pointer and expands while dragging */}
           <motion.span
-            className="absolute z-0 rounded-[1.125rem] pointer-events-none"
+            className="absolute z-0 rounded-[1.125rem] pointer-events-none transition-colors duration-300"
             animate={{
               top: pillLayout.top,
               bottom: pillLayout.bottom,
@@ -307,17 +447,24 @@ export function BottomNavigation({
               width: pillLayout.width,
             }}
             style={{
-              background: 'color-mix(in oklab, var(--primary) 16%, transparent)',
-              border: '1px solid color-mix(in oklab, var(--primary) 28%, transparent)',
-              boxShadow: '0 8px 24px color-mix(in oklab, var(--primary) 22%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.25)',
+              background: isDarkBackground
+                ? 'rgba(192, 132, 252, 0.2)'
+                : 'color-mix(in oklab, var(--primary) 16%, transparent)',
+              border: isDarkBackground
+                ? '1px solid rgba(192, 132, 252, 0.35)'
+                : '1px solid color-mix(in oklab, var(--primary) 28%, transparent)',
+              boxShadow: isDarkBackground
+                ? '0 8px 24px rgba(192, 132, 252, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15)'
+                : '0 8px 24px color-mix(in oklab, var(--primary) 22%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.25)',
               backdropFilter: 'blur(12px)',
               WebkitBackdropFilter: 'blur(12px)',
             }}
             transition={{
               type: "spring",
-              stiffness: isDragging ? 520 : 400,
-              damping: isDragging ? 36 : 28,
-              mass: isDragging ? 0.6 : 1,
+              stiffness: isDragging ? 600 : 450,
+              damping: isDragging ? 40 : 30,
+              mass: isDragging ? 0.5 : 0.8,
+              velocity: isDragging ? 0 : 2,
             }}
           />
           {tabs.map((tab) => {
@@ -351,25 +498,38 @@ export function BottomNavigation({
                     damping: 17,
                     duration: 0.1,
                   }}
+                  style={{
+                    strokeWidth: isActive ? undefined : 1.5,
+                  }}
                 >
                   {React.createElement(isActive ? tab.icon.filled : tab.icon.outline, {
                     className: cn(
                       "relative z-10 h-[26px] w-[26px] transition-all duration-200",
                       isActive 
-                        ? "text-primary drop-shadow-[0_4px_10px_color-mix(in_oklab,var(--primary)_40%,transparent)]"
-                        : "text-[#333333] dark:text-white/80"
+                        ? isDarkBackground
+                          ? "text-purple-400 drop-shadow-[0_4px_10px_rgba(192,132,252,0.4)]"
+                          : "text-primary drop-shadow-[0_4px_10px_color-mix(in_oklab,var(--primary)_40%,transparent)]"
+                        : isDarkBackground 
+                          ? "text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]" 
+                          : "text-gray-800 drop-shadow-[0_1px_2px_rgba(255,255,255,0.5)]"
                     ),
                   })}
                 </motion.div>
                 
                 {/* Label */}
-                <span className={cn(
-                  "relative z-10 text-[11px] mt-1 block transition-all duration-200",
-                  "leading-tight",
-                  isActive 
-                    ? "text-primary opacity-100 font-medium" 
-                    : "text-[#333333]/90 dark:text-white/75 opacity-95 font-normal"
-                )}>
+                <span 
+                  className={cn(
+                    "relative z-10 text-[11px] mt-1 block transition-all duration-200",
+                    "leading-tight",
+                    isActive 
+                      ? isDarkBackground
+                        ? "text-purple-400 opacity-100 font-medium drop-shadow-[0_1px_3px_rgba(192,132,252,0.3)]"
+                        : "text-primary opacity-100 font-medium"
+                      : isDarkBackground
+                        ? "text-white/95 opacity-95 font-normal drop-shadow-[0_1px_3px_rgba(0,0,0,0.4)]"
+                        : "text-gray-800/95 opacity-95 font-normal drop-shadow-[0_1px_2px_rgba(255,255,255,0.6)]"
+                  )}
+                >
                   {tab.label}
                 </span>
               </motion.button>
