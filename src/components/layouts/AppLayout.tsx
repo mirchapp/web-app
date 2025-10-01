@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { Heart, Bookmark } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { usePWA } from '@/hooks/usePWA';
 
 interface AppLayoutProps {
   children?: React.ReactNode;
@@ -24,7 +25,7 @@ const MapTab = () => <MapView />;
 
 const LikedTab = () => <LikedHome />;
 
-const VideosTab = () => {
+const VideosTab = ({ isPWA }: { isPWA: boolean }) => {
   const [isDarkBackground, setIsDarkBackground] = React.useState(true);
   const [showProfileCard, setShowProfileCard] = React.useState(false);
   const buttonRef = React.useRef<HTMLDivElement>(null);
@@ -163,11 +164,7 @@ const VideosTab = () => {
                   </svg>
                 </Button>
 
-                <div
-                  className="container mx-auto px-4 pt-12"
-                  style={{
-                    paddingBottom: 'calc(7rem + var(--safe-area-inset-bottom))',
-                  }}
+                <div className="container mx-auto px-4 pt-12 pb-32"
                 >
                   <div className="max-w-md mx-auto">
                     <div className="flex flex-col items-center justify-center">
@@ -662,35 +659,38 @@ const VideosTab = () => {
 
 const ProfileTab = () => <ProfileOverview />;
 
-const tabComponents = {
-  discover: DiscoverTab,
-  map: MapTab,
-  liked: LikedTab,
-  videos: VideosTab,
-  profile: ProfileTab,
-};
-
 export function AppLayout({ children, className }: AppLayoutProps) {
   const [activeTab, setActiveTab] = React.useState('discover');
+  const isPWA = usePWA();
 
   const handleTabChange = React.useCallback((tabId: string) => {
     setActiveTab(tabId);
   }, []);
 
-  const ActiveComponent = tabComponents[activeTab as keyof typeof tabComponents];
+  const renderActiveComponent = () => {
+    switch (activeTab) {
+      case 'discover':
+        return <DiscoverTab />;
+      case 'map':
+        return <MapTab />;
+      case 'liked':
+        return <LikedTab />;
+      case 'videos':
+        return <VideosTab isPWA={isPWA} />;
+      case 'profile':
+        return <ProfileTab />;
+      default:
+        return <DiscoverTab />;
+    }
+  };
 
   return (
     <div className={cn("min-h-screen bg-background text-foreground", className)}>
       {/* Main content area with bottom padding for floating navigation */}
-      <main 
+      <main
         className={cn(
-          activeTab === 'map' || activeTab === 'videos' ? "h-screen" : ""
+          activeTab === 'map' || activeTab === 'videos' ? "h-screen" : "pb-32"
         )}
-        style={
-          activeTab !== 'map' && activeTab !== 'videos' 
-            ? { paddingBottom: 'calc(7rem + var(--safe-area-inset-bottom))' }
-            : undefined
-        }
       >
         <AnimatePresence mode="wait">
           <motion.div
@@ -698,8 +698,8 @@ export function AppLayout({ children, className }: AppLayoutProps) {
             initial={{ opacity: 1, y: 0, scale: 1 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.98 }}
-            transition={{ 
-              duration: 0.15, 
+            transition={{
+              duration: 0.15,
               ease: "easeOut",
             }}
             className={cn(
@@ -707,7 +707,7 @@ export function AppLayout({ children, className }: AppLayoutProps) {
               (activeTab === 'map' || activeTab === 'videos') ? "h-screen" : ""
             )}
           >
-            {children || <ActiveComponent />}
+            {children || renderActiveComponent()}
           </motion.div>
         </AnimatePresence>
       </main>

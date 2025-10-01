@@ -5,14 +5,11 @@ import Image from 'next/image';
 import { MapPin, Calendar, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { usePWA } from '@/hooks/usePWA';
 
 export function ProfileOverview() {
   return (
-    <div
-      className="container mx-auto px-4 pt-12"
-      style={{
-        paddingBottom: 'calc(7rem + var(--safe-area-inset-bottom))',
-      }}
+    <div className="container mx-auto px-4 pt-12"
     >
       <div className="max-w-md mx-auto">
         <div className="flex flex-col items-center justify-center">

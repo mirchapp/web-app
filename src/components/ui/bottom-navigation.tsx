@@ -278,7 +278,7 @@ export function BottomNavigation({
 
   return (
     <div
-      className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none px-4 pb-4"
+      className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none px-4 pb-6"
     >
       <motion.nav 
         initial={{ y: 0, opacity: 1 }}
