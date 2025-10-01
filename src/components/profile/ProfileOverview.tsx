@@ -9,7 +9,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 export function ProfileOverview() {
   return (
     <div 
-      className="container mx-auto px-4 pt-12"
+      className="container mx-auto px-4 pt-20"
       style={{
         paddingBottom: 'calc(7rem + var(--safe-area-inset-bottom))',
       }}
@@ -31,21 +31,25 @@ export function ProfileOverview() {
             </div>
           </div>
           
-          {/* Name with Edit */}
-          <div className="flex items-center gap-2 mb-3">
+          {/* Name */}
+          <div className="mb-3">
             <h1 className="text-2xl sm:text-3xl font-semibold text-foreground">
               Faizaan Qureshi
             </h1>
+          </div>
+          
+          {/* Edit Profile Button */}
+          <div className="mb-4">
             <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7 text-muted-foreground hover:text-foreground"
+              variant="outline"
+              size="sm"
+              className="h-8 px-3 text-xs rounded-full border-border/50 bg-transparent hover:bg-muted/50"
               onClick={() => {
                 // TODO: Navigate to edit profile
                 console.log('Edit profile clicked');
               }}
             >
-              <Settings className="h-4 w-4" />
+              Edit Profile
             </Button>
           </div>
           
@@ -86,16 +90,16 @@ export function ProfileOverview() {
 
           {/* Flix & Reviews Tabs */}
           <Tabs defaultValue="flix" className="w-full">
-            <TabsList className="w-full grid grid-cols-2 h-11 bg-muted/30 backdrop-blur-sm rounded-2xl p-1 border border-border/50">
+            <TabsList className="w-full grid grid-cols-2 h-12 bg-background/80 backdrop-blur-xl rounded-2xl p-1 border border-border/20 shadow-sm ring-1 ring-black/5 dark:ring-white/10">
               <TabsTrigger 
                 value="flix" 
-                className="rounded-xl data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm data-[state=active]:ring-1 data-[state=active]:ring-primary/20 transition-all duration-200"
+                className="rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm data-[state=active]:ring-1 data-[state=active]:ring-primary/30 transition-all duration-300 ease-out font-medium text-sm"
               >
                 Flix
               </TabsTrigger>
               <TabsTrigger 
                 value="reviews"
-                className="rounded-xl data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm data-[state=active]:ring-1 data-[state=active]:ring-primary/20 transition-all duration-200"
+                className="rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm data-[state=active]:ring-1 data-[state=active]:ring-primary/30 transition-all duration-300 ease-out font-medium text-sm"
               >
                 Reviews
               </TabsTrigger>
