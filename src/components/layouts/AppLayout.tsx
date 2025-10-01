@@ -687,8 +687,13 @@ export function AppLayout({ children, className }: AppLayoutProps) {
       {/* Main content area with bottom padding for floating navigation */}
       <main
         className={cn(
-          activeTab === 'map' || activeTab === 'videos' ? "h-screen" : "pb-32"
+          activeTab === 'map' || activeTab === 'videos' ? "h-screen" : ""
         )}
+        style={{
+          paddingBottom: activeTab === 'map' || activeTab === 'videos' 
+            ? '0' 
+            : 'calc(8rem + var(--safe-area-inset-bottom))'
+        }}
       >
         <AnimatePresence mode="wait">
           <motion.div
