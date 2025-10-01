@@ -281,6 +281,7 @@ export function BottomNavigation({
       className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none px-4"
       style={{
         paddingBottom: 'var(--safe-area-inset-bottom)',
+        paddingTop: 'var(--safe-area-inset-top)',
       }}
     >
       <motion.nav 
