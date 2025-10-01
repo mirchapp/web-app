@@ -1,0 +1,77 @@
+[
+  {
+    "id": "1",
+    "src": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1080&h=1920&fit=crop",
+    "thumbnail": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&h=600&fit=crop",
+    "user": {
+      "username": "Faizaan Qureshi",
+      "avatar": "/faizaan.jpeg",
+      "isFollowing": false
+    },
+    "restaurant": {
+      "name": "The Spice House",
+      "logo": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=100&h=100&fit=crop",
+      "verified": true,
+      "rating": 4.8,
+      "distance": "0.3 km",
+      "address": "123 King St N, Waterloo, ON",
+      "phone": "+1 (519) 555-0123"
+    },
+    "dish": "Thai Basil Beef with Cashews",
+    "stats": {
+      "likes": 2400,
+      "isLiked": false,
+      "isBookmarked": false
+    }
+  },
+  {
+    "id": "2",
+    "src": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=1080&h=1920&fit=crop",
+    "thumbnail": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&h=600&fit=crop",
+    "user": {
+      "username": "Faizaan Qureshi",
+      "avatar": "/faizaan.jpeg",
+      "isFollowing": false
+    },
+    "restaurant": {
+      "name": "Pizza Corner",
+      "logo": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=100&h=100&fit=crop",
+      "verified": false,
+      "rating": 4.5,
+      "distance": "1.2 km",
+      "address": "456 University Ave, Waterloo, ON",
+      "phone": "+1 (519) 555-0456"
+    },
+    "dish": "Hand-tossed Margherita Pizza",
+    "stats": {
+      "likes": 1800,
+      "isLiked": false,
+      "isBookmarked": false
+    }
+  },
+  {
+    "id": "3",
+    "src": "https://images.unsplash.com/photo-1551782450-a2132b4ba21d?w=1080&h=1920&fit=crop",
+    "thumbnail": "https://images.unsplash.com/photo-1551782450-a2132b4ba21d?w=400&h=600&fit=crop",
+    "user": {
+      "username": "Faizaan Qureshi",
+      "avatar": "/faizaan.jpeg",
+      "isFollowing": false
+    },
+    "restaurant": {
+      "name": "Burger Palace",
+      "logo": "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=100&h=100&fit=crop",
+      "verified": true,
+      "rating": 4.9,
+      "distance": "0.8 km",
+      "address": "789 Weber St, Waterloo, ON",
+      "phone": "+1 (519) 555-0789"
+    },
+    "dish": "Gourmet Beef Burger with Fries",
+    "stats": {
+      "likes": 3200,
+      "isLiked": false,
+      "isBookmarked": false
+    }
+  }
+]

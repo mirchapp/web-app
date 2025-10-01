@@ -1,0 +1,95 @@
+[
+  {
+    "id": "1",
+    "name": "The Spice House",
+    "logo": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=100&h=100&fit=crop",
+    "verified": true,
+    "rating": 4.8,
+    "distance": "0.3 km",
+    "address": "123 King St N, Waterloo, ON",
+    "phone": "+1 (519) 555-0123",
+    "cuisine": "Thai",
+    "priceRange": "$$",
+    "hours": {
+      "weekday": "11:00 AM - 10:00 PM",
+      "weekend": "10:00 AM - 11:00 PM"
+    },
+    "about": "Experience authentic cuisine with a modern twist. Our award-winning chefs prepare the finest dishes using locally-sourced ingredients in a warm and welcoming atmosphere.",
+    "popularDishes": [
+      {
+        "name": "Thai Basil Beef",
+        "description": "Spicy stir-fry with fresh basil and cashews",
+        "price": 18.99,
+        "image": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=200&h=200&fit=crop"
+      },
+      {
+        "name": "Pad Thai",
+        "description": "Classic rice noodles with peanuts",
+        "price": 15.99,
+        "image": "https://images.unsplash.com/photo-1455619452474-d2be8b1e70cd?w=200&h=200&fit=crop"
+      }
+    ]
+  },
+  {
+    "id": "2",
+    "name": "Pizza Corner",
+    "logo": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=100&h=100&fit=crop",
+    "verified": false,
+    "rating": 4.5,
+    "distance": "1.2 km",
+    "address": "456 University Ave, Waterloo, ON",
+    "phone": "+1 (519) 555-0456",
+    "cuisine": "Italian",
+    "priceRange": "$",
+    "hours": {
+      "weekday": "11:00 AM - 10:00 PM",
+      "weekend": "10:00 AM - 11:00 PM"
+    },
+    "about": "Hand-tossed pizzas made with love and the finest ingredients. Family-owned since 1985.",
+    "popularDishes": [
+      {
+        "name": "Margherita Pizza",
+        "description": "Fresh mozzarella, basil, and tomato sauce",
+        "price": 14.99,
+        "image": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=200&h=200&fit=crop"
+      },
+      {
+        "name": "Pepperoni Classic",
+        "description": "Premium pepperoni with extra cheese",
+        "price": 16.99,
+        "image": "https://images.unsplash.com/photo-1628840042765-356cda07504e?w=200&h=200&fit=crop"
+      }
+    ]
+  },
+  {
+    "id": "3",
+    "name": "Burger Palace",
+    "logo": "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=100&h=100&fit=crop",
+    "verified": true,
+    "rating": 4.9,
+    "distance": "0.8 km",
+    "address": "789 Weber St, Waterloo, ON",
+    "phone": "+1 (519) 555-0789",
+    "cuisine": "American",
+    "priceRange": "$$",
+    "hours": {
+      "weekday": "11:00 AM - 10:00 PM",
+      "weekend": "10:00 AM - 11:00 PM"
+    },
+    "about": "Gourmet burgers crafted with premium Angus beef and locally-sourced produce. The best burgers in Waterloo!",
+    "popularDishes": [
+      {
+        "name": "Classic Cheeseburger",
+        "description": "Angus beef, aged cheddar, special sauce",
+        "price": 13.99,
+        "image": "https://images.unsplash.com/photo-1551782450-a2132b4ba21d?w=200&h=200&fit=crop"
+      },
+      {
+        "name": "Bacon BBQ Burger",
+        "description": "Double patty with crispy bacon and BBQ sauce",
+        "price": 16.99,
+        "image": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=200&h=200&fit=crop"
+      }
+    ]
+  }
+]
