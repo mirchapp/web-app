@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { BottomNavigation } from '@/components/ui/bottom-navigation';
 import { MapView } from '@/components/apps/MapView';
 import { ProfileOverview } from '@/components/profile/ProfileOverview';
+import { FindHome } from '@/components/apps/FindHome';
+import { LikedHome } from '@/components/apps/LikedHome';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { Heart, Bookmark } from 'lucide-react';
@@ -16,21 +18,11 @@ interface AppLayoutProps {
 }
 
 // Placeholder components for each tab
-const DiscoverTab = () => (
-  <div className="p-6 text-center">
-    <h2 className="text-2xl font-semibold mb-4">Find</h2>
-    <p className="text-muted-foreground">Find amazing restaurants and dishes</p>
-  </div>
-);
+const DiscoverTab = () => <FindHome />;
 
 const MapTab = () => <MapView />;
 
-const LikedTab = () => (
-  <div className="p-6 text-center">
-    <h2 className="text-2xl font-semibold mb-4">Liked</h2>
-    <p className="text-muted-foreground">Your saved restaurants and dishes</p>
-  </div>
-);
+const LikedTab = () => <LikedHome />;
 
 const VideosTab = () => {
   const [isDarkBackground, setIsDarkBackground] = React.useState(true);
