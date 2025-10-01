@@ -59,7 +59,7 @@ export function FindHome() {
 
         {/* AI Hint */}
         <p className="mt-3 text-xs text-center text-muted-foreground/80">
-          Try: "Find me the best sushi nearby" or "Romantic dinner spots"
+          Try: &ldquo;Find me the best sushi nearby&rdquo; or &ldquo;Romantic dinner spots&rdquo;
         </p>
       </div>
 
