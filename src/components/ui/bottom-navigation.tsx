@@ -17,6 +17,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { useSafeArea } from '@/hooks/useSafeArea';
 
 interface Tab {
   id: string;
@@ -53,6 +54,7 @@ export function BottomNavigation({
   const [dragX, setDragX] = React.useState<number | null>(null);
   const [pillLayout, setPillLayout] = React.useState<{ left: number; width: number; top: number; bottom: number }>({ left: 4, width: 0, top: 4, bottom: 4 });
   const [isDarkBackground, setIsDarkBackground] = React.useState(false);
+  const safeAreaInsets = useSafeArea();
   
   const tintMap: Record<string, { light: string; glow: string }> = {
     discover: { light: 'rgba(96, 165, 250, 0.06)', glow: 'rgba(59, 130, 246, 0.1)' },
@@ -279,7 +281,7 @@ export function BottomNavigation({
   return (
     <div
       className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none px-4"
-      style={{ paddingBottom: 'var(--safe-area-inset-bottom)' }}
+      style={{ paddingBottom: `${Math.max(safeAreaInsets.bottom, 24)}px` }}
     >
       <motion.nav 
         initial={{ y: 0, opacity: 1 }}

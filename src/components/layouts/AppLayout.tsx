@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { Heart, Bookmark } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useSafeArea } from '@/hooks/useSafeArea';
 
 interface AppLayoutProps {
   children?: React.ReactNode;
@@ -27,6 +28,7 @@ const LikedTab = () => <LikedHome />;
 const VideosTab = () => {
   const [isDarkBackground, setIsDarkBackground] = React.useState(true);
   const [showProfileCard, setShowProfileCard] = React.useState(false);
+  const safeAreaInsets = useSafeArea();
   const buttonRef = React.useRef<HTMLDivElement>(null);
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
   const profileCardRef = React.useRef<HTMLDivElement>(null);
@@ -311,7 +313,7 @@ const VideosTab = () => {
         }}
       >
         {/* First Video/Image */}
-        <div className="relative w-full h-screen snap-start">
+        <div className="relative w-full h-full snap-start">
         <Image
           src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1080&h=1920&fit=crop"
           alt="Delicious food"
@@ -326,7 +328,7 @@ const VideosTab = () => {
           ref={buttonRef}
           className="absolute right-4 flex flex-col items-center gap-6 z-10 transition-colors duration-300"
           style={{
-            bottom: 'calc(8rem + var(--safe-area-inset-bottom))',
+            bottom: `calc(8rem + ${Math.max(safeAreaInsets.bottom, 24)}px)`,
           }}
         >
           {/* Like Button */}
@@ -398,7 +400,7 @@ const VideosTab = () => {
         <div 
           className="absolute left-0 right-0 px-5"
           style={{
-            bottom: 'calc(5rem + var(--safe-area-inset-bottom))',
+            bottom: `calc(5rem + ${Math.max(safeAreaInsets.bottom, 24)}px)`,
             paddingBottom: '1.5rem',
           }}
         >
@@ -447,7 +449,7 @@ const VideosTab = () => {
         </div>
 
         {/* Second Video/Image */}
-        <div className="relative w-full h-screen snap-start bg-gradient-to-br from-orange-400 to-red-500">
+        <div className="relative w-full h-full snap-start bg-gradient-to-br from-orange-400 to-red-500">
           <Image
             src="https://images.unsplash.com/photo-1513104890138-7c749659a591?w=1080&h=1920&fit=crop"
             alt="Pizza making process"
@@ -459,7 +461,7 @@ const VideosTab = () => {
           {/* Action Buttons - Right Side */}
           <div className="absolute right-4 flex flex-col items-center gap-6 z-10 transition-colors duration-300"
             style={{
-              bottom: 'calc(8rem + var(--safe-area-inset-bottom))',
+              bottom: 'calc(8rem + ${Math.max(safeAreaInsets.bottom, 24)}px)',
             }}
           >
             {/* Like Button */}
@@ -501,7 +503,7 @@ const VideosTab = () => {
           <div
             className="absolute left-0 right-0 px-5"
             style={{
-              bottom: 'calc(5rem + var(--safe-area-inset-bottom))',
+              bottom: 'calc(5rem + ${Math.max(safeAreaInsets.bottom, 24)}px)',
               paddingBottom: '1.5rem',
             }}
           >
@@ -550,7 +552,7 @@ const VideosTab = () => {
         </div>
 
         {/* Third Video/Image */}
-        <div className="relative w-full h-screen snap-start">
+        <div className="relative w-full h-full snap-start">
           <Image
             src="https://images.unsplash.com/photo-1551782450-a2132b4ba21d?w=1080&h=1920&fit=crop"
             alt="Burger preparation"
@@ -562,7 +564,7 @@ const VideosTab = () => {
           {/* Action Buttons - Right Side */}
           <div className="absolute right-4 flex flex-col items-center gap-6 z-10 transition-colors duration-300"
             style={{
-              bottom: 'calc(8rem + var(--safe-area-inset-bottom))',
+              bottom: 'calc(8rem + ${Math.max(safeAreaInsets.bottom, 24)}px)',
             }}
           >
             {/* Like Button */}
@@ -604,7 +606,7 @@ const VideosTab = () => {
           <div
             className="absolute left-0 right-0 px-5"
             style={{
-              bottom: 'calc(5rem + var(--safe-area-inset-bottom))',
+              bottom: 'calc(5rem + ${Math.max(safeAreaInsets.bottom, 24)}px)',
               paddingBottom: '1.5rem',
             }}
           >
@@ -660,6 +662,7 @@ const ProfileTab = () => <ProfileOverview />;
 
 export function AppLayout({ children, className }: AppLayoutProps) {
   const [activeTab, setActiveTab] = React.useState('discover');
+  const safeAreaInsets = useSafeArea();
 
   const handleTabChange = React.useCallback((tabId: string) => {
     setActiveTab(tabId);
@@ -687,12 +690,15 @@ export function AppLayout({ children, className }: AppLayoutProps) {
       {/* Main content area with bottom padding for floating navigation */}
       <main
         className={cn(
-          activeTab === 'map' || activeTab === 'videos' ? "h-screen" : ""
+          activeTab === 'map' || activeTab === 'videos' ? "" : ""
         )}
         style={{
+          height: activeTab === 'map' || activeTab === 'videos' 
+            ? `calc(100vh - 8rem - ${Math.max(safeAreaInsets.bottom, 24)}px)` 
+            : 'auto',
           paddingBottom: activeTab === 'map' || activeTab === 'videos' 
             ? '0' 
-            : 'calc(8rem + var(--safe-area-inset-bottom))'
+            : `calc(8rem + ${Math.max(safeAreaInsets.bottom, 24)}px)`
         }}
       >
         <AnimatePresence mode="wait">
@@ -705,10 +711,7 @@ export function AppLayout({ children, className }: AppLayoutProps) {
               duration: 0.15,
               ease: "easeOut",
             }}
-            className={cn(
-              "h-full",
-              (activeTab === 'map' || activeTab === 'videos') ? "h-screen" : ""
-            )}
+            className="h-full"
           >
             {children || renderActiveComponent()}
           </motion.div>
