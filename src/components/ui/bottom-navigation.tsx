@@ -82,8 +82,25 @@ export function BottomNavigation({
 
   // Snap to nearest tab center based on last pointer x
   const handleRelease = React.useCallback((event?: MouseEvent | TouchEvent | PointerEvent) => {
-    const clientXFromEvent = event ? ('touches' in event ? event.touches[0]?.clientX : (event as MouseEvent).clientX) : undefined;
-    const x = clientXFromEvent ?? dragX;
+    // Robustly read the last known x position
+    let x: number | null = null;
+    if (event) {
+      const anyEvt = event as any;
+      if (anyEvt.changedTouches && anyEvt.changedTouches.length > 0) {
+        x = anyEvt.changedTouches[0].clientX as number;
+      } else if (anyEvt.touches && anyEvt.touches.length > 0) {
+        x = anyEvt.touches[0].clientX as number;
+      } else if (typeof anyEvt.clientX === 'number') {
+        x = anyEvt.clientX as number;
+      }
+    }
+    if (x == null) x = dragX ?? null;
+    if (x == null) {
+      const containerBounds = containerRef.current?.getBoundingClientRect();
+      if (containerBounds) {
+        x = containerBounds.left + (pillLayout.left + (pillLayout.width || 0) / 2);
+      }
+    }
     if (x == null) return;
     let nearestId: string | null = null;
     let nearestDistance = Number.POSITIVE_INFINITY;
@@ -101,6 +118,8 @@ export function BottomNavigation({
     if (nearestId && nearestId !== activeTab) {
       onTabChange(nearestId);
     }
+    // Clear dragX so future releases don't use stale coordinates
+    setDragX(null);
   }, [activeTab, dragX, onTabChange]);
   
   // Compute pill layout and update state on mount and whenever dependencies change
@@ -267,15 +286,15 @@ export function BottomNavigation({
               handleDrag(e.nativeEvent);
             }
           }}
-          onPointerUp={(e) => { setIsDragging(false); handleRelease(e.nativeEvent); }}
-          onPointerCancel={(e) => { setIsDragging(false); handleRelease(e.nativeEvent); }}
+          onPointerUp={(e) => { handleRelease(e.nativeEvent); setIsDragging(false); }}
+          onPointerCancel={(e) => { handleRelease(e.nativeEvent); setIsDragging(false); }}
           onTouchStart={(e) => { setIsDragging(true); handleDrag(e.nativeEvent); }}
           onTouchMove={(e) => {
             if (isDragging) {
               handleDrag(e.nativeEvent);
             }
           }}
-          onTouchEnd={(e) => { setIsDragging(false); handleRelease(e.nativeEvent); }}
+          onTouchEnd={(e) => { handleRelease(e.nativeEvent); setIsDragging(false); }}
         >
           {/* Floating pill that follows pointer and expands while dragging */}
           <motion.span
