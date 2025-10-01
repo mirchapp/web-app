@@ -1,28 +1,38 @@
 'use client';
 
 import * as React from 'react';
-import { 
-  MapIcon as MapSolidIcon, 
-  MapPinIcon as MapPinSolidIcon, 
-  HeartIcon as HeartSolidIcon, 
-  VideoCameraIcon as VideoCameraSolidIcon, 
-  UserCircleIcon as UserSolidIcon 
+import {
+  MapIcon as MapSolidIcon,
+  MapPinIcon as MapPinSolidIcon,
+  HeartIcon as HeartSolidIcon,
+  VideoCameraIcon as VideoCameraSolidIcon,
+  UserCircleIcon as UserSolidIcon,
 } from '@heroicons/react/24/solid';
+import {
+  MapIcon,
+  MapPinIcon,
+  HeartIcon,
+  VideoCameraIcon,
+  UserCircleIcon,
+} from '@heroicons/react/24/outline';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 interface Tab {
   id: string;
   label: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: {
+    filled: React.ComponentType<{ className?: string }>;
+    outline: React.ComponentType<{ className?: string }>;
+  };
 }
 
 const tabs: Tab[] = [
-  { id: 'discover', label: 'Find', icon: MapSolidIcon },
-  { id: 'map', label: 'Map', icon: MapPinSolidIcon },
-  { id: 'liked', label: 'Liked', icon: HeartSolidIcon },
-  { id: 'videos', label: 'Videos', icon: VideoCameraSolidIcon },
-  { id: 'profile', label: 'Profile', icon: UserSolidIcon },
+  { id: 'discover', label: 'Find', icon: { filled: MapSolidIcon, outline: MapIcon } },
+  { id: 'map', label: 'Map', icon: { filled: MapPinSolidIcon, outline: MapPinIcon } },
+  { id: 'liked', label: 'Liked', icon: { filled: HeartSolidIcon, outline: HeartIcon } },
+  { id: 'videos', label: 'Videos', icon: { filled: VideoCameraSolidIcon, outline: VideoCameraIcon } },
+  { id: 'profile', label: 'Profile', icon: { filled: UserSolidIcon, outline: UserCircleIcon } },
 ];
 
 interface BottomNavigationProps {
@@ -54,11 +64,11 @@ export function BottomNavigation({
         style={{
           backdropFilter: 'blur(5px) saturate(140%)',
           WebkitBackdropFilter: 'blur(5px) saturate(140%)',
-          boxShadow: '0 16px 32px rgba(15,23,42,0.08)',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
         }}
         className={cn(
           "relative w-full max-w-md mx-auto pointer-events-auto overflow-hidden",
-          "rounded-[2.15rem]",
+          "rounded-[1.5rem] sm:rounded-[1.75rem] md:rounded-[2rem]",
           className
         )}
       >
@@ -74,25 +84,24 @@ export function BottomNavigation({
         <div
           className="absolute inset-0 rounded-[2.5rem] pointer-events-none"
           style={{
-            border: '1px solid rgba(255,255,255,0.22)',
-            background: 'linear-gradient(180deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.06) 55%, transparent 100%)',
-            boxShadow: '0 9px 22px rgba(15,23,42,0.04)',
+            border: '1px solid rgba(255,255,255,0.16)',
+            background: 'linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.04) 60%, transparent 100%)',
           }}
         />
         <div
           className="absolute inset-[1px] rounded-[2.4rem] pointer-events-none"
           style={{
-            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -1px 0 rgba(15,23,42,0.03)',
+            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -1px 0 rgba(15,23,42,0.03)',
             mixBlendMode: 'screen',
-            opacity: 0.28,
+            opacity: 0.24,
           }}
         />
         <div
           className="absolute inset-[4px] rounded-[2rem] pointer-events-none"
           style={{
             borderRadius: '2rem',
-            background: 'radial-gradient(circle at 18% 15%, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.06) 30%, transparent 55%)',
-            opacity: 0.22,
+            background: 'radial-gradient(circle at 18% 14%, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 28%, transparent 52%)',
+            opacity: 0.2,
             mixBlendMode: 'screen',
           }}
         />
@@ -119,15 +128,15 @@ export function BottomNavigation({
         <div
           className="absolute inset-[6px] rounded-[1.9rem] pointer-events-none"
           style={{
-            background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 50%, transparent 100%)',
-            opacity: 0.14,
-          }}
+             background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.04) 50%, transparent 100%)',
+             opacity: 0.12,
+           }}
         />
         <div
           className="absolute inset-[6px] rounded-[1.9rem] pointer-events-none"
           style={{
-            background: `radial-gradient(ellipse at 52% 10%, ${tint.glow} 0%, transparent 50%)`,
-            opacity: 0.12,
+            background: `radial-gradient(ellipse at 52% 10%, ${tint.glow} 0%, transparent 48%)`,
+            opacity: 0.1,
             mixBlendMode: 'screen',
             transition: 'background 220ms ease-out',
           }}
@@ -144,7 +153,6 @@ export function BottomNavigation({
         {/* Tab container */}
         <div className="relative flex items-center justify-between px-4 py-1.5">
           {tabs.map((tab) => {
-            const Icon = tab.icon;
             const isActive = activeTab === tab.id;
             
             return (
@@ -175,21 +183,27 @@ export function BottomNavigation({
                     style={{
                       width: isActive ? '4.4rem' : '4.6rem',
                       background: isActive
-                        ? `linear-gradient(180deg, rgba(107,114,128,0.24) 0%, rgba(107,114,128,0.18) 50%, rgba(148,163,184,0.12) 100%)`
+                        ? `radial-gradient(circle at 50% 35%, rgba(255,255,255,0.2) 0%, rgba(148,163,184,0.18) 50%, rgba(107,114,128,0.14) 100%)`
                         : 'transparent',
                       boxShadow: 'none',
                     }}
                   />
                 </motion.div>
                 {/* Icon */}
-                <Icon 
-                  className={cn(
-                    "relative z-10 h-[26px] w-[26px] transition-all duration-200",
-                    isActive 
-                      ? "text-primary drop-shadow-[0_6px_12px_rgba(59,130,246,0.35)]"
-                      : "text-black/80 dark:text-white/80"
-                  )}
-                />
+                <motion.div
+                  className="relative z-10"
+                  animate={{ scale: isActive ? 1.14 : 1 }}
+                  transition={{ type: "spring", stiffness: 420, damping: 24 }}
+                >
+                  {React.createElement(isActive ? tab.icon.filled : tab.icon.outline, {
+                    className: cn(
+                      "relative z-10 h-[26px] w-[26px] transition-all duration-200",
+                      isActive 
+                        ? "text-primary drop-shadow-[0_6px_12px_rgba(59,130,246,0.35)]"
+                        : "text-[#333333] dark:text-white/80"
+                    ),
+                  })}
+                </motion.div>
                 
                 {/* Label */}
                 <span className={cn(
@@ -197,7 +211,7 @@ export function BottomNavigation({
                   "font-medium leading-tight",
                   isActive 
                     ? "text-primary opacity-100 font-semibold" 
-                    : "text-black/80 dark:text-white/75 opacity-95"
+                    : "text-[#333333]/90 dark:text-white/75 opacity-95"
                 )}>
                   {tab.label}
                 </span>
