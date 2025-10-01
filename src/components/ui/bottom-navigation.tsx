@@ -217,9 +217,9 @@ export function BottomNavigation({
           const elementsAtPoint = document.elementsFromPoint(x, y);
           
           // Find first non-transparent element
-          for (const element of elementsAtPoint) {
-            const styles = window.getComputedStyle(element);
-            let bgColor = styles.backgroundColor;
+        for (const element of elementsAtPoint) {
+          const styles = window.getComputedStyle(element);
+          const bgColor = styles.backgroundColor;
             
             // Parse RGB values
             const rgbMatch = bgColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?/);
@@ -252,7 +252,7 @@ export function BottomNavigation({
           // Fallback to light background
           setIsDarkBackground(false);
         }
-      } catch (e) {
+      } catch {
         // Restore visibility in case of error
         if (containerRef.current) {
           containerRef.current.style.pointerEvents = '';

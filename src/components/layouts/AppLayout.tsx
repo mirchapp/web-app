@@ -9,7 +9,6 @@ import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { Heart, Bookmark } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 
 interface AppLayoutProps {
   children?: React.ReactNode;
@@ -82,7 +81,7 @@ const VideosTab = () => {
         if (found) {
           setIsDarkBackground(totalLuminance < 0.5);
         }
-      } catch (e) {
+      } catch {
         if (buttonRef.current) {
           buttonRef.current.style.visibility = '';
         }
