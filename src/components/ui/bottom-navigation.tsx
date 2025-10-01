@@ -82,16 +82,15 @@ export function BottomNavigation({
 
   // Snap to nearest tab center based on last pointer x
   const handleRelease = React.useCallback((event?: MouseEvent | TouchEvent | PointerEvent) => {
-    // Robustly read the last known x position
+    // Robustly read the last known x position without using 'any'
     let x: number | null = null;
     if (event) {
-      const anyEvt = event as any;
-      if (anyEvt.changedTouches && anyEvt.changedTouches.length > 0) {
-        x = anyEvt.changedTouches[0].clientX as number;
-      } else if (anyEvt.touches && anyEvt.touches.length > 0) {
-        x = anyEvt.touches[0].clientX as number;
-      } else if (typeof anyEvt.clientX === 'number') {
-        x = anyEvt.clientX as number;
+      if ('changedTouches' in event && event.changedTouches && event.changedTouches.length > 0) {
+        x = event.changedTouches[0].clientX;
+      } else if ('touches' in event && event.touches && event.touches.length > 0) {
+        x = event.touches[0].clientX;
+      } else if ('clientX' in event && typeof event.clientX === 'number') {
+        x = (event as MouseEvent | PointerEvent).clientX;
       }
     }
     if (x == null) x = dragX ?? null;
@@ -120,12 +119,13 @@ export function BottomNavigation({
     }
     // Clear dragX so future releases don't use stale coordinates
     setDragX(null);
-  }, [activeTab, dragX, onTabChange]);
+  }, [activeTab, dragX, onTabChange, pillLayout.left, pillLayout.width]);
   
   // Compute pill layout and update state on mount and whenever dependencies change
   React.useLayoutEffect(() => {
     const compute = () => {
-      const containerBounds = containerRef.current?.getBoundingClientRect();
+      const containerEl = containerRef.current;
+      const containerBounds = containerEl?.getBoundingClientRect();
       const activeEl = tabRefs.current[activeTab];
       const top = isDragging ? -10 : 4;
       const bottom = isDragging ? -10 : 4;
@@ -156,12 +156,13 @@ export function BottomNavigation({
     // Recompute on resize
     const onResize = () => compute();
     window.addEventListener('resize', onResize);
-    const observer = containerRef.current ? new ResizeObserver(() => compute()) : null;
-    if (observer && containerRef.current) observer.observe(containerRef.current);
+    const containerElForObserver = containerRef.current;
+    const observer = containerElForObserver ? new ResizeObserver(() => compute()) : null;
+    if (observer && containerElForObserver) observer.observe(containerElForObserver);
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener('resize', onResize);
-      if (observer && containerRef.current) observer.disconnect();
+      if (observer && containerElForObserver) observer.disconnect();
     };
   }, [activeTab, isDragging, dragX]);
   return (
@@ -306,9 +307,9 @@ export function BottomNavigation({
               width: pillLayout.width,
             }}
             style={{
-              background: 'rgba(138, 43, 226, 0.12)',
-              border: '1px solid rgba(167, 139, 250, 0.18)',
-              boxShadow: '0 8px 24px rgba(138, 43, 226, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.25)',
+              background: 'color-mix(in oklab, var(--primary) 16%, transparent)',
+              border: '1px solid color-mix(in oklab, var(--primary) 28%, transparent)',
+              boxShadow: '0 8px 24px color-mix(in oklab, var(--primary) 22%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.25)',
               backdropFilter: 'blur(12px)',
               WebkitBackdropFilter: 'blur(12px)',
             }}
@@ -355,7 +356,7 @@ export function BottomNavigation({
                     className: cn(
                       "relative z-10 h-[26px] w-[26px] transition-all duration-200",
                       isActive 
-                        ? "text-purple-600 drop-shadow-[0_4px_10px_rgba(167,139,250,0.4)]"
+                        ? "text-primary drop-shadow-[0_4px_10px_color-mix(in_oklab,var(--primary)_40%,transparent)]"
                         : "text-[#333333] dark:text-white/80"
                     ),
                   })}
@@ -366,7 +367,7 @@ export function BottomNavigation({
                   "relative z-10 text-[11px] mt-1 block transition-all duration-200",
                   "leading-tight",
                   isActive 
-                    ? "text-purple-600 opacity-100 font-medium" 
+                    ? "text-primary opacity-100 font-medium" 
                     : "text-[#333333]/90 dark:text-white/75 opacity-95 font-normal"
                 )}>
                   {tab.label}
