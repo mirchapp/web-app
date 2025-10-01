@@ -8,8 +8,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 export function ProfileOverview() {
   return (
-    <div 
-      className="container mx-auto px-4 pt-20"
+    <div
+      className="container mx-auto px-4 pt-12"
       style={{
         paddingBottom: 'calc(7rem + var(--safe-area-inset-bottom))',
       }}

@@ -29,38 +29,42 @@ const VideosTab = () => {
   const [showProfileCard, setShowProfileCard] = React.useState(false);
   const buttonRef = React.useRef<HTMLDivElement>(null);
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+  const profileCardRef = React.useRef<HTMLDivElement>(null);
+  const touchStartX = React.useRef<number>(0);
+  const touchCurrentX = React.useRef<number>(0);
+  const [dragOffset, setDragOffset] = React.useState<number>(0);
 
   React.useEffect(() => {
     const detectBackground = () => {
       if (!buttonRef.current) return;
-      
+
       const rect = buttonRef.current.getBoundingClientRect();
-      
+
       try {
         // Temporarily hide buttons to sample what's behind
         const originalVisibility = buttonRef.current.style.visibility;
         buttonRef.current.style.visibility = 'hidden';
-        
+
         // Sample point at button position
         const x = rect.left + rect.width / 2;
         const y = rect.top + rect.height / 2;
-        
+
         const elementsAtPoint = document.elementsFromPoint(x, y);
-        
+
         let totalLuminance = 0;
         let found = false;
-        
+
         for (const element of elementsAtPoint) {
           const styles = window.getComputedStyle(element);
           const bgColor = styles.backgroundColor;
-          
+
           const rgbMatch = bgColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?/);
           if (rgbMatch) {
             const r = parseInt(rgbMatch[1]);
             const g = parseInt(rgbMatch[2]);
             const b = parseInt(rgbMatch[3]);
             const a = rgbMatch[4] ? parseFloat(rgbMatch[4]) : 1;
-            
+
             if (a > 0.1) {
               const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
               totalLuminance = luminance;
@@ -69,9 +73,9 @@ const VideosTab = () => {
             }
           }
         }
-        
+
         buttonRef.current.style.visibility = originalVisibility;
-        
+
         if (found) {
           setIsDarkBackground(totalLuminance < 0.5);
         }
@@ -82,14 +86,43 @@ const VideosTab = () => {
         setIsDarkBackground(true);
       }
     };
-    
+
     detectBackground();
     const interval = setInterval(detectBackground, 100);
-    
+
     return () => {
       clearInterval(interval);
     };
   }, []);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchCurrentX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchCurrentX.current = e.touches[0].clientX;
+    const diff = touchCurrentX.current - touchStartX.current;
+
+    // Only allow swiping to the right (closing)
+    if (diff > 0) {
+      setDragOffset(diff);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    const diff = touchCurrentX.current - touchStartX.current;
+
+    // If swiped more than 100px to the right, close the card
+    if (diff > 100) {
+      setShowProfileCard(false);
+    }
+
+    // Reset drag offset
+    setDragOffset(0);
+    touchStartX.current = 0;
+    touchCurrentX.current = 0;
+  };
 
   return (
     <div className="fixed inset-0 bg-black">
@@ -104,31 +137,34 @@ const VideosTab = () => {
             onClick={() => setShowProfileCard(false)}
           >
             <motion.div
+              ref={profileCardRef}
               initial={{ x: '100%' }}
-              animate={{ x: 0 }}
+              animate={{ x: dragOffset }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
               className="absolute right-0 top-0 h-full w-full max-w-md mx-auto bg-background shadow-2xl"
               onClick={(e) => e.stopPropagation()}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              style={{ x: dragOffset }}
             >
               {/* Profile Card Content */}
-              <div className="h-full overflow-y-auto">
-                {/* Back Button */}
-                <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/20 p-4">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setShowProfileCard(false)}
-                    className="h-8 w-8 rounded-full hover:bg-muted/50"
-                  >
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                    </svg>
-                  </Button>
-                </div>
-                
-                <div 
-                  className="container mx-auto px-4 pt-2"
+              <div className="h-full overflow-y-auto relative">
+                {/* Back Button - Absolute Positioning */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowProfileCard(false)}
+                  className="absolute top-4 left-4 z-20 h-8 w-8 rounded-full hover:bg-muted/50 bg-background/80 backdrop-blur-sm"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </Button>
+
+                <div
+                  className="container mx-auto px-4 pt-12"
                   style={{
                     paddingBottom: 'calc(7rem + var(--safe-area-inset-bottom))',
                   }}
@@ -371,7 +407,10 @@ const VideosTab = () => {
           }}
         >
           <div className="flex items-start gap-3">
-            <div className="relative h-11 w-11 rounded-full overflow-hidden ring-2 ring-white/50 flex-shrink-0">
+            <button
+              onClick={() => setShowProfileCard(true)}
+              className="relative h-11 w-11 rounded-full overflow-hidden ring-2 ring-white/50 flex-shrink-0 hover:ring-white/70 transition-all duration-200 cursor-pointer"
+            >
               <Image
                 src="/faizaan.jpeg"
                 alt="Faizaan Qureshi"
@@ -379,7 +418,7 @@ const VideosTab = () => {
                 className="object-cover"
                 unoptimized
               />
-            </div>
+            </button>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
                   <button 
@@ -420,7 +459,7 @@ const VideosTab = () => {
             className="object-cover"
             unoptimized
           />
-          
+
           {/* Action Buttons - Right Side */}
           <div className="absolute right-4 flex flex-col items-center gap-6 z-10 transition-colors duration-300"
             style={{
@@ -436,14 +475,14 @@ const VideosTab = () => {
               >
                 <Heart className="h-6 w-6 text-white transition-colors duration-300" />
               </Button>
-              <span 
+              <span
                 className="text-xs font-semibold text-white transition-colors duration-300"
                 style={{ textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}
               >
                 1.8k
               </span>
             </div>
-            
+
             {/* Save Button */}
             <div className="flex flex-col items-center gap-1">
               <Button
@@ -453,7 +492,7 @@ const VideosTab = () => {
               >
                 <Bookmark className="h-6 w-6 text-white transition-colors duration-300" />
               </Button>
-              <span 
+              <span
                 className="text-xs font-semibold text-white transition-colors duration-300"
                 style={{ textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}
               >
@@ -463,7 +502,7 @@ const VideosTab = () => {
           </div>
 
           {/* Creator Info - Bottom Overlay */}
-          <div 
+          <div
             className="absolute left-0 right-0 px-5"
             style={{
               bottom: 'calc(5rem + var(--safe-area-inset-bottom))',
@@ -471,7 +510,10 @@ const VideosTab = () => {
             }}
           >
             <div className="flex items-start gap-3">
-              <div className="relative h-11 w-11 rounded-full overflow-hidden ring-2 ring-white/50 flex-shrink-0">
+              <button
+                onClick={() => setShowProfileCard(true)}
+                className="relative h-11 w-11 rounded-full overflow-hidden ring-2 ring-white/50 flex-shrink-0 hover:ring-white/70 transition-all duration-200 cursor-pointer"
+              >
                 <Image
                   src="/faizaan.jpeg"
                   alt="Faizaan Qureshi"
@@ -479,7 +521,7 @@ const VideosTab = () => {
                   className="object-cover"
                   unoptimized
                 />
-              </div>
+              </button>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <button 
@@ -520,7 +562,7 @@ const VideosTab = () => {
             className="object-cover"
             unoptimized
           />
-          
+
           {/* Action Buttons - Right Side */}
           <div className="absolute right-4 flex flex-col items-center gap-6 z-10 transition-colors duration-300"
             style={{
@@ -536,14 +578,14 @@ const VideosTab = () => {
               >
                 <Heart className="h-6 w-6 text-white transition-colors duration-300" />
               </Button>
-              <span 
+              <span
                 className="text-xs font-semibold text-white transition-colors duration-300"
                 style={{ textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}
               >
                 3.2k
               </span>
             </div>
-            
+
             {/* Save Button */}
             <div className="flex flex-col items-center gap-1">
               <Button
@@ -553,7 +595,7 @@ const VideosTab = () => {
               >
                 <Bookmark className="h-6 w-6 text-white transition-colors duration-300" />
               </Button>
-              <span 
+              <span
                 className="text-xs font-semibold text-white transition-colors duration-300"
                 style={{ textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}
               >
@@ -563,7 +605,7 @@ const VideosTab = () => {
           </div>
 
           {/* Creator Info - Bottom Overlay */}
-          <div 
+          <div
             className="absolute left-0 right-0 px-5"
             style={{
               bottom: 'calc(5rem + var(--safe-area-inset-bottom))',
@@ -571,7 +613,10 @@ const VideosTab = () => {
             }}
           >
             <div className="flex items-start gap-3">
-              <div className="relative h-11 w-11 rounded-full overflow-hidden ring-2 ring-white/50 flex-shrink-0">
+              <button
+                onClick={() => setShowProfileCard(true)}
+                className="relative h-11 w-11 rounded-full overflow-hidden ring-2 ring-white/50 flex-shrink-0 hover:ring-white/70 transition-all duration-200 cursor-pointer"
+              >
                 <Image
                   src="/faizaan.jpeg"
                   alt="Faizaan Qureshi"
@@ -579,7 +624,7 @@ const VideosTab = () => {
                   className="object-cover"
                   unoptimized
                 />
-              </div>
+              </button>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <button 
