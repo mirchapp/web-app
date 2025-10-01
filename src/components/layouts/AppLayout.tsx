@@ -643,7 +643,7 @@ export function AppLayout({ children, className }: AppLayoutProps) {
         )}
         style={
           activeTab !== 'map' && activeTab !== 'videos' 
-            ? { paddingBottom: 'calc(6rem + var(--safe-area-inset-bottom))' }
+            ? { paddingBottom: 'calc(7rem + var(--safe-area-inset-bottom))' }
             : undefined
         }
       >
