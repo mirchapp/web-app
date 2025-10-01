@@ -311,7 +311,7 @@ export function BottomNavigation({
           style={{
             background: isDarkBackground 
               ? 'rgba(0, 0, 0, 0.4)' 
-              : 'rgba(255, 255, 255, 0.6)',
+              : 'rgba(255, 255, 255, 0.75)',
           }}
         />
         {/* Dock-style edge system */}
@@ -320,10 +320,10 @@ export function BottomNavigation({
           style={{
             border: isDarkBackground 
               ? '1px solid rgba(255,255,255,0.15)' 
-              : '1px solid rgba(0,0,0,0.1)',
+              : '1px solid rgba(255,255,255,0.4)',
             background: isDarkBackground
               ? 'linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.02) 65%, transparent 100%)'
-              : 'linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.1) 65%, transparent 100%)',
+              : 'linear-gradient(180deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.2) 65%, transparent 100%)',
             mixBlendMode: 'normal',
           }}
         />
@@ -511,7 +511,7 @@ export function BottomNavigation({
                           : "text-primary drop-shadow-[0_4px_10px_color-mix(in_oklab,var(--primary)_40%,transparent)]"
                         : isDarkBackground 
                           ? "text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]" 
-                          : "text-gray-800 drop-shadow-[0_1px_2px_rgba(255,255,255,0.5)]"
+                          : "text-gray-900 drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)]"
                     ),
                   })}
                 </motion.div>
@@ -527,7 +527,7 @@ export function BottomNavigation({
                         : "text-primary opacity-100 font-medium"
                       : isDarkBackground
                         ? "text-white/95 opacity-95 font-normal drop-shadow-[0_1px_3px_rgba(0,0,0,0.4)]"
-                        : "text-gray-800/95 opacity-95 font-normal drop-shadow-[0_1px_2px_rgba(255,255,255,0.6)]"
+                        : "text-gray-900/95 opacity-95 font-normal drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)]"
                   )}
                 >
                   {tab.label}
