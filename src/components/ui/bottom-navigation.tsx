@@ -277,10 +277,10 @@ export function BottomNavigation({
   }, [activeTab]);
 
   return (
-    <div 
-      className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none px-4"
+    <div
+      className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none px-4 pb-2"
       style={{
-        paddingBottom: 'var(--safe-area-inset-bottom)',
+        paddingBottom: 'calc(0.5rem + var(--safe-area-inset-bottom))',
       }}
     >
       <motion.nav 
