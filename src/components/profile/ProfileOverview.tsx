@@ -2,10 +2,9 @@
 
 import * as React from 'react';
 import Image from 'next/image';
-import { MapPin, Calendar, Settings } from 'lucide-react';
+import { MapPin, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { usePWA } from '@/hooks/usePWA';
 
 export function ProfileOverview() {
   return (

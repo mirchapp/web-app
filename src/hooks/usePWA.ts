@@ -7,8 +7,9 @@ export function usePWA() {
 
   useEffect(() => {
     // Detect if running as PWA
+    const nav = window.navigator as Navigator & { standalone?: boolean };
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
-                        (window.navigator as any).standalone === true;
+                        nav.standalone === true;
     setIsPWA(isStandalone);
   }, []);
 

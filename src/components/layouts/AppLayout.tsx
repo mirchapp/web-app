@@ -11,7 +11,6 @@ import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { Heart, Bookmark } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { usePWA } from '@/hooks/usePWA';
 
 interface AppLayoutProps {
   children?: React.ReactNode;
@@ -25,7 +24,7 @@ const MapTab = () => <MapView />;
 
 const LikedTab = () => <LikedHome />;
 
-const VideosTab = ({ isPWA }: { isPWA: boolean }) => {
+const VideosTab = () => {
   const [isDarkBackground, setIsDarkBackground] = React.useState(true);
   const [showProfileCard, setShowProfileCard] = React.useState(false);
   const buttonRef = React.useRef<HTMLDivElement>(null);
@@ -661,7 +660,6 @@ const ProfileTab = () => <ProfileOverview />;
 
 export function AppLayout({ children, className }: AppLayoutProps) {
   const [activeTab, setActiveTab] = React.useState('discover');
-  const isPWA = usePWA();
 
   const handleTabChange = React.useCallback((tabId: string) => {
     setActiveTab(tabId);
@@ -676,7 +674,7 @@ export function AppLayout({ children, className }: AppLayoutProps) {
       case 'liked':
         return <LikedTab />;
       case 'videos':
-        return <VideosTab isPWA={isPWA} />;
+        return <VideosTab />;
       case 'profile':
         return <ProfileTab />;
       default:
