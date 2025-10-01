@@ -28,13 +28,53 @@ const LikedTab = () => <LikedHome />;
 const VideosTab = () => {
   const [isDarkBackground, setIsDarkBackground] = React.useState(true);
   const [showProfileCard, setShowProfileCard] = React.useState(false);
+  const [currentVideoIndex, setCurrentVideoIndex] = React.useState(0);
   const safeAreaInsets = useSafeArea();
+
+  const videoData = [
+    {
+      title: "Thai Basil Beef with Cashews",
+      restaurant: "The Spice House",
+      likes: "2.4k"
+    },
+    {
+      title: "Hand-tossed Margherita Pizza",
+      restaurant: "Pizza Corner",
+      likes: "1.8k"
+    },
+    {
+      title: "Gourmet Beef Burger with Fries",
+      restaurant: "Burger Palace",
+      likes: "3.2k"
+    }
+  ];
   const buttonRef = React.useRef<HTMLDivElement>(null);
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
   const profileCardRef = React.useRef<HTMLDivElement>(null);
   const touchStartX = React.useRef<number>(0);
   const touchCurrentX = React.useRef<number>(0);
   const [dragOffset, setDragOffset] = React.useState<number>(0);
+
+  // Track scroll position to update current video
+  React.useEffect(() => {
+    const handleScroll = () => {
+      if (!scrollContainerRef.current) return;
+      
+      const scrollTop = scrollContainerRef.current.scrollTop;
+      const containerHeight = scrollContainerRef.current.clientHeight;
+      const videoIndex = Math.round(scrollTop / containerHeight);
+      
+      if (videoIndex !== currentVideoIndex && videoIndex >= 0 && videoIndex < videoData.length) {
+        setCurrentVideoIndex(videoIndex);
+      }
+    };
+
+    const scrollContainer = scrollContainerRef.current;
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', handleScroll);
+      return () => scrollContainer.removeEventListener('scroll', handleScroll);
+    }
+  }, [currentVideoIndex, videoData.length]);
 
   React.useEffect(() => {
     const detectBackground = () => {
@@ -126,8 +166,137 @@ const VideosTab = () => {
     touchCurrentX.current = 0;
   };
 
+  const renderVideoControls = (index: number) => (
+    <>
+      {/* Action Buttons - Right Side */}
+      <div
+        ref={index === currentVideoIndex ? buttonRef : null}
+        className="absolute right-4 flex flex-col items-center gap-6 z-10 transition-colors duration-300"
+        style={{
+          bottom: `calc(8rem + ${Math.max(safeAreaInsets.bottom, 24)}px)`,
+        }}
+      >
+        {/* Like Button */}
+        <div className="flex flex-col items-center gap-1">
+          <Button
+            size="icon"
+            variant="ghost"
+            className={cn(
+              "h-12 w-12 rounded-full backdrop-blur-sm transition-all duration-300",
+              isDarkBackground
+                ? "bg-black/30 hover:bg-black/40"
+                : "bg-white/30 hover:bg-white/40"
+            )}
+          >
+            <Heart className={cn(
+              "h-6 w-6 transition-colors duration-300",
+              isDarkBackground ? "text-white" : "text-gray-800"
+            )} />
+          </Button>
+          <span
+            className={cn(
+              "text-xs font-semibold transition-colors duration-300",
+              isDarkBackground ? "text-white" : "text-gray-800"
+            )}
+            style={{
+              textShadow: isDarkBackground
+                ? '0 1px 4px rgba(0,0,0,0.8)'
+                : '0 1px 2px rgba(255,255,255,0.6)'
+            }}
+          >
+            {videoData[index]?.likes}
+          </span>
+        </div>
+
+        {/* Save Button */}
+        <div className="flex flex-col items-center gap-1">
+          <Button
+            size="icon"
+            variant="ghost"
+            className={cn(
+              "h-12 w-12 rounded-full backdrop-blur-sm transition-all duration-300",
+              isDarkBackground
+                ? "bg-black/30 hover:bg-black/40"
+                : "bg-white/30 hover:bg-white/40"
+            )}
+          >
+            <Bookmark className={cn(
+              "h-6 w-6 transition-colors duration-300",
+              isDarkBackground ? "text-white" : "text-gray-800"
+            )} />
+          </Button>
+          <span
+            className={cn(
+              "text-xs font-semibold transition-colors duration-300",
+              isDarkBackground ? "text-white" : "text-gray-800"
+            )}
+            style={{
+              textShadow: isDarkBackground
+                ? '0 1px 4px rgba(0,0,0,0.8)'
+                : '0 1px 2px rgba(255,255,255,0.6)'
+            }}
+          >
+            Save
+          </span>
+        </div>
+      </div>
+
+      {/* Creator Info - Bottom Overlay */}
+      <div
+        className="absolute left-0 right-0 px-5 z-10"
+        style={{
+          bottom: `calc(5rem + ${Math.max(safeAreaInsets.bottom, 24)}px)`,
+          paddingBottom: '1.5rem',
+        }}
+      >
+        <div className="flex items-start gap-3">
+          <button
+            onClick={() => setShowProfileCard(true)}
+            className="relative h-11 w-11 rounded-full overflow-hidden ring-2 ring-white/50 flex-shrink-0 hover:ring-white/70 transition-all duration-200 cursor-pointer"
+          >
+            <Image
+              src="/faizaan.jpeg"
+              alt="Faizaan Qureshi"
+              fill
+              className="object-cover"
+              unoptimized
+            />
+          </button>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+                <button
+                  onClick={() => setShowProfileCard(true)}
+                  className="text-sm font-semibold text-white hover:text-white/80 transition-colors duration-200"
+                  style={{ textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}
+                >
+                Faizaan Qureshi
+                </button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 px-3 rounded-full border border-white/60 bg-transparent text-white hover:bg-white/20 hover:text-white hover:border-white text-xs font-medium"
+                style={{ textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}
+              >
+                Follow
+              </Button>
+            </div>
+            <div className="space-y-0.5">
+              <p className="text-sm text-white/90 font-medium" style={{ textShadow: '0 1px 6px rgba(0,0,0,0.7)' }}>
+                {videoData[index]?.restaurant}
+              </p>
+              <p className="text-xs text-white/75" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.7)' }}>
+                {videoData[index]?.title}
+              </p>
+              </div>
+            </div>
+          </div>
+        </div>
+    </>
+  );
+
   return (
     <div className="fixed inset-0 bg-black">
+
       {/* Profile Card Overlay */}
       <AnimatePresence>
         {showProfileCard && (
@@ -305,147 +474,25 @@ const VideosTab = () => {
       </AnimatePresence>
 
       {/* Scrollable Container */}
-      <div 
+      <div
         ref={scrollContainerRef}
-        className="h-full overflow-y-scroll snap-y snap-mandatory hide-scrollbar"
+        className="h-full overflow-y-auto snap-y snap-mandatory hide-scrollbar"
         style={{
           WebkitOverflowScrolling: 'touch',
+          scrollBehavior: 'smooth',
         }}
       >
         {/* First Video/Image */}
         <div className="relative w-full h-full snap-start">
-        <Image
-          src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1080&h=1920&fit=crop"
-          alt="Delicious food"
-          fill
-          className="object-cover"
-          unoptimized
-          priority
-        />
-        
-        {/* Action Buttons - Right Side */}
-        <div 
-          ref={buttonRef}
-          className="absolute right-4 flex flex-col items-center gap-6 z-10 transition-colors duration-300"
-          style={{
-            bottom: `calc(8rem + ${Math.max(safeAreaInsets.bottom, 24)}px)`,
-          }}
-        >
-          {/* Like Button */}
-          <div className="flex flex-col items-center gap-1">
-            <Button
-              size="icon"
-              variant="ghost"
-              className={cn(
-                "h-12 w-12 rounded-full backdrop-blur-sm transition-all duration-300",
-                isDarkBackground 
-                  ? "bg-black/30 hover:bg-black/40" 
-                  : "bg-white/30 hover:bg-white/40"
-              )}
-            >
-              <Heart className={cn(
-                "h-6 w-6 transition-colors duration-300",
-                isDarkBackground ? "text-white" : "text-gray-800"
-              )} />
-            </Button>
-            <span 
-              className={cn(
-                "text-xs font-semibold transition-colors duration-300",
-                isDarkBackground ? "text-white" : "text-gray-800"
-              )}
-              style={{ 
-                textShadow: isDarkBackground 
-                  ? '0 1px 4px rgba(0,0,0,0.8)' 
-                  : '0 1px 2px rgba(255,255,255,0.6)' 
-              }}
-            >
-              2.4k
-            </span>
-          </div>
-          
-          {/* Save Button */}
-          <div className="flex flex-col items-center gap-1">
-            <Button
-              size="icon"
-              variant="ghost"
-              className={cn(
-                "h-12 w-12 rounded-full backdrop-blur-sm transition-all duration-300",
-                isDarkBackground 
-                  ? "bg-black/30 hover:bg-black/40" 
-                  : "bg-white/30 hover:bg-white/40"
-              )}
-            >
-              <Bookmark className={cn(
-                "h-6 w-6 transition-colors duration-300",
-                isDarkBackground ? "text-white" : "text-gray-800"
-              )} />
-            </Button>
-            <span 
-              className={cn(
-                "text-xs font-semibold transition-colors duration-300",
-                isDarkBackground ? "text-white" : "text-gray-800"
-              )}
-              style={{ 
-                textShadow: isDarkBackground 
-                  ? '0 1px 4px rgba(0,0,0,0.8)' 
-                  : '0 1px 2px rgba(255,255,255,0.6)' 
-              }}
-            >
-              Save
-            </span>
-          </div>
-        </div>
-
-        {/* Creator Info - Bottom Overlay */}
-        <div 
-          className="absolute left-0 right-0 px-5"
-          style={{
-            bottom: `calc(5rem + ${Math.max(safeAreaInsets.bottom, 24)}px)`,
-            paddingBottom: '1.5rem',
-          }}
-        >
-          <div className="flex items-start gap-3">
-            <button
-              onClick={() => setShowProfileCard(true)}
-              className="relative h-11 w-11 rounded-full overflow-hidden ring-2 ring-white/50 flex-shrink-0 hover:ring-white/70 transition-all duration-200 cursor-pointer"
-            >
-              <Image
-                src="/faizaan.jpeg"
-                alt="Faizaan Qureshi"
-                fill
-                className="object-cover"
-                unoptimized
-              />
-            </button>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                  <button 
-                    onClick={() => setShowProfileCard(true)}
-                    className="text-sm font-semibold text-white hover:text-white/80 transition-colors duration-200"
-                    style={{ textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}
-                  >
-                  Faizaan Qureshi
-                  </button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 px-3 rounded-full border border-white/60 bg-transparent text-white hover:bg-white/20 hover:text-white hover:border-white text-xs font-medium"
-                  style={{ textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}
-                >
-                  Follow
-                </Button>
-              </div>
-              <div className="space-y-0.5">
-                <p className="text-sm text-white/90 font-medium" style={{ textShadow: '0 1px 6px rgba(0,0,0,0.7)' }}>
-                  The Spice House
-                </p>
-                <p className="text-xs text-white/75" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.7)' }}>
-                  Thai Basil Beef with Cashews
-                </p>
-                </div>
-              </div>
-            </div>
-          </div>
+          <Image
+            src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1080&h=1920&fit=crop"
+            alt="Delicious food"
+            fill
+            className="object-cover"
+            unoptimized
+            priority
+          />
+          {renderVideoControls(0)}
         </div>
 
         {/* Second Video/Image */}
@@ -457,98 +504,7 @@ const VideosTab = () => {
             className="object-cover"
             unoptimized
           />
-
-          {/* Action Buttons - Right Side */}
-          <div className="absolute right-4 flex flex-col items-center gap-6 z-10 transition-colors duration-300"
-            style={{
-              bottom: 'calc(8rem + ${Math.max(safeAreaInsets.bottom, 24)}px)',
-            }}
-          >
-            {/* Like Button */}
-            <div className="flex flex-col items-center gap-1">
-              <Button
-                size="icon"
-                variant="ghost"
-                className="h-12 w-12 rounded-full backdrop-blur-sm bg-black/30 hover:bg-black/40 transition-all duration-300"
-              >
-                <Heart className="h-6 w-6 text-white transition-colors duration-300" />
-              </Button>
-              <span
-                className="text-xs font-semibold text-white transition-colors duration-300"
-                style={{ textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}
-              >
-                1.8k
-              </span>
-            </div>
-
-            {/* Save Button */}
-            <div className="flex flex-col items-center gap-1">
-              <Button
-                size="icon"
-                variant="ghost"
-                className="h-12 w-12 rounded-full backdrop-blur-sm bg-black/30 hover:bg-black/40 transition-all duration-300"
-              >
-                <Bookmark className="h-6 w-6 text-white transition-colors duration-300" />
-              </Button>
-              <span
-                className="text-xs font-semibold text-white transition-colors duration-300"
-                style={{ textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}
-              >
-                Save
-              </span>
-            </div>
-          </div>
-
-          {/* Creator Info - Bottom Overlay */}
-          <div
-            className="absolute left-0 right-0 px-5"
-            style={{
-              bottom: 'calc(5rem + ${Math.max(safeAreaInsets.bottom, 24)}px)',
-              paddingBottom: '1.5rem',
-            }}
-          >
-            <div className="flex items-start gap-3">
-              <button
-                onClick={() => setShowProfileCard(true)}
-                className="relative h-11 w-11 rounded-full overflow-hidden ring-2 ring-white/50 flex-shrink-0 hover:ring-white/70 transition-all duration-200 cursor-pointer"
-              >
-                <Image
-                  src="/faizaan.jpeg"
-                  alt="Faizaan Qureshi"
-                  fill
-                  className="object-cover"
-                  unoptimized
-                />
-              </button>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <button 
-                    onClick={() => setShowProfileCard(true)}
-                    className="text-sm font-semibold text-white hover:text-white/80 transition-colors duration-200"
-                    style={{ textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}
-                  >
-                    Faizaan Qureshi
-                  </button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 px-3 rounded-full border border-white/60 bg-transparent text-white hover:bg-white/20 hover:text-white hover:border-white text-xs font-medium"
-                    style={{ textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}
-                  >
-                    Follow
-                  </Button>
-                </div>
-                <div className="space-y-0.5">
-                  <p className="text-sm text-white/90 font-medium" style={{ textShadow: '0 1px 6px rgba(0,0,0,0.7)' }}>
-                    Pizza Corner
-                  </p>
-                  <p className="text-xs text-white/75" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.7)' }}>
-                    Hand-tossed Margherita Pizza
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
+          {renderVideoControls(1)}
         </div>
 
         {/* Third Video/Image */}
@@ -560,98 +516,7 @@ const VideosTab = () => {
             className="object-cover"
             unoptimized
           />
-
-          {/* Action Buttons - Right Side */}
-          <div className="absolute right-4 flex flex-col items-center gap-6 z-10 transition-colors duration-300"
-            style={{
-              bottom: 'calc(8rem + ${Math.max(safeAreaInsets.bottom, 24)}px)',
-            }}
-          >
-            {/* Like Button */}
-            <div className="flex flex-col items-center gap-1">
-              <Button
-                size="icon"
-                variant="ghost"
-                className="h-12 w-12 rounded-full backdrop-blur-sm bg-black/30 hover:bg-black/40 transition-all duration-300"
-              >
-                <Heart className="h-6 w-6 text-white transition-colors duration-300" />
-              </Button>
-              <span
-                className="text-xs font-semibold text-white transition-colors duration-300"
-                style={{ textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}
-              >
-                3.2k
-              </span>
-            </div>
-
-            {/* Save Button */}
-            <div className="flex flex-col items-center gap-1">
-              <Button
-                size="icon"
-                variant="ghost"
-                className="h-12 w-12 rounded-full backdrop-blur-sm bg-black/30 hover:bg-black/40 transition-all duration-300"
-              >
-                <Bookmark className="h-6 w-6 text-white transition-colors duration-300" />
-              </Button>
-              <span
-                className="text-xs font-semibold text-white transition-colors duration-300"
-                style={{ textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}
-              >
-                Save
-              </span>
-            </div>
-          </div>
-
-          {/* Creator Info - Bottom Overlay */}
-          <div
-            className="absolute left-0 right-0 px-5"
-            style={{
-              bottom: 'calc(5rem + ${Math.max(safeAreaInsets.bottom, 24)}px)',
-              paddingBottom: '1.5rem',
-            }}
-          >
-            <div className="flex items-start gap-3">
-              <button
-                onClick={() => setShowProfileCard(true)}
-                className="relative h-11 w-11 rounded-full overflow-hidden ring-2 ring-white/50 flex-shrink-0 hover:ring-white/70 transition-all duration-200 cursor-pointer"
-              >
-                <Image
-                  src="/faizaan.jpeg"
-                  alt="Faizaan Qureshi"
-                  fill
-                  className="object-cover"
-                  unoptimized
-                />
-              </button>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <button 
-                    onClick={() => setShowProfileCard(true)}
-                    className="text-sm font-semibold text-white hover:text-white/80 transition-colors duration-200"
-                    style={{ textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}
-                  >
-                    Faizaan Qureshi
-                  </button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 px-3 rounded-full border border-white/60 bg-transparent text-white hover:bg-white/20 hover:text-white hover:border-white text-xs font-medium"
-                    style={{ textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}
-                  >
-                    Follow
-                  </Button>
-                </div>
-                <div className="space-y-0.5">
-                  <p className="text-sm text-white/90 font-medium" style={{ textShadow: '0 1px 6px rgba(0,0,0,0.7)' }}>
-                    Burger Palace
-                  </p>
-                  <p className="text-xs text-white/75" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.7)' }}>
-                    Gourmet Beef Burger with Fries
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
+          {renderVideoControls(2)}
         </div>
       </div>
     </div>
