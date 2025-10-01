@@ -173,7 +173,7 @@ const VideosTab = () => {
         ref={index === currentVideoIndex ? buttonRef : null}
         className="absolute right-4 flex flex-col items-center gap-6 z-10 transition-colors duration-300"
         style={{
-          bottom: `calc(8rem + ${Math.max(safeAreaInsets.bottom, 24)}px)`,
+          bottom: `calc(5.25rem + ${Math.max(safeAreaInsets.bottom, 24)}px)`,
         }}
       >
         {/* Like Button */}
@@ -245,28 +245,43 @@ const VideosTab = () => {
       <div
         className="absolute left-0 right-0 px-5 z-10"
         style={{
-          bottom: `calc(5rem + ${Math.max(safeAreaInsets.bottom, 24)}px)`,
-          paddingBottom: '1.5rem',
+          bottom: `calc(5.25rem + ${Math.max(safeAreaInsets.bottom, 24)}px)`,
         }}
       >
         <div className="flex items-start gap-3">
           <button
-            onClick={() => setShowProfileCard(true)}
-            className="relative h-11 w-11 rounded-full overflow-hidden ring-2 ring-white/50 flex-shrink-0 hover:ring-white/70 transition-all duration-200 cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowProfileCard(true);
+            }}
+            onTouchEnd={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setShowProfileCard(true);
+            }}
+            className="relative h-11 w-11 rounded-full overflow-hidden ring-2 ring-white/50 flex-shrink-0 hover:ring-white/70 transition-all duration-200 cursor-pointer touch-manipulation"
           >
             <Image
               src="/faizaan.jpeg"
               alt="Faizaan Qureshi"
               fill
-              className="object-cover"
+              className="object-cover pointer-events-none"
               unoptimized
             />
           </button>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
                 <button
-                  onClick={() => setShowProfileCard(true)}
-                  className="text-sm font-semibold text-white hover:text-white/80 transition-colors duration-200"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowProfileCard(true);
+                  }}
+                  onTouchEnd={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setShowProfileCard(true);
+                  }}
+                  className="text-sm font-semibold text-white hover:text-white/80 transition-colors duration-200 touch-manipulation"
                   style={{ textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}
                 >
                 Faizaan Qureshi
