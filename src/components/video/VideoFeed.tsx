@@ -167,6 +167,7 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
           style={{
             bottom: `calc(5.25rem + ${Math.max(safeAreaInsets.bottom, 24)}px)`,
             paddingRight: '1.25rem',
+            pointerEvents: 'auto',
           }}
         >
           {/* Like Button */}
@@ -239,6 +240,7 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
           className="absolute left-0 right-0 px-5 z-10"
           style={{
             bottom: `calc(5.25rem + ${Math.max(safeAreaInsets.bottom, 24)}px)`,
+            pointerEvents: 'auto',
           }}
         >
           <div className="flex items-start gap-3">
@@ -509,10 +511,15 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
           scrollBehavior: 'auto',
           overscrollBehavior: 'contain',
           scrollSnapStop: 'always',
+          pointerEvents: 'auto',
         }}
       >
         {videos.map((video, index) => (
-          <div key={video.id} className="relative w-full h-full snap-start snap-always">
+          <div
+            key={video.id}
+            className="relative w-full h-full snap-start snap-always"
+            style={{ pointerEvents: 'auto' }}
+          >
             <Image
               src={video.src}
               alt={video.dish}
