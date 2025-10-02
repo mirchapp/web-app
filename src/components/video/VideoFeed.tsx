@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
-import { Heart, Bookmark, Calendar } from 'lucide-react';
+import { Heart, Bookmark, Calendar, UserPlus, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useSafeArea } from '@/hooks/useSafeArea';
@@ -355,9 +355,11 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
                       {/* Action Buttons */}
                       <div className="flex gap-3 w-full max-w-xs mb-8">
                         <Button className="flex-1 h-11 rounded-xl font-medium" variant="default">
+                          <UserPlus className="h-4 w-4 mr-2" />
                           Follow
                         </Button>
                         <Button className="flex-1 h-11 rounded-xl font-medium" variant="outline">
+                          <MessageCircle className="h-4 w-4 mr-2" />
                           Message
                         </Button>
                       </div>
