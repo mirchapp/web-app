@@ -144,6 +144,32 @@
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* Global touch optimization for all buttons and interactive elements */
+  button,
+  a,
+  [role="button"],
+  [type="button"],
+  [type="submit"],
+  input[type="checkbox"],
+  input[type="radio"] {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  
+  /* Ensure inputs allow text selection */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="url"],
+  textarea {
+    user-select: text;
+    -webkit-user-select: text;
+  }
 }
 
 @layer utilities {

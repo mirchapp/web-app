@@ -129,17 +129,26 @@ export function RestaurantDrawer({ isOpen, onClose, onExpand, restaurant }: Rest
               <div className="grid grid-cols-3 gap-2">
                 <Button
                   variant="outline"
-                  className="h-11 bg-background hover:bg-muted/50 border-border/50 font-medium rounded-xl"
-                  onClick={onExpand}
+                  className="h-11 bg-background hover:bg-muted/50 border-border/50 font-medium rounded-xl touch-manipulation active:scale-95 transition-transform"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onExpand();
+                  }}
                 >
                   <Maximize2 className="h-4 w-4 mr-1.5" />
                   View
                 </Button>
                 <Button
                   variant="outline"
-                  className="h-11 bg-background hover:bg-muted/50 border-border/50 font-medium rounded-xl"
-                  onClick={() => {
+                  className="h-11 bg-background hover:bg-muted/50 border-border/50 font-medium rounded-xl touch-manipulation active:scale-95 transition-transform"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
                     console.log('Open in map');
+                  }}
+                  onTouchEnd={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
                   }}
                 >
                   <MapPin className="h-4 w-4 mr-1.5" />
@@ -147,9 +156,15 @@ export function RestaurantDrawer({ isOpen, onClose, onExpand, restaurant }: Rest
                 </Button>
                 <Button
                   variant="outline"
-                  className="h-11 bg-background hover:bg-muted/50 border-border/50 font-medium rounded-xl"
-                  onClick={() => {
+                  className="h-11 bg-background hover:bg-muted/50 border-border/50 font-medium rounded-xl touch-manipulation active:scale-95 transition-transform"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
                     window.open(`tel:${restaurant.phone}`);
+                  }}
+                  onTouchEnd={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
                   }}
                 >
                   <Phone className="h-4 w-4 mr-1.5" />
