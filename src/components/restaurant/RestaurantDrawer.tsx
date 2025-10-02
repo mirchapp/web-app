@@ -19,6 +19,7 @@ export function RestaurantDrawer({ isOpen, onClose, onExpand, restaurant }: Rest
   const safeAreaInsets = useSafeArea();
   const touchStartYSheet = React.useRef<number>(0);
   const touchCurrentYSheet = React.useRef<number>(0);
+  const isDragging = React.useRef<boolean>(false);
 
   return (
     <AnimatePresence>
@@ -41,28 +42,38 @@ export function RestaurantDrawer({ isOpen, onClose, onExpand, restaurant }: Rest
               paddingBottom: `calc(5rem + ${Math.max(safeAreaInsets.bottom, 24)}px)`,
               borderTopLeftRadius: '24px',
               borderTopRightRadius: '24px',
+              WebkitOverflowScrolling: 'touch',
+              overscrollBehavior: 'contain',
             }}
           >
             {/* Drag Handle - Only for closing */}
             <div
-              className="flex justify-center pt-3 pb-3 cursor-pointer"
+              className="flex justify-center pt-3 pb-3 cursor-pointer touch-none"
               onTouchStart={(e) => {
                 touchStartYSheet.current = e.touches[0].clientY;
                 touchCurrentYSheet.current = e.touches[0].clientY;
+                isDragging.current = false;
               }}
               onTouchMove={(e) => {
                 touchCurrentYSheet.current = e.touches[0].clientY;
+                const diff = touchStartYSheet.current - touchCurrentYSheet.current;
+                
+                // Mark as dragging if moved more than 5px
+                if (Math.abs(diff) > 5) {
+                  isDragging.current = true;
+                }
               }}
               onTouchEnd={() => {
                 const swipeDistance = touchStartYSheet.current - touchCurrentYSheet.current;
 
-                // Only allow swipe down to close
-                if (swipeDistance < -50) {
+                // Only allow swipe down to close if user was actually dragging
+                if (isDragging.current && swipeDistance < -50) {
                   onClose();
                 }
 
                 touchStartYSheet.current = 0;
                 touchCurrentYSheet.current = 0;
+                isDragging.current = false;
               }}
             >
               <div className="w-12 h-1 bg-muted-foreground/30 rounded-full" />
