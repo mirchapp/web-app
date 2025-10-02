@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
-import { Star, MapPin, Phone } from 'lucide-react';
+import { Star, MapPin, Phone, Maximize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useSafeArea } from '@/hooks/useSafeArea';
 import type { Restaurant } from '@/types/video';
@@ -121,6 +121,7 @@ export function RestaurantDrawer({ isOpen, onClose, onExpand, restaurant }: Rest
                   className="h-11 bg-background hover:bg-muted/50 border-border/50 font-medium rounded-xl"
                   onClick={onExpand}
                 >
+                  <Maximize2 className="h-4 w-4 mr-1.5" />
                   View
                 </Button>
                 <Button

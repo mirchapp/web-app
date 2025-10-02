@@ -64,10 +64,10 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
               variant="ghost"
               size="icon"
               onClick={onClose}
-              className="absolute top-4 right-4 z-30 h-8 w-8 rounded-full hover:bg-muted/50 bg-background/80 backdrop-blur-sm"
+              className="absolute top-4 right-4 z-30 h-10 w-10 rounded-full bg-muted/80 hover:bg-muted backdrop-blur-sm shadow-lg ring-1 ring-black/5 dark:ring-white/10 transition-all duration-200"
             >
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </Button>
 
