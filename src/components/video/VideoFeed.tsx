@@ -24,6 +24,23 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
   const [showRestaurantPage, setShowRestaurantPage] = React.useState(false);
   const safeAreaInsets = useSafeArea();
 
+  // Prevent background scrolling on Flix tab
+  React.useEffect(() => {
+    // Always prevent background scrolling when VideoFeed is mounted
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+    document.body.style.height = '100%';
+
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.height = '';
+    };
+  }, []);
+
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
   const profileCardRef = React.useRef<HTMLDivElement>(null);
   const touchStartX = React.useRef<number>(0);
@@ -280,7 +297,13 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
               style={{ x: dragOffset }}
             >
               {/* Profile Card Content */}
-              <div className="h-full overflow-y-auto relative">
+              <div 
+                className="h-full overflow-y-auto relative"
+                style={{
+                  WebkitOverflowScrolling: 'touch',
+                  overscrollBehavior: 'contain'
+                }}
+              >
                 {/* Back Button - Absolute Positioning */}
                 <Button
                   variant="ghost"
@@ -426,6 +449,7 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
         style={{
           WebkitOverflowScrolling: 'touch',
           scrollBehavior: 'smooth',
+          overscrollBehavior: 'contain',
         }}
       >
         {videos.map((video, index) => (
