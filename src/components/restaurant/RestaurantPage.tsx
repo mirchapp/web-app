@@ -52,15 +52,6 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
           onClick={onClose}
         >
           <motion.div
-            drag="y"
-            dragConstraints={{ top: 0, bottom: 0 }}
-            dragElastic={0.2}
-            onDragEnd={(_, info) => {
-              if (info.offset.y > 150) {
-                onClose();
-              }
-            }}
-            onDrag={() => {}}
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
@@ -68,10 +59,17 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
             className="absolute bottom-0 left-0 right-0 h-full w-full bg-background shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Drag Handle - Outside scroll container */}
-            <div className="absolute top-2 left-0 right-0 z-30 flex justify-center items-center cursor-grab active:cursor-grabbing">
-              <div className="w-12 h-1 bg-muted-foreground/30 rounded-full" />
-            </div>
+            {/* Close Button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="absolute top-4 right-4 z-30 h-8 w-8 rounded-full hover:bg-muted/50 bg-background/80 backdrop-blur-sm"
+            >
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </Button>
 
             {/* Restaurant Page Content */}
             <div 

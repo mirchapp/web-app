@@ -43,7 +43,7 @@ export function RestaurantDrawer({ isOpen, onClose, onExpand, restaurant }: Rest
               borderTopRightRadius: '24px',
             }}
           >
-            {/* Drag Handle */}
+            {/* Drag Handle - Only for closing */}
             <div
               className="flex justify-center pt-3 pb-3 cursor-pointer"
               onTouchStart={(e) => {
@@ -56,19 +56,14 @@ export function RestaurantDrawer({ isOpen, onClose, onExpand, restaurant }: Rest
               onTouchEnd={() => {
                 const swipeDistance = touchStartYSheet.current - touchCurrentYSheet.current;
 
-                // If swiped up more than 50px, expand to full page
-                if (swipeDistance > 50) {
-                  onExpand();
-                }
-                // If swiped down more than 50px, close
-                else if (swipeDistance < -50) {
+                // Only allow swipe down to close
+                if (swipeDistance < -50) {
                   onClose();
                 }
 
                 touchStartYSheet.current = 0;
                 touchCurrentYSheet.current = 0;
               }}
-              onClick={onExpand}
             >
               <div className="w-12 h-1 bg-muted-foreground/30 rounded-full" />
             </div>
