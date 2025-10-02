@@ -1,11 +1,32 @@
 {
-    "name": "My PWA App",
-    "short_name": "MyPWA",
-    "theme_color": "#ffffff",
-    "background_color": "#ffffff",
+    "name": "Mirch - Food Discovery",
+    "short_name": "Mirch",
+    "description": "Discover amazing restaurants and food experiences",
+    "theme_color": "#8A42D6",
+    "background_color": "#FDFCFE",
     "display": "standalone",
     "orientation": "portrait",
     "start_url": "/",
+    "scope": "/",
+    "prefer_related_applications": false,
+    "display_override": ["window-controls-overlay", "standalone"],
+    "categories": ["food", "lifestyle", "social"],
+    "shortcuts": [
+      {
+        "name": "Discover",
+        "short_name": "Discover",
+        "description": "Discover new restaurants",
+        "url": "/?tab=discover",
+        "icons": [{ "src": "/android/android-launchericon-192-192.png", "sizes": "192x192" }]
+      },
+      {
+        "name": "Flix",
+        "short_name": "Flix",
+        "description": "Watch food videos",
+        "url": "/?tab=flix",
+        "icons": [{ "src": "/android/android-launchericon-192-192.png", "sizes": "192x192" }]
+      }
+    ],
     "icons": [
       {
         "src": "/android/android-launchericon-48-48.png",

@@ -22,20 +22,27 @@ export function RestaurantDrawer({ isOpen, onClose, onExpand, restaurant }: Rest
   const isDragging = React.useRef<boolean>(false);
 
   return (
-    <AnimatePresence>
+    <AnimatePresence mode="wait">
       {isOpen && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
           className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
           onClick={onClose}
+          style={{ willChange: 'opacity' }}
         >
           <motion.div
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+            transition={{
+              type: 'spring',
+              damping: 30,
+              stiffness: 300,
+              mass: 0.8
+            }}
             className="absolute bottom-0 left-0 right-0 bg-background shadow-2xl"
             onClick={(e) => e.stopPropagation()}
             style={{
@@ -44,6 +51,9 @@ export function RestaurantDrawer({ isOpen, onClose, onExpand, restaurant }: Rest
               borderTopRightRadius: '24px',
               WebkitOverflowScrolling: 'touch',
               overscrollBehavior: 'contain',
+              willChange: 'transform',
+              backfaceVisibility: 'hidden',
+              perspective: 1000,
             }}
           >
             {/* Drag Handle - Only for closing */}
@@ -131,6 +141,11 @@ export function RestaurantDrawer({ isOpen, onClose, onExpand, restaurant }: Rest
                   variant="outline"
                   className="h-11 bg-background hover:bg-muted/50 border-border/50 font-medium rounded-xl touch-manipulation active:scale-95 transition-transform"
                   onClick={(e) => {
+                    e.stopPropagation();
+                    onExpand();
+                  }}
+                  onTouchEnd={(e) => {
+                    e.preventDefault();
                     e.stopPropagation();
                     onExpand();
                   }}

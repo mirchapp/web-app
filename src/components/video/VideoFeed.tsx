@@ -137,12 +137,8 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
 
     // Only close if it was a horizontal drag
     if (isDraggingHorizontally.current === true && swipeDistance > 100) {
-      // Reset dragOffset before closing to ensure clean state
-      setDragOffset(0);
-      // Small delay to let the animation state clear
-      setTimeout(() => {
-        setShowProfileCard(false);
-      }, 10);
+      // Close immediately and let the exit animation handle it
+      setShowProfileCard(false);
     } else {
       // Snap back to position with animation
       setDragOffset(0);
@@ -318,34 +314,41 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
   return (
     <div className="fixed inset-0 bg-black">
       {/* Profile Card Overlay */}
-      <AnimatePresence>
+      <AnimatePresence mode="wait" onExitComplete={() => setDragOffset(0)}>
         {showProfileCard && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
             className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
             onClick={() => setShowProfileCard(false)}
+            style={{ willChange: 'opacity' }}
           >
             <motion.div
               ref={profileCardRef}
               initial={{ x: '100%' }}
-              animate={{ 
+              animate={{
                 x: dragOffset > 0 ? dragOffset : 0,
                 transition: {
                   type: dragOffset > 0 ? 'tween' : 'spring',
-                  duration: dragOffset > 0 ? 0 : 0.3,
+                  duration: dragOffset > 0 ? 0 : 0.25,
                   damping: 30,
                   stiffness: 300,
-                  mass: 0.5
+                  mass: 0.8
                 }
               }}
-              exit={{ x: '100%' }}
+              exit={{ x: '100%', transition: { type: 'tween', duration: 0.2, ease: 'easeInOut' } }}
               className="absolute right-0 top-0 h-full w-full max-w-md mx-auto bg-background shadow-2xl"
               onClick={(e) => e.stopPropagation()}
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
+              style={{
+                willChange: dragOffset > 0 ? 'transform' : 'auto',
+                backfaceVisibility: 'hidden',
+                perspective: 1000,
+              }}
             >
               {/* Profile Card Content */}
               <div 

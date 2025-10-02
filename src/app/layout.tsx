@@ -15,12 +15,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Mirch",
-  description: "A Progressive Web App built with Next.js",
+  title: "Mirch - Food Discovery",
+  description: "Discover amazing restaurants and food experiences near you",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
     title: "Mirch",
     startupImage: [
       {

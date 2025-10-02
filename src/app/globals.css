@@ -45,8 +45,10 @@
 
 :root {
   --radius: 0.625rem;
-  --safe-area-inset-bottom: env(safe-area-inset-bottom, 1.5rem);
   --safe-area-inset-top: env(safe-area-inset-top, 0px);
+  --safe-area-inset-right: env(safe-area-inset-right, 0px);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom, 1.5rem);
+  --safe-area-inset-left: env(safe-area-inset-left, 0px);
   
   /* Primary Theme Colors */
   --background: #FDFCFE;
@@ -143,8 +145,11 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* Disable overscroll/bounce behavior globally */
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
   }
-  
+
   /* Global touch optimization for all buttons and interactive elements */
   button,
   a,
@@ -155,8 +160,10 @@
   input[type="radio"] {
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
+    /* Prevent callout menu on long-press */
+    -webkit-touch-callout: none;
   }
-  
+
   /* Ensure inputs allow text selection */
   input[type="text"],
   input[type="email"],
@@ -167,6 +174,14 @@
   textarea {
     user-select: text;
     -webkit-user-select: text;
+  }
+
+  /* Hardware acceleration for common transforms */
+  [class*="transform"],
+  [class*="transition"],
+  [class*="animate"] {
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
   }
 }
 
@@ -284,9 +299,59 @@
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none; /* Internet Explorer 10+ */
   }
-  
+
   .hide-scrollbar::-webkit-scrollbar {
     display: none; /* WebKit */
   }
-  
+
+  /* GPU-accelerated utilities for smooth animations */
+  .gpu-accelerate {
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    will-change: transform;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    perspective: 1000px;
+    -webkit-perspective: 1000px;
+  }
+
+  /* Smooth scrolling containers */
+  .smooth-scroll {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    overscroll-behavior: contain;
+  }
+
+  /* Performance optimizations for cards and modals */
+  .optimize-card {
+    contain: layout style paint;
+    content-visibility: auto;
+  }
+
+  /* Reduce motion for accessibility */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* Better font rendering on mobile */
+  .optimize-text {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Prevent text inflation on mobile */
+  html {
+    -webkit-text-size-adjust: 100%;
+    -moz-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
 }
