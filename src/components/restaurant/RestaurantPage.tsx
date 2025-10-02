@@ -14,7 +14,6 @@ interface RestaurantPageProps {
 }
 
 export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPageProps) {
-  const [dragY, setDragY] = React.useState(0);
   const scrollRef = React.useRef<HTMLDivElement>(null);
 
   return (
@@ -36,11 +35,7 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
                 onClose();
               }
             }}
-            onDrag={(_, info) => {
-              if (info.point.y > 0) {
-                setDragY(info.offset.y);
-              }
-            }}
+            onDrag={() => {}}
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
@@ -74,8 +69,8 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
                     <div className="relative mb-6">
                       <div className="relative h-32 w-32 sm:h-40 sm:w-40 rounded-2xl overflow-hidden ring-2 ring-primary/10 dark:ring-primary/20 shadow-sm">
                         <Image
-                          src={restaurant.restaurantLogo}
-                          alt={restaurant.restaurant}
+                          src={restaurant.logo}
+                          alt={restaurant.name}
                           fill
                           className="object-cover"
                           unoptimized
@@ -87,7 +82,7 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
                     <div className="mb-3">
                       <div className="flex items-center justify-center gap-2">
                         <h1 className="text-2xl sm:text-3xl font-semibold text-foreground text-center">
-                          {restaurant.restaurant}
+                          {restaurant.name}
                         </h1>
                         {restaurant.verified && (
                           <svg

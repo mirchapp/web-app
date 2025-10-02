@@ -9,6 +9,7 @@
       "isFollowing": false
     },
     "restaurant": {
+      "id": "1",
       "name": "The Spice House",
       "logo": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=100&h=100&fit=crop",
       "verified": true,
@@ -34,6 +35,7 @@
       "isFollowing": false
     },
     "restaurant": {
+      "id": "2",
       "name": "Pizza Corner",
       "logo": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=100&h=100&fit=crop",
       "verified": false,
@@ -59,6 +61,7 @@
       "isFollowing": false
     },
     "restaurant": {
+      "id": "3",
       "name": "Burger Palace",
       "logo": "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=100&h=100&fit=crop",
       "verified": true,
