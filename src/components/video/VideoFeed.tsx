@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
-import { Heart, Bookmark } from 'lucide-react';
+import { Heart, Bookmark, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useSafeArea } from '@/hooks/useSafeArea';
@@ -314,35 +314,83 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
                         {videos[currentVideoIndex]?.user.username}
                       </h1>
 
-                      {/* Bio */}
-                      <p className="text-sm text-muted-foreground text-center mb-6 max-w-xs">
-                        Food enthusiast sharing my culinary adventures
-                      </p>
+                      {/* Location */}
+                      <div className="flex items-center gap-1.5 mb-6 text-muted-foreground">
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <span className="text-sm">Waterloo, ON</span>
+                      </div>
 
-                      {/* Stats */}
-                      <div className="flex gap-8 mb-8">
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-foreground">234</div>
-                          <div className="text-xs text-muted-foreground">Posts</div>
+                      {/* Stats with Dividers */}
+                      <div className="flex items-center gap-8 mb-6 px-4">
+                        <div className="flex flex-col items-center">
+                          <span className="text-2xl font-semibold text-foreground">12.5K</span>
+                          <span className="text-xs text-muted-foreground">Followers</span>
                         </div>
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-foreground">12.5K</div>
-                          <div className="text-xs text-muted-foreground">Followers</div>
+                        <div className="h-10 w-px bg-border" />
+                        <div className="flex flex-col items-center">
+                          <span className="text-2xl font-semibold text-foreground">890</span>
+                          <span className="text-xs text-muted-foreground">Following</span>
                         </div>
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-foreground">890</div>
-                          <div className="text-xs text-muted-foreground">Following</div>
+                        <div className="h-10 w-px bg-border" />
+                        <div className="flex flex-col items-center">
+                          <span className="text-2xl font-semibold text-foreground">234</span>
+                          <span className="text-xs text-muted-foreground">Posts</span>
                         </div>
                       </div>
 
+                      {/* Bio */}
+                      <p className="text-base leading-relaxed text-muted-foreground text-center mb-6 px-4 max-w-xs">
+                        Food enthusiast sharing my culinary adventures. Always on the hunt for the perfect dish and hidden gems in the city.
+                      </p>
+
+                      {/* Joined Date */}
+                      <div className="flex items-center gap-1.5 text-muted-foreground mb-6">
+                        <Calendar className="h-4 w-4" />
+                        <span className="text-sm">Joined September 2024</span>
+                      </div>
+
                       {/* Action Buttons */}
-                      <div className="flex gap-3 w-full max-w-xs">
-                        <Button className="flex-1" variant="default">
+                      <div className="flex gap-3 w-full max-w-xs mb-8">
+                        <Button className="flex-1 h-11 rounded-xl font-medium" variant="default">
                           Follow
                         </Button>
-                        <Button className="flex-1" variant="outline">
+                        <Button className="flex-1 h-11 rounded-xl font-medium" variant="outline">
                           Message
                         </Button>
+                      </div>
+
+                      {/* Recent Posts Section */}
+                      <div className="w-full">
+                        <h2 className="text-lg font-semibold text-foreground mb-4 text-center">Recent Posts</h2>
+                        <div className="columns-2 gap-2 space-y-2">
+                          {[
+                            { id: 'photo-1546069901-ba9599a7e63c', height: 200 }, // burger
+                            { id: 'photo-1565299624946-b28f40a0ae38', height: 250 }, // pizza
+                            { id: 'photo-1567620905732-2d1ec7ab7445', height: 180 }, // pancakes
+                            { id: 'photo-1540189549336-e6e99c3679fe', height: 220 }, // salad
+                            { id: 'photo-1565958011703-44f9829ba187', height: 190 }, // sushi
+                            { id: 'photo-1551782450-a2132b4ba21d', height: 200 }, // pasta
+                          ].map((item, i) => (
+                            <div
+                              key={i}
+                              className="break-inside-avoid mb-2"
+                            >
+                              <div className="relative rounded-2xl bg-muted overflow-hidden hover:scale-[1.02] hover:shadow-lg transition-all duration-200 ease-out cursor-pointer ring-1 ring-black/5 dark:ring-white/10">
+                                <Image
+                                  src={`https://images.unsplash.com/${item.id}?w=400&h=${item.height}&fit=crop`}
+                                  alt={`Food ${i + 1}`}
+                                  width={400}
+                                  height={item.height}
+                                  className="object-cover w-full"
+                                  unoptimized
+                                />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </div>

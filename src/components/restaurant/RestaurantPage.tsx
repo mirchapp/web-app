@@ -165,8 +165,8 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
                         <h3 className="text-lg font-semibold text-foreground mb-4">Popular Dishes</h3>
                         <div className="space-y-3">
                           {restaurant.popularDishes.map((dish, index) => (
-                            <div key={index} className="flex gap-3 p-3 rounded-xl bg-muted/50">
-                              <div className="h-20 w-20 rounded-lg overflow-hidden flex-shrink-0 bg-muted">
+                            <div key={index} className="flex gap-3 p-4 rounded-xl bg-muted/50 hover:bg-muted/70 transition-colors duration-200">
+                              <div className="h-20 w-20 rounded-lg overflow-hidden flex-shrink-0 bg-muted ring-1 ring-black/5 dark:ring-white/10">
                                 <Image
                                   src={dish.image}
                                   alt={dish.name}
@@ -177,9 +177,36 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
                                 />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="font-medium text-base text-foreground">{dish.name}</p>
-                                <p className="text-sm text-muted-foreground mt-1">{dish.description}</p>
-                                <p className="text-base font-semibold text-foreground mt-2">${dish.price.toFixed(2)}</p>
+                                <div className="flex items-start justify-between mb-1">
+                                  <p className="font-medium text-base text-foreground">{dish.name}</p>
+                                  <div className="flex items-center gap-1 ml-2">
+                                    <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                                    <span className="text-xs text-muted-foreground">4.{(7 + index * 2)}</span>
+                                  </div>
+                                </div>
+                                <p className="text-sm text-muted-foreground mb-2 line-clamp-2">{dish.description}</p>
+                                
+                                {/* Dish Labels */}
+                                <div className="flex flex-wrap gap-1 mb-2">
+                                  <span className="px-2 py-0.5 text-xs bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-full">
+                                    Popular
+                                  </span>
+                                  {index === 0 && (
+                                    <span className="px-2 py-0.5 text-xs bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-full">
+                                      Spicy
+                                    </span>
+                                  )}
+                                  {index === 1 && (
+                                    <span className="px-2 py-0.5 text-xs bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded-full">
+                                      Vegetarian
+                                    </span>
+                                  )}
+                                </div>
+                                
+                                <div className="flex items-center justify-between">
+                                  <p className="text-base font-semibold text-foreground">${dish.price.toFixed(2)}</p>
+                                  <span className="text-xs text-muted-foreground">{(23 + index * 5)} reviews</span>
+                                </div>
                               </div>
                             </div>
                           ))}
