@@ -75,6 +75,11 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
             <Button
               variant="ghost"
               size="icon"
+              onTouchEnd={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onClose();
+              }}
               onClick={onClose}
               className="absolute top-4 right-4 z-30 h-10 w-10 rounded-full bg-muted/80 hover:bg-muted backdrop-blur-sm shadow-lg ring-1 ring-black/5 dark:ring-white/10 transition-all duration-200 touch-manipulation"
             >
