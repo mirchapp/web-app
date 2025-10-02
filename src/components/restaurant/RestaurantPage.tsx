@@ -16,6 +16,31 @@ interface RestaurantPageProps {
 export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPageProps) {
   const scrollRef = React.useRef<HTMLDivElement>(null);
 
+  // Prevent background scrolling when modal is open
+  React.useEffect(() => {
+    if (isOpen) {
+      // Prevent scrolling on the body
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      document.body.style.height = '100%';
+    } else {
+      // Restore scrolling
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.height = '';
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.height = '';
+    };
+  }, [isOpen]);
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -49,7 +74,14 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
             </div>
 
             {/* Restaurant Page Content */}
-            <div ref={scrollRef} className="h-full overflow-y-auto relative">
+            <div 
+              ref={scrollRef} 
+              className="h-full overflow-y-auto relative"
+              style={{
+                WebkitOverflowScrolling: 'touch',
+                overscrollBehavior: 'contain'
+              }}
+            >
 
               <div className="container mx-auto px-4 pt-12 pb-32">
                 <div className="max-w-md mx-auto">
