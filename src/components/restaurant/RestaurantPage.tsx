@@ -16,6 +16,16 @@ interface RestaurantPageProps {
 export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPageProps) {
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const touchStartTargetRef = React.useRef<EventTarget | null>(null);
+  const [isClosing, setIsClosing] = React.useState(false);
+
+  const handleClose = () => {
+    setIsClosing(true);
+    // Wait for animation to complete before actually closing
+    setTimeout(() => {
+      setIsClosing(false);
+      onClose();
+    }, 300);
+  };
 
   // Prevent background scrolling when modal is open
   React.useEffect(() => {
@@ -51,7 +61,7 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
           className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm touch-manipulation"
-          onClick={onClose}
+          onClick={handleClose}
           onTouchStart={(e) => {
             touchStartTargetRef.current = e.target;
           }}
@@ -59,7 +69,7 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
             // Only close if touch started and ended on the backdrop (not on scrollable content)
             if (touchStartTargetRef.current === e.target && e.target === e.currentTarget) {
               e.preventDefault();
-              onClose();
+              handleClose();
             }
             touchStartTargetRef.current = null;
           }}
@@ -67,13 +77,15 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
         >
           <motion.div
             initial={{ y: '100%' }}
-            animate={{ y: 0 }}
+            animate={{ y: isClosing ? '100%' : 0 }}
             exit={{ y: '100%' }}
             transition={{
-              type: 'spring',
-              damping: 30,
-              stiffness: 300,
-              mass: 0.8
+              type: isClosing ? 'tween' : 'spring',
+              duration: isClosing ? 0.3 : undefined,
+              ease: isClosing ? 'easeInOut' : undefined,
+              damping: isClosing ? undefined : 30,
+              stiffness: isClosing ? undefined : 300,
+              mass: isClosing ? undefined : 0.8
             }}
             className="absolute bottom-0 left-0 right-0 h-full w-full bg-background shadow-2xl"
             onClick={(e) => e.stopPropagation()}
@@ -90,9 +102,9 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
               onTouchEnd={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                onClose();
+                handleClose();
               }}
-              onClick={onClose}
+              onClick={handleClose}
               className="absolute top-4 right-4 z-30 h-10 w-10 rounded-full bg-muted/80 hover:bg-muted backdrop-blur-sm shadow-lg ring-1 ring-black/5 dark:ring-white/10 transition-all duration-200 touch-manipulation"
             >
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
