@@ -58,11 +58,11 @@ export function AppLayout({ children, className }: AppLayoutProps) {
       {/* Main content area with bottom padding for floating navigation */}
       <main
         className={cn(
-          activeTab === 'map' || activeTab === 'videos' ? "" : ""
+          activeTab === 'map' || activeTab === 'videos' ? "fixed inset-0" : ""
         )}
         style={{
           height: activeTab === 'map' || activeTab === 'videos'
-            ? `calc(100vh - 8rem - ${Math.max(safeAreaInsets.bottom, 24)}px)`
+            ? '100vh'
             : 'auto',
           paddingBottom: activeTab === 'map' || activeTab === 'videos'
             ? '0'
