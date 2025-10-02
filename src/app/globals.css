@@ -155,8 +155,6 @@
   input[type="radio"] {
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
-    user-select: none;
-    -webkit-user-select: none;
   }
   
   /* Ensure inputs allow text selection */

@@ -137,7 +137,12 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
 
     // Only close if it was a horizontal drag
     if (isDraggingHorizontally.current === true && swipeDistance > 100) {
-      setShowProfileCard(false);
+      // Reset dragOffset before closing to ensure clean state
+      setDragOffset(0);
+      // Small delay to let the animation state clear
+      setTimeout(() => {
+        setShowProfileCard(false);
+      }, 10);
     } else {
       // Snap back to position with animation
       setDragOffset(0);
