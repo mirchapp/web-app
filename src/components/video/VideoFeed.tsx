@@ -41,10 +41,20 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
     };
   }, []);
 
+  // Reset dragOffset when profile card closes
+  React.useEffect(() => {
+    if (!showProfileCard) {
+      setDragOffset(0);
+    }
+  }, [showProfileCard]);
+
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
   const profileCardRef = React.useRef<HTMLDivElement>(null);
   const touchStartX = React.useRef<number>(0);
+  const touchStartY = React.useRef<number>(0);
   const touchCurrentX = React.useRef<number>(0);
+  const touchCurrentY = React.useRef<number>(0);
+  const isDraggingHorizontally = React.useRef<boolean | null>(null);
   const [dragOffset, setDragOffset] = React.useState<number>(0);
 
   // Track scroll position to update current video
@@ -85,31 +95,60 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
     touchCurrentX.current = e.touches[0].clientX;
+    touchCurrentY.current = e.touches[0].clientY;
+    isDraggingHorizontally.current = null; // Reset direction detection
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     touchCurrentX.current = e.touches[0].clientX;
-    const diff = touchCurrentX.current - touchStartX.current;
+    touchCurrentY.current = e.touches[0].clientY;
+    
+    const diffX = touchCurrentX.current - touchStartX.current;
+    const diffY = touchCurrentY.current - touchStartY.current;
 
-    // Only allow dragging to the right (closing gesture)
-    if (diff > 0) {
-      setDragOffset(diff);
+    // Determine drag direction on first significant movement
+    if (isDraggingHorizontally.current === null) {
+      const absX = Math.abs(diffX);
+      const absY = Math.abs(diffY);
+      
+      // Only set direction if movement is significant enough (> 10px)
+      if (absX > 10 || absY > 10) {
+        // If horizontal movement is greater than vertical, it's a horizontal drag
+        isDraggingHorizontally.current = absX > absY;
+      }
+    }
+
+    // Only allow dragging if it's primarily horizontal and to the right
+    if (isDraggingHorizontally.current === true && diffX > 0) {
+      // Prevent default to stop scrolling while dragging horizontally
+      e.preventDefault();
+      
+      // Use requestAnimationFrame for smoother updates
+      requestAnimationFrame(() => {
+        setDragOffset(diffX);
+      });
     }
   };
 
   const handleTouchEnd = () => {
     const swipeDistance = touchCurrentX.current - touchStartX.current;
 
-    // If swiped more than 100px to the right, close the card
-    if (swipeDistance > 100) {
+    // Only close if it was a horizontal drag
+    if (isDraggingHorizontally.current === true && swipeDistance > 100) {
       setShowProfileCard(false);
+    } else {
+      // Snap back to position with animation
+      setDragOffset(0);
     }
 
-    // Reset
-    setDragOffset(0);
+    // Reset touch tracking
     touchStartX.current = 0;
+    touchStartY.current = 0;
     touchCurrentX.current = 0;
+    touchCurrentY.current = 0;
+    isDraggingHorizontally.current = null;
   };
 
   const renderVideoControls = (index: number) => {
@@ -286,15 +325,22 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
             <motion.div
               ref={profileCardRef}
               initial={{ x: '100%' }}
-              animate={{ x: dragOffset }}
+              animate={{ 
+                x: dragOffset > 0 ? dragOffset : 0,
+                transition: {
+                  type: dragOffset > 0 ? 'tween' : 'spring',
+                  duration: dragOffset > 0 ? 0 : 0.3,
+                  damping: 30,
+                  stiffness: 300,
+                  mass: 0.5
+                }
+              }}
               exit={{ x: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
               className="absolute right-0 top-0 h-full w-full max-w-md mx-auto bg-background shadow-2xl"
               onClick={(e) => e.stopPropagation()}
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
-              style={{ x: dragOffset }}
             >
               {/* Profile Card Content */}
               <div 
