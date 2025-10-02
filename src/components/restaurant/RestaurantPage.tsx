@@ -51,10 +51,6 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
           transition={{ duration: 0.2 }}
           className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm touch-manipulation"
           onClick={onClose}
-          onTouchEnd={(e) => {
-            e.preventDefault();
-            onClose();
-          }}
           style={{ willChange: 'opacity' }}
         >
           <motion.div
@@ -80,11 +76,6 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
               variant="ghost"
               size="icon"
               onClick={onClose}
-              onTouchEnd={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onClose();
-              }}
               className="absolute top-4 right-4 z-30 h-10 w-10 rounded-full bg-muted/80 hover:bg-muted backdrop-blur-sm shadow-lg ring-1 ring-black/5 dark:ring-white/10 transition-all duration-200 touch-manipulation"
             >
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
