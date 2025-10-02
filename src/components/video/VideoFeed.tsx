@@ -321,8 +321,12 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm touch-manipulation"
             onClick={() => setShowProfileCard(false)}
+            onTouchEnd={(e) => {
+              e.preventDefault();
+              setShowProfileCard(false);
+            }}
             style={{ willChange: 'opacity' }}
           >
             <motion.div
@@ -502,12 +506,13 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
         className="h-full overflow-y-auto snap-y snap-mandatory hide-scrollbar"
         style={{
           WebkitOverflowScrolling: 'touch',
-          scrollBehavior: 'smooth',
+          scrollBehavior: 'auto',
           overscrollBehavior: 'contain',
+          scrollSnapStop: 'always',
         }}
       >
         {videos.map((video, index) => (
-          <div key={video.id} className="relative w-full h-full snap-start">
+          <div key={video.id} className="relative w-full h-full snap-start snap-always">
             <Image
               src={video.src}
               alt={video.dish}

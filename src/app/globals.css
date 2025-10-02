@@ -304,6 +304,17 @@
     display: none; /* WebKit */
   }
 
+  /* Fast snap behavior for video feed */
+  .snap-y.snap-mandatory {
+    scroll-snap-type: y mandatory;
+    scroll-snap-stop: always;
+  }
+
+  .snap-start.snap-always {
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+
   /* GPU-accelerated utilities for smooth animations */
   .gpu-accelerate {
     transform: translateZ(0);
