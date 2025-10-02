@@ -15,6 +15,7 @@ interface RestaurantPageProps {
 
 export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPageProps) {
   const scrollRef = React.useRef<HTMLDivElement>(null);
+  const touchStartTargetRef = React.useRef<EventTarget | null>(null);
 
   // Prevent background scrolling when modal is open
   React.useEffect(() => {
@@ -51,6 +52,17 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
           transition={{ duration: 0.2 }}
           className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm touch-manipulation"
           onClick={onClose}
+          onTouchStart={(e) => {
+            touchStartTargetRef.current = e.target;
+          }}
+          onTouchEnd={(e) => {
+            // Only close if touch started and ended on the backdrop (not on scrollable content)
+            if (touchStartTargetRef.current === e.target && e.target === e.currentTarget) {
+              e.preventDefault();
+              onClose();
+            }
+            touchStartTargetRef.current = null;
+          }}
           style={{ willChange: 'opacity' }}
         >
           <motion.div
