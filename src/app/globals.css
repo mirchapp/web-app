@@ -307,7 +307,6 @@
   /* Fast snap behavior for video feed */
   .snap-y.snap-mandatory {
     scroll-snap-type: y mandatory;
-    scroll-snap-stop: always;
     /* Allow pointer events during scroll */
     -webkit-user-select: none;
     user-select: none;
@@ -315,7 +314,6 @@
 
   .snap-start.snap-always {
     scroll-snap-align: start;
-    scroll-snap-stop: always;
   }
 
   /* Ensure buttons remain interactive during scroll */
