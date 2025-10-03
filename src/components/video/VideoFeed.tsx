@@ -59,6 +59,8 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
 
   // Track scroll position to update current video
   React.useEffect(() => {
+    let scrollTimeout: NodeJS.Timeout;
+
     const handleScroll = () => {
       if (!scrollContainerRef.current) return;
 
@@ -70,12 +72,18 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
         setCurrentVideoIndex(videoIndex);
         onVideoChange?.(videoIndex);
       }
+
+      // Clear pointer-events delay after scroll stops
+      clearTimeout(scrollTimeout);
     };
 
     const scrollContainer = scrollContainerRef.current;
     if (scrollContainer) {
-      scrollContainer.addEventListener('scroll', handleScroll);
-      return () => scrollContainer.removeEventListener('scroll', handleScroll);
+      scrollContainer.addEventListener('scroll', handleScroll, { passive: true });
+      return () => {
+        scrollContainer.removeEventListener('scroll', handleScroll);
+        clearTimeout(scrollTimeout);
+      };
     }
   }, [currentVideoIndex, videos.length, onVideoChange]);
 
@@ -506,8 +514,8 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
           WebkitOverflowScrolling: 'touch',
           scrollBehavior: 'auto',
           overscrollBehavior: 'contain',
-          scrollSnapStop: 'always',
           pointerEvents: 'auto',
+          touchAction: 'pan-y',
         }}
       >
         {videos.map((video, index) => (
