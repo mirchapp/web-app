@@ -17,9 +17,6 @@ interface RestaurantDrawerProps {
 
 export function RestaurantDrawer({ isOpen, onClose, onExpand, restaurant }: RestaurantDrawerProps) {
   const safeAreaInsets = useSafeArea();
-  const touchStartYSheet = React.useRef<number>(0);
-  const touchCurrentYSheet = React.useRef<number>(0);
-  const isDragging = React.useRef<boolean>(false);
 
   return (
     <AnimatePresence mode="wait">
@@ -64,47 +61,9 @@ export function RestaurantDrawer({ isOpen, onClose, onExpand, restaurant }: Rest
               WebkitTransform: 'translateZ(0)',
             }}
           >
-            {/* Drag Handle - Swipe up to expand, swipe down to close */}
-            <div
-              className="flex justify-center pt-3 pb-3 cursor-pointer touch-none"
-              onTouchStart={(e) => {
-                touchStartYSheet.current = e.touches[0].clientY;
-                touchCurrentYSheet.current = e.touches[0].clientY;
-                isDragging.current = false;
-              }}
-              onTouchMove={(e) => {
-                touchCurrentYSheet.current = e.touches[0].clientY;
-                const diff = touchStartYSheet.current - touchCurrentYSheet.current;
-
-                // Mark as dragging if moved more than 5px
-                if (Math.abs(diff) > 5) {
-                  isDragging.current = true;
-                }
-              }}
-              onTouchEnd={() => {
-                const swipeDistance = touchStartYSheet.current - touchCurrentYSheet.current;
-
-                if (isDragging.current) {
-                  // Swipe up (positive distance) to expand
-                  if (swipeDistance > 50) {
-                    onExpand();
-                  }
-                  // Swipe down (negative distance) to close
-                  else if (swipeDistance < -50) {
-                    onClose();
-                  }
-                }
-
-                touchStartYSheet.current = 0;
-                touchCurrentYSheet.current = 0;
-                isDragging.current = false;
-              }}
-            >
-              <div className="w-12 h-1 bg-muted-foreground/30 rounded-full" />
-            </div>
 
             {/* Restaurant Info */}
-            <div className="px-6 pb-6">
+            <div className="px-6 pt-6 pb-6">
               <div className="flex items-center gap-4 mb-4">
                 <div className="relative h-16 w-16 rounded-xl overflow-hidden flex-shrink-0 bg-muted">
                   <Image
