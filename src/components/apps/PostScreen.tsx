@@ -14,10 +14,7 @@ interface Restaurant {
 }
 
 export function PostScreen() {
-  const [selectedRestaurant, setSelectedRestaurant] = React.useState<Restaurant | null>(null);
-
   const handleSelectRestaurant = (restaurant: Restaurant) => {
-    setSelectedRestaurant(restaurant);
     // TODO: Navigate to the next step of the post creation flow
     console.log('Selected restaurant:', restaurant);
   };
