@@ -68,27 +68,27 @@ export function BottomNavigation({
   const handleDrag = React.useCallback((event: MouseEvent | TouchEvent | PointerEvent) => {
     const clientX = 'touches' in event ? event.touches[0].clientX : event.clientX;
     setDragX(clientX);
-    
+
     // Find the tab whose center is closest to the drag position
     let closestTab: string | null = null;
     let closestDistance = Infinity;
-    
+
     for (const tab of tabs) {
       const element = tabRefs.current[tab.id];
       if (element) {
         const rect = element.getBoundingClientRect();
         const centerX = rect.left + rect.width / 2;
         const distance = Math.abs(clientX - centerX);
-        
+
         if (distance < closestDistance) {
           closestDistance = distance;
           closestTab = tab.id;
         }
       }
     }
-    
+
     // Only change tab if we're reasonably close to a tab center (within half tab width)
-    if (closestTab && closestDistance < 80 && activeTab !== closestTab) {
+    if (closestTab && closestDistance < 60 && activeTab !== closestTab) {
       onTabChange(closestTab);
     }
   }, [activeTab, onTabChange]);
@@ -106,10 +106,10 @@ export function BottomNavigation({
         x = (event as MouseEvent | PointerEvent).clientX;
       }
     }
-    
+
     // Use dragX as fallback
     if (x == null) x = dragX ?? null;
-    
+
     // If still no position, use current active tab center
     if (x == null) {
       const activeElement = tabRefs.current[activeTab];
@@ -118,31 +118,35 @@ export function BottomNavigation({
         x = rect.left + rect.width / 2;
       }
     }
-    
-    if (x == null) return;
-    
+
+    if (x == null) {
+      // Clear state and return early
+      setDragX(null);
+      return;
+    }
+
     // Find the nearest tab center
     let nearestId: string | null = null;
     let nearestDistance = Number.POSITIVE_INFINITY;
-    
+
     for (const tab of tabs) {
       const el = tabRefs.current[tab.id];
       if (!el) continue;
       const rect = el.getBoundingClientRect();
       const centerX = rect.left + rect.width / 2;
       const distance = Math.abs(x - centerX);
-      
+
       if (distance < nearestDistance) {
         nearestDistance = distance;
         nearestId = tab.id;
       }
     }
-    
+
     // Always snap to the nearest tab on release
-    if (nearestId) {
+    if (nearestId && nearestId !== activeTab) {
       onTabChange(nearestId);
     }
-    
+
     // Clear dragX
     setDragX(null);
   }, [activeTab, dragX, onTabChange]);
@@ -327,22 +331,7 @@ export function BottomNavigation({
             mixBlendMode: 'normal',
           }}
         />
-        <div
-          className="absolute inset-0 rounded-[2.5rem] pointer-events-none"
-          style={{
-            boxShadow: 'inset 0 0 0 1px rgba(15,23,42,0.05)',
-            mixBlendMode: 'multiply',
-            opacity: 0.35,
-          }}
-        />
-        <div
-          className="absolute inset-[1px] rounded-[2.4rem] pointer-events-none"
-          style={{
-            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6), inset 0 -1px 0 rgba(15,23,42,0.04)',
-            mixBlendMode: 'screen',
-            opacity: 0.26,
-          }}
-        />
+        {/* Removed inner 1px inset layers to avoid visible hairlines on some displays */}
         <div
           className="absolute inset-[4px] rounded-[2rem] pointer-events-none"
           style={{
@@ -388,14 +377,7 @@ export function BottomNavigation({
             transition: 'background 220ms ease-out',
           }}
         />
-        {/* Bottom specular edge */}
-        <div
-          className="absolute bottom-[6px] left-10 right-10 h-px pointer-events-none"
-          style={{
-            background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.42), transparent)',
-            opacity: 0.22,
-          }}
-        />
+        {/* Removed bottom specular line to prevent thin visible line */}
         
         {/* Tab container */}
         <div 
@@ -412,19 +394,19 @@ export function BottomNavigation({
               handleDrag(e.nativeEvent);
             }
           }}
-          onPointerUp={(e) => { 
+          onPointerUp={(e) => {
             e.preventDefault();
-            setIsDragging(false);
             handleRelease(e.nativeEvent);
+            setIsDragging(false);
           }}
-          onPointerCancel={(e) => { 
+          onPointerCancel={(e) => {
             e.preventDefault();
-            setIsDragging(false);
             handleRelease(e.nativeEvent);
+            setIsDragging(false);
           }}
-          onTouchStart={(e) => { 
-            setIsDragging(true); 
-            handleDrag(e.nativeEvent); 
+          onTouchStart={(e) => {
+            setIsDragging(true);
+            handleDrag(e.nativeEvent);
           }}
           onTouchMove={(e) => {
             if (isDragging) {
@@ -432,9 +414,9 @@ export function BottomNavigation({
               handleDrag(e.nativeEvent);
             }
           }}
-          onTouchEnd={(e) => { 
-            setIsDragging(false);
+          onTouchEnd={(e) => {
             handleRelease(e.nativeEvent);
+            setIsDragging(false);
           }}
         >
           {/* Floating pill that follows pointer and expands while dragging */}
@@ -461,10 +443,11 @@ export function BottomNavigation({
             }}
             transition={{
               type: "spring",
-              stiffness: isDragging ? 600 : 450,
-              damping: isDragging ? 40 : 30,
-              mass: isDragging ? 0.5 : 0.8,
-              velocity: isDragging ? 0 : 2,
+              stiffness: isDragging ? 700 : 500,
+              damping: isDragging ? 45 : 35,
+              mass: 0.6,
+              restDelta: 0.001,
+              restSpeed: 0.001,
             }}
           />
           {tabs.map((tab) => {
