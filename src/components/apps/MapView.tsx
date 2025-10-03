@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { GoogleMap } from '@/components/ui/google-map';
+// Map removed
 
 export function MapView() {
   const [userLocation, setUserLocation] = React.useState<{
@@ -38,14 +38,5 @@ export function MapView() {
     getCurrentLocation();
   }, []);
 
-  return (
-    <div className="h-full">
-      <GoogleMap
-        center={userLocation || { lat: 37.7749, lng: -122.4194 }}
-        zoom={13}
-        height="100%"
-        className="w-full"
-      />
-    </div>
-  );
+  return null;
 }

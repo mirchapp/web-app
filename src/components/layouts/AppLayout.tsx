@@ -3,13 +3,13 @@
 import * as React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BottomNavigation } from '@/components/ui/bottom-navigation';
-import { MapView } from '@/components/apps/MapView';
 import { ProfileOverview } from '@/components/profile/ProfileOverview';
 import { FindHome } from '@/components/apps/FindHome';
 import { LikedHome } from '@/components/apps/LikedHome';
 import { cn } from '@/lib/utils';
 import { VideoFeed } from '@/components/video/VideoFeed';
 import mockVideos from '@/data/mock/videos.json';
+import { PostScreen } from '@/components/apps/PostScreen';
 import { useSafeArea } from '@/hooks/useSafeArea';
 
 interface AppLayoutProps {
@@ -18,14 +18,10 @@ interface AppLayoutProps {
 }
 
 // Placeholder components for each tab
-const DiscoverTab = () => <FindHome />;
-
-const MapTab = () => <MapView />;
-
+const FindTab = () => <FindHome />;
 const LikedTab = () => <LikedHome />;
-
+const PostTab = () => <PostScreen />;
 const VideosTab = () => <VideoFeed videos={mockVideos} />;
-
 const ProfileTab = () => <ProfileOverview />;
 
 export function AppLayout({ children, className }: AppLayoutProps) {
@@ -39,17 +35,17 @@ export function AppLayout({ children, className }: AppLayoutProps) {
   const renderActiveComponent = () => {
     switch (activeTab) {
       case 'discover':
-        return <DiscoverTab />;
-      case 'map':
-        return <MapTab />;
+        return <FindTab />;
       case 'liked':
         return <LikedTab />;
+      case 'post':
+        return <PostTab />;
       case 'videos':
         return <VideosTab />;
       case 'profile':
         return <ProfileTab />;
       default:
-        return <DiscoverTab />;
+        return <FindTab />;
     }
   };
 
@@ -58,13 +54,13 @@ export function AppLayout({ children, className }: AppLayoutProps) {
       {/* Main content area with bottom padding for floating navigation */}
       <main
         className={cn(
-          activeTab === 'map' || activeTab === 'videos' ? "fixed inset-0" : ""
+          activeTab === 'videos' ? "fixed inset-0" : ""
         )}
         style={{
-          height: activeTab === 'map' || activeTab === 'videos'
+          height: activeTab === 'videos'
             ? '100vh'
             : 'auto',
-          paddingBottom: activeTab === 'map' || activeTab === 'videos'
+          paddingBottom: activeTab === 'videos'
             ? '0'
             : `calc(8rem + ${Math.max(safeAreaInsets.bottom, 24)}px)`
         }}

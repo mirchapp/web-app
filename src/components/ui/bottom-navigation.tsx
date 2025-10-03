@@ -2,18 +2,18 @@
 
 import * as React from 'react';
 import {
-  MapIcon as MapSolidIcon,
-  MapPinIcon as MapPinSolidIcon,
   HeartIcon as HeartSolidIcon,
   VideoCameraIcon as VideoCameraSolidIcon,
   UserCircleIcon as UserSolidIcon,
+  PlusCircleIcon as PlusCircleSolidIcon,
+  MagnifyingGlassIcon as MagnifyingGlassSolidIcon,
 } from '@heroicons/react/24/solid';
 import {
-  MapIcon,
-  MapPinIcon,
   HeartIcon,
   VideoCameraIcon,
   UserCircleIcon,
+  PlusCircleIcon,
+  MagnifyingGlassIcon,
 } from '@heroicons/react/24/outline';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -29,9 +29,9 @@ interface Tab {
 }
 
 const tabs: Tab[] = [
-  { id: 'discover', label: 'Find', icon: { filled: MapSolidIcon, outline: MapIcon } },
-  { id: 'map', label: 'Map', icon: { filled: MapPinSolidIcon, outline: MapPinIcon } },
+  { id: 'discover', label: 'Find', icon: { filled: MagnifyingGlassSolidIcon, outline: MagnifyingGlassIcon } },
   { id: 'liked', label: 'Liked', icon: { filled: HeartSolidIcon, outline: HeartIcon } },
+  { id: 'post', label: 'Post', icon: { filled: PlusCircleSolidIcon, outline: PlusCircleIcon } },
   { id: 'videos', label: 'Flix', icon: { filled: VideoCameraSolidIcon, outline: VideoCameraIcon } },
   { id: 'profile', label: 'Profile', icon: { filled: UserSolidIcon, outline: UserCircleIcon } },
 ];
@@ -58,8 +58,8 @@ export function BottomNavigation({
   
   const tintMap: Record<string, { light: string; glow: string }> = {
     discover: { light: 'rgba(96, 165, 250, 0.06)', glow: 'rgba(59, 130, 246, 0.1)' },
-    map: { light: 'rgba(129, 230, 217, 0.06)', glow: 'rgba(45, 212, 191, 0.1)' },
     liked: { light: 'rgba(252, 165, 165, 0.06)', glow: 'rgba(248, 113, 113, 0.1)' },
+    post: { light: 'rgba(129, 230, 217, 0.10)', glow: 'rgba(45, 212, 191, 0.16)' },
     videos: { light: 'rgba(196, 181, 253, 0.06)', glow: 'rgba(167, 139, 250, 0.1)' },
     profile: { light: 'rgba(196, 196, 255, 0.05)', glow: 'rgba(129, 140, 248, 0.08)' },
   };
@@ -281,7 +281,7 @@ export function BottomNavigation({
   return (
     <div
       className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none px-4"
-      style={{ paddingBottom: `${Math.max(safeAreaInsets.bottom, 24)}px` }}
+      style={{ paddingBottom: `${Math.max(safeAreaInsets.bottom, 16)}px` }}
     >
       <motion.nav 
         initial={{ y: 0, opacity: 1 }}
@@ -400,7 +400,7 @@ export function BottomNavigation({
         {/* Tab container */}
         <div 
           ref={containerRef}
-          className="relative flex items-center justify-between px-4 py-1.5 touch-none select-none overflow-visible"
+          className="relative flex items-center justify-between px-3 py-1 touch-none select-none overflow-visible"
           onPointerDown={(e) => { 
             e.preventDefault();
             setIsDragging(true); 
@@ -478,7 +478,7 @@ export function BottomNavigation({
                 whileTap={{ scale: 0.95 }}
                 className={cn(
                   "relative flex flex-col items-center justify-center gap-[0.5px]",
-                  "min-h-[54px] min-w-[66px] px-3 py-1.5",
+                  "min-h-[48px] min-w-[60px] px-2.5 py-1",
                   "transition-all duration-200 ease-out",
                   "focus-visible:outline-none",
                   "rounded-2xl"
@@ -516,22 +516,7 @@ export function BottomNavigation({
                   })}
                 </motion.div>
                 
-                {/* Label */}
-                <span 
-                  className={cn(
-                    "relative z-10 text-[11px] mt-1 block transition-all duration-200",
-                    "leading-tight",
-                    isActive 
-                      ? isDarkBackground
-                        ? "text-purple-400 opacity-100 font-medium drop-shadow-[0_1px_3px_rgba(192,132,252,0.3)]"
-                        : "text-primary opacity-100 font-medium"
-                      : isDarkBackground
-                        ? "text-white/95 opacity-95 font-normal drop-shadow-[0_1px_3px_rgba(0,0,0,0.4)]"
-                        : "text-gray-900/95 opacity-95 font-normal drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)]"
-                  )}
-                >
-                  {tab.label}
-                </span>
+                {/* Labels removed for a cleaner, icon-only nav */}
               </motion.button>
             );
           })}
