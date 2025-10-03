@@ -59,8 +59,6 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
 
   // Track scroll position to update current video
   React.useEffect(() => {
-    let scrollTimeout: NodeJS.Timeout;
-
     const handleScroll = () => {
       if (!scrollContainerRef.current) return;
 
@@ -72,18 +70,12 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
         setCurrentVideoIndex(videoIndex);
         onVideoChange?.(videoIndex);
       }
-
-      // Clear pointer-events delay after scroll stops
-      clearTimeout(scrollTimeout);
     };
 
     const scrollContainer = scrollContainerRef.current;
     if (scrollContainer) {
       scrollContainer.addEventListener('scroll', handleScroll, { passive: true });
-      return () => {
-        scrollContainer.removeEventListener('scroll', handleScroll);
-        clearTimeout(scrollTimeout);
-      };
+      return () => scrollContainer.removeEventListener('scroll', handleScroll);
     }
   }, [currentVideoIndex, videos.length, onVideoChange]);
 
