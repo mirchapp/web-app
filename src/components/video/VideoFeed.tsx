@@ -316,10 +316,6 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
             transition={{ type: 'tween', duration: 0.25, ease: 'easeOut' }}
             className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm touch-manipulation"
             onClick={() => setShowProfileCard(false)}
-            onTouchEnd={(e) => {
-              e.preventDefault();
-              setShowProfileCard(false);
-            }}
             style={{ willChange: 'opacity' }}
           >
             <motion.div

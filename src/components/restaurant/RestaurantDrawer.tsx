@@ -28,10 +28,6 @@ export function RestaurantDrawer({ isOpen, onClose, onExpand, restaurant }: Rest
           transition={{ type: 'tween', duration: 0.25, ease: 'easeOut' }}
           className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm touch-manipulation"
           onClick={onClose}
-          onTouchEnd={(e) => {
-            e.preventDefault();
-            onClose();
-          }}
           style={{ willChange: 'opacity' }}
         >
           <motion.div
@@ -117,11 +113,6 @@ export function RestaurantDrawer({ isOpen, onClose, onExpand, restaurant }: Rest
                     e.stopPropagation();
                     onExpand();
                   }}
-                  onTouchEnd={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    onExpand();
-                  }}
                 >
                   <Maximize2 className="h-4 w-4 mr-1.5" />
                   View
@@ -130,13 +121,8 @@ export function RestaurantDrawer({ isOpen, onClose, onExpand, restaurant }: Rest
                   variant="outline"
                   className="h-11 bg-background hover:bg-muted/50 border-border/50 font-medium rounded-xl touch-manipulation active:scale-95 transition-transform"
                   onClick={(e) => {
-                    e.preventDefault();
                     e.stopPropagation();
                     console.log('Open in map');
-                  }}
-                  onTouchEnd={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
                   }}
                 >
                   <MapPin className="h-4 w-4 mr-1.5" />
@@ -146,13 +132,8 @@ export function RestaurantDrawer({ isOpen, onClose, onExpand, restaurant }: Rest
                   variant="outline"
                   className="h-11 bg-background hover:bg-muted/50 border-border/50 font-medium rounded-xl touch-manipulation active:scale-95 transition-transform"
                   onClick={(e) => {
-                    e.preventDefault();
                     e.stopPropagation();
                     window.open(`tel:${restaurant.phone}`);
-                  }}
-                  onTouchEnd={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
                   }}
                 >
                   <Phone className="h-4 w-4 mr-1.5" />

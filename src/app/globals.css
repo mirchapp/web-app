@@ -162,6 +162,16 @@
     -webkit-tap-highlight-color: transparent;
     /* Prevent callout menu on long-press */
     -webkit-touch-callout: none;
+    /* Instant feedback on tap */
+    cursor: pointer;
+  }
+
+  /* Improve active state feedback for better touch response perception */
+  button:active,
+  a:active,
+  [role="button"]:active {
+    transform: scale(0.98);
+    transition: transform 0.05s ease-out;
   }
 
   /* Ensure inputs allow text selection */

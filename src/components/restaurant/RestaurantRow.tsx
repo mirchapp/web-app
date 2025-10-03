@@ -21,16 +21,6 @@ export function RestaurantRow({ restaurantLogo, restaurantName, verified, onClic
         e.stopPropagation();
         onClick();
       }}
-      onTouchStart={(e) => {
-        e.stopPropagation();
-        setIsPressing(true);
-      }}
-      onTouchEnd={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsPressing(false);
-        onClick();
-      }}
       onMouseDown={() => {
         setIsPressing(true);
       }}
@@ -41,7 +31,7 @@ export function RestaurantRow({ restaurantLogo, restaurantName, verified, onClic
         setIsPressing(false);
       }}
       className={cn(
-        "flex items-center gap-2 mb-1.5 group touch-manipulation transition-all duration-200",
+        "flex items-center gap-2 mb-1.5 group touch-manipulation transition-all duration-200 active:translate-y-[-2px] active:brightness-110",
         isPressing
           ? "translate-y-[-2px] brightness-110"
           : "hover:opacity-90"
