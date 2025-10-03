@@ -7,6 +7,7 @@ declare global {
   interface Window {
     google: typeof google;
     initMap: () => void;
+    initGoogleMaps: () => void;
   }
 }
 
@@ -23,6 +24,7 @@ interface GoogleMapProps {
 // Global state to track script loading
 let isScriptLoading = false;
 let isScriptLoaded = false;
+let scriptElement: HTMLScriptElement | null = null;
 
 // Function to load Google Maps script
 const loadGoogleMapsScript = (): Promise<void> => {
@@ -53,23 +55,29 @@ const loadGoogleMapsScript = (): Promise<void> => {
       return;
     }
 
+    // Remove existing script if it exists to force reload with new map_ids
+    if (scriptElement && scriptElement.parentNode) {
+      scriptElement.parentNode.removeChild(scriptElement);
+      isScriptLoaded = false;
+    }
+
     isScriptLoading = true;
     
-    const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`;
-    script.async = true;
-    script.defer = true;
-    script.onload = () => {
+    scriptElement = document.createElement('script');
+    scriptElement.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places&map_ids=60478709f030ca4de60d8bf1`;
+    scriptElement.async = true;
+    scriptElement.defer = true;
+    scriptElement.onload = () => {
       isScriptLoaded = true;
       isScriptLoading = false;
       resolve();
     };
-    script.onerror = () => {
+    scriptElement.onerror = () => {
       isScriptLoading = false;
       reject(new Error('Failed to load Google Maps'));
     };
     
-    document.head.appendChild(script);
+    document.head.appendChild(scriptElement);
   });
 };
 
@@ -122,32 +130,29 @@ export function GoogleMap({
         return;
       }
 
+      console.log('Initializing map with mapId: 60478709f030ca4de60d8bf1');
+
       const mapInstance = new window.google.maps.Map(mapRef.current, {
         center,
         zoom,
+        mapId: '60478709f030ca4de60d8bf1',
         mapTypeControl: false,
         streetViewControl: false,
         fullscreenControl: false,
         zoomControl: false,
         gestureHandling: 'greedy',
         disableDoubleClickZoom: false,
-        scrollwheel: true,
-        styles: [
-          {
-            featureType: 'poi',
-            elementType: 'labels',
-            stylers: [{ visibility: 'off' }]
-          }
-        ]
+        scrollwheel: true
       });
+
+      // Log map instance to verify mapId is applied
+      console.log('Map instance created:', mapInstance);
 
       setMap(mapInstance);
     };
 
-    if (window.google) {
+    if (window.google && window.google.maps) {
       initMap();
-    } else {
-      window.initMap = initMap;
     }
   }, [isLoaded, center, zoom, map]);
 
