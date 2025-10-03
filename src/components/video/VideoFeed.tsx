@@ -120,13 +120,14 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
       }
     }
 
-    // Only allow dragging if it's primarily horizontal and to the right
-    if (isDraggingHorizontally.current === true && diffX > 0) {
-      // Prevent default to stop scrolling while dragging horizontally
+    // Only allow horizontal dragging - block all vertical movement
+    if (isDraggingHorizontally.current === true) {
+      // Always prevent default when horizontal dragging to block vertical movement
       e.preventDefault();
 
-      // Smooth drag with the finger
-      setDragOffset(diffX);
+      if (diffX > 0) {
+        setDragOffset(diffX);
+      }
     }
   };
 
@@ -333,15 +334,17 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
           >
             <motion.div
               ref={profileCardRef}
-              initial={{ x: '100%' }}
+              initial={{ x: '100%', y: 0 }}
               animate={{
                 x: dragOffset > 0 ? dragOffset : 0,
+                y: 0, // Always lock Y position to 0
                 transition: dragOffset > 0
                   ? { type: 'tween', duration: 0, ease: 'linear' }
                   : { type: 'spring', stiffness: 400, damping: 40, mass: 0.8, restDelta: 0.001, restSpeed: 0.001 }
               }}
               exit={{
                 x: '100%',
+                y: 0, // Keep Y locked during exit
                 transition: { type: 'spring', stiffness: 500, damping: 45, mass: 0.7 }
               }}
               className="absolute right-0 top-0 h-full w-full max-w-md mx-auto bg-background shadow-2xl"
@@ -355,14 +358,16 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
                 WebkitBackfaceVisibility: 'hidden',
                 transform: 'translateZ(0)',
                 WebkitTransform: 'translateZ(0)',
+                touchAction: 'none' // Disable all default touch behaviors on the card
               }}
             >
               {/* Profile Card Content */}
-              <div 
+              <div
                 className="h-full overflow-y-auto relative"
                 style={{
                   WebkitOverflowScrolling: 'touch',
-                  overscrollBehavior: 'contain'
+                  overscrollBehavior: 'contain',
+                  touchAction: 'pan-y' // Only allow vertical scrolling, never horizontal
                 }}
               >
                 {/* Back Button - Absolute Positioning */}
