@@ -27,30 +27,8 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
     }, 300);
   };
 
-  // Prevent background scrolling when modal is open
-  React.useEffect(() => {
-    if (isOpen) {
-      // Prevent scrolling on the body
-      document.body.style.overflow = 'hidden';
-      document.body.style.position = 'fixed';
-      document.body.style.width = '100%';
-      document.body.style.height = '100%';
-    } else {
-      // Restore scrolling
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.width = '';
-      document.body.style.height = '';
-    }
-
-    // Cleanup on unmount
-    return () => {
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.width = '';
-      document.body.style.height = '';
-    };
-  }, [isOpen]);
+  // Note: We don't modify body overflow here because VideoFeed already handles it
+  // Modifying it here would interfere with VideoFeed's scroll prevention when closing
 
   return (
     <AnimatePresence mode="wait">
