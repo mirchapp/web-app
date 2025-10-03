@@ -250,11 +250,6 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
                 e.stopPropagation();
                 setShowProfileCard(true);
               }}
-              onTouchEnd={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setShowProfileCard(true);
-              }}
               className="relative h-11 w-11 rounded-full overflow-hidden ring-2 ring-white/50 flex-shrink-0 hover:ring-white/70 transition-all duration-200 cursor-pointer touch-manipulation"
             >
               <Image
@@ -270,11 +265,6 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
               <div className="flex items-center gap-2 mb-2">
                 <button
                   onClick={(e) => {
-                    e.stopPropagation();
-                    setShowProfileCard(true);
-                  }}
-                  onTouchEnd={(e) => {
-                    e.preventDefault();
                     e.stopPropagation();
                     setShowProfileCard(true);
                   }}
