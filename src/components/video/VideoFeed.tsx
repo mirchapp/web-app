@@ -132,7 +132,9 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
     }
   };
 
-  const handleTouchEnd = () => {
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    e.stopPropagation();
+
     const swipeDistance = touchCurrentX.current - touchStartX.current;
 
     // Only close if it was a horizontal drag
