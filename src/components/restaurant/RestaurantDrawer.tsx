@@ -108,7 +108,7 @@ export function RestaurantDrawer({ isOpen, onClose, onExpand, restaurant }: Rest
               <div className="grid grid-cols-3 gap-2">
                 <Button
                   variant="outline"
-                  className="h-11 bg-background hover:bg-muted/50 border-border/50 font-medium rounded-xl touch-manipulation active:scale-95 transition-transform"
+                  className="h-11 bg-background hover:bg-muted/50 border-border/50 font-medium rounded-xl touch-optimized active:scale-95 transition-transform"
                   onClick={(e) => {
                     e.stopPropagation();
                     onExpand();
@@ -119,7 +119,7 @@ export function RestaurantDrawer({ isOpen, onClose, onExpand, restaurant }: Rest
                 </Button>
                 <Button
                   variant="outline"
-                  className="h-11 bg-background hover:bg-muted/50 border-border/50 font-medium rounded-xl touch-manipulation active:scale-95 transition-transform"
+                  className="h-11 bg-background hover:bg-muted/50 border-border/50 font-medium rounded-xl touch-optimized active:scale-95 transition-transform"
                   onClick={(e) => {
                     e.stopPropagation();
                     console.log('Open in map');
@@ -130,7 +130,7 @@ export function RestaurantDrawer({ isOpen, onClose, onExpand, restaurant }: Rest
                 </Button>
                 <Button
                   variant="outline"
-                  className="h-11 bg-background hover:bg-muted/50 border-border/50 font-medium rounded-xl touch-manipulation active:scale-95 transition-transform"
+                  className="h-11 bg-background hover:bg-muted/50 border-border/50 font-medium rounded-xl touch-optimized active:scale-95 transition-transform"
                   onClick={(e) => {
                     e.stopPropagation();
                     window.open(`tel:${restaurant.phone}`);

@@ -157,13 +157,17 @@
   [type="button"],
   [type="submit"],
   input[type="checkbox"],
-  input[type="radio"] {
+  input[type="radio"],
+  [data-radix-collection-item] {
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
     /* Prevent callout menu on long-press */
     -webkit-touch-callout: none;
     /* Instant feedback on tap */
     cursor: pointer;
+    /* Ensure proper touch handling */
+    -webkit-user-select: none;
+    user-select: none;
   }
 
   /* Improve active state feedback for better touch response perception */
@@ -184,6 +188,29 @@
   textarea {
     user-select: text;
     -webkit-user-select: text;
+  }
+
+  /* Enhanced touch optimization for Radix UI components */
+  [data-radix-tabs-trigger],
+  [data-radix-tabs-list],
+  [data-radix-collection-item],
+  [data-state] {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    cursor: pointer;
+  }
+
+  /* Immediate touch response for all interactive elements */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [data-radix-tabs-trigger]:not([data-disabled]),
+  [data-radix-collection-item]:not([data-disabled]) {
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    will-change: transform;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
   }
 
   /* Hardware acceleration for common transforms */
@@ -366,6 +393,21 @@
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
     }
+  }
+
+  /* Mobile touch optimization utilities */
+  .touch-optimized {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    cursor: pointer;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    will-change: transform;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
   }
 
   /* Better font rendering on mobile */

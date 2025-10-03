@@ -89,13 +89,13 @@ export function ProfileOverview() {
             <TabsList className="w-full grid grid-cols-2 h-12 bg-background/80 backdrop-blur-xl rounded-2xl p-1 border border-border/20 shadow-sm ring-1 ring-black/5 dark:ring-white/10">
               <TabsTrigger 
                 value="flix" 
-                className="rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm data-[state=active]:ring-1 data-[state=active]:ring-primary/30 transition-all duration-300 ease-out font-medium text-sm"
+                className="rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm data-[state=active]:ring-1 data-[state=active]:ring-primary/30 transition-all duration-300 ease-out font-medium text-sm touch-optimized"
               >
                 Flix
               </TabsTrigger>
               <TabsTrigger 
                 value="reviews"
-                className="rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm data-[state=active]:ring-1 data-[state=active]:ring-primary/30 transition-all duration-300 ease-out font-medium text-sm"
+                className="rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm data-[state=active]:ring-1 data-[state=active]:ring-primary/30 transition-all duration-300 ease-out font-medium text-sm touch-optimized"
               >
                 Reviews
               </TabsTrigger>
