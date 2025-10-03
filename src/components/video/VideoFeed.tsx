@@ -104,7 +104,7 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
   const handleTouchMove = (e: React.TouchEvent) => {
     touchCurrentX.current = e.touches[0].clientX;
     touchCurrentY.current = e.touches[0].clientY;
-    
+
     const diffX = touchCurrentX.current - touchStartX.current;
     const diffY = touchCurrentY.current - touchStartY.current;
 
@@ -112,7 +112,7 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
     if (isDraggingHorizontally.current === null) {
       const absX = Math.abs(diffX);
       const absY = Math.abs(diffY);
-      
+
       // Only set direction if movement is significant enough (> 10px)
       if (absX > 10 || absY > 10) {
         // If horizontal movement is greater than vertical, it's a horizontal drag
@@ -124,11 +124,9 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
     if (isDraggingHorizontally.current === true && diffX > 0) {
       // Prevent default to stop scrolling while dragging horizontally
       e.preventDefault();
-      
-      // Use requestAnimationFrame for smoother updates
-      requestAnimationFrame(() => {
-        setDragOffset(diffX);
-      });
+
+      // Smooth drag with the finger
+      setDragOffset(diffX);
     }
   };
 
@@ -137,7 +135,7 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
 
     const swipeDistance = touchCurrentX.current - touchStartX.current;
 
-    // Only close if it was a horizontal drag
+    // Only close if it was a horizontal drag to the right (swipe right to close)
     if (isDraggingHorizontally.current === true && swipeDistance > 100) {
       // Close immediately and let the exit animation handle it
       setShowProfileCard(false);
@@ -324,7 +322,7 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ type: 'tween', duration: 0.25, ease: 'easeOut' }}
             className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm touch-manipulation"
             onClick={() => setShowProfileCard(false)}
             onTouchEnd={(e) => {
@@ -338,24 +336,25 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
               initial={{ x: '100%' }}
               animate={{
                 x: dragOffset > 0 ? dragOffset : 0,
-                transition: {
-                  type: dragOffset > 0 ? 'tween' : 'spring',
-                  duration: dragOffset > 0 ? 0 : 0.25,
-                  damping: 30,
-                  stiffness: 300,
-                  mass: 0.8
-                }
+                transition: dragOffset > 0
+                  ? { type: 'tween', duration: 0, ease: 'linear' }
+                  : { type: 'spring', stiffness: 400, damping: 40, mass: 0.8, restDelta: 0.001, restSpeed: 0.001 }
               }}
-              exit={{ x: '100%', transition: { type: 'tween', duration: 0.2, ease: 'easeInOut' } }}
+              exit={{
+                x: '100%',
+                transition: { type: 'spring', stiffness: 500, damping: 45, mass: 0.7 }
+              }}
               className="absolute right-0 top-0 h-full w-full max-w-md mx-auto bg-background shadow-2xl"
               onClick={(e) => e.stopPropagation()}
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
               style={{
-                willChange: dragOffset > 0 ? 'transform' : 'auto',
+                willChange: dragOffset !== 0 ? 'transform' : 'auto',
                 backfaceVisibility: 'hidden',
-                perspective: 1000,
+                WebkitBackfaceVisibility: 'hidden',
+                transform: 'translateZ(0)',
+                WebkitTransform: 'translateZ(0)',
               }}
             >
               {/* Profile Card Content */}

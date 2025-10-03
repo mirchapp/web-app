@@ -28,7 +28,7 @@ export function RestaurantDrawer({ isOpen, onClose, onExpand, restaurant }: Rest
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
+          transition={{ type: 'tween', duration: 0.25, ease: 'easeOut' }}
           className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm touch-manipulation"
           onClick={onClose}
           onTouchEnd={(e) => {
@@ -43,9 +43,11 @@ export function RestaurantDrawer({ isOpen, onClose, onExpand, restaurant }: Rest
             exit={{ y: '100%' }}
             transition={{
               type: 'spring',
-              damping: 30,
-              stiffness: 300,
-              mass: 0.8
+              stiffness: 400,
+              damping: 40,
+              mass: 0.8,
+              restDelta: 0.001,
+              restSpeed: 0.001
             }}
             className="absolute bottom-0 left-0 right-0 bg-background shadow-2xl"
             onClick={(e) => e.stopPropagation()}
@@ -57,10 +59,12 @@ export function RestaurantDrawer({ isOpen, onClose, onExpand, restaurant }: Rest
               overscrollBehavior: 'contain',
               willChange: 'transform',
               backfaceVisibility: 'hidden',
-              perspective: 1000,
+              WebkitBackfaceVisibility: 'hidden',
+              transform: 'translateZ(0)',
+              WebkitTransform: 'translateZ(0)',
             }}
           >
-            {/* Drag Handle - Only for closing */}
+            {/* Drag Handle - Swipe up to expand, swipe down to close */}
             <div
               className="flex justify-center pt-3 pb-3 cursor-pointer touch-none"
               onTouchStart={(e) => {
@@ -71,7 +75,7 @@ export function RestaurantDrawer({ isOpen, onClose, onExpand, restaurant }: Rest
               onTouchMove={(e) => {
                 touchCurrentYSheet.current = e.touches[0].clientY;
                 const diff = touchStartYSheet.current - touchCurrentYSheet.current;
-                
+
                 // Mark as dragging if moved more than 5px
                 if (Math.abs(diff) > 5) {
                   isDragging.current = true;
@@ -80,9 +84,15 @@ export function RestaurantDrawer({ isOpen, onClose, onExpand, restaurant }: Rest
               onTouchEnd={() => {
                 const swipeDistance = touchStartYSheet.current - touchCurrentYSheet.current;
 
-                // Only allow swipe down to close if user was actually dragging
-                if (isDragging.current && swipeDistance < -50) {
-                  onClose();
+                if (isDragging.current) {
+                  // Swipe up (positive distance) to expand
+                  if (swipeDistance > 50) {
+                    onExpand();
+                  }
+                  // Swipe down (negative distance) to close
+                  else if (swipeDistance < -50) {
+                    onClose();
+                  }
                 }
 
                 touchStartYSheet.current = 0;

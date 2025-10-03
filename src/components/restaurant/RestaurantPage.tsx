@@ -59,7 +59,7 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
+          transition={{ type: 'tween', duration: 0.25, ease: 'easeOut' }}
           className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm touch-manipulation"
           onClick={handleClose}
           onTouchStart={(e) => {
@@ -80,19 +80,21 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
             animate={{ y: isClosing ? '100%' : 0 }}
             exit={{ y: '100%' }}
             transition={{
-              type: isClosing ? 'tween' : 'spring',
-              duration: isClosing ? 0.3 : undefined,
-              ease: isClosing ? 'easeInOut' : undefined,
-              damping: isClosing ? undefined : 30,
-              stiffness: isClosing ? undefined : 300,
-              mass: isClosing ? undefined : 0.8
+              type: 'spring',
+              stiffness: isClosing ? 500 : 400,
+              damping: isClosing ? 45 : 40,
+              mass: isClosing ? 0.7 : 0.8,
+              restDelta: 0.001,
+              restSpeed: 0.001
             }}
             className="absolute bottom-0 left-0 right-0 h-full w-full bg-background shadow-2xl"
             onClick={(e) => e.stopPropagation()}
             style={{
               willChange: 'transform',
               backfaceVisibility: 'hidden',
-              perspective: 1000,
+              WebkitBackfaceVisibility: 'hidden',
+              transform: 'translateZ(0)',
+              WebkitTransform: 'translateZ(0)',
             }}
           >
             {/* Close Button */}
