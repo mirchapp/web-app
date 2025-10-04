@@ -27,32 +27,33 @@ const ProfileTab = () => <ProfileOverview />;
 export function AppLayout({ children, className }: AppLayoutProps) {
   const [activeTab, setActiveTab] = React.useState('videos');
 
-  // Lock background scroll for full-screen modals (post, videos)
+  // Lock body scroll - each component manages its own internal scrolling
   React.useEffect(() => {
-    const shouldLockScroll = activeTab === 'post' || activeTab === 'videos';
     const body = document.body;
-    
-    if (shouldLockScroll) {
-      const prev = {
-        overflow: body.style.overflow,
-        position: body.style.position,
-        width: body.style.width,
-        height: body.style.height,
-      };
-      
-      body.style.overflow = 'hidden';
-      body.style.position = 'fixed';
-      body.style.width = '100%';
-      body.style.height = '100%';
-      
-      return () => {
-        body.style.overflow = prev.overflow;
-        body.style.position = prev.position;
-        body.style.width = prev.width;
-        body.style.height = prev.height;
-      };
-    }
-  }, [activeTab]);
+    const html = document.documentElement;
+
+    const prev = {
+      bodyOverflow: body.style.overflow,
+      bodyPosition: body.style.position,
+      bodyWidth: body.style.width,
+      bodyHeight: body.style.height,
+      htmlOverflow: html.style.overflow,
+    };
+
+    body.style.overflow = 'hidden';
+    body.style.position = 'fixed';
+    body.style.width = '100%';
+    body.style.height = '100%';
+    html.style.overflow = 'hidden';
+
+    return () => {
+      body.style.overflow = prev.bodyOverflow;
+      body.style.position = prev.bodyPosition;
+      body.style.width = prev.bodyWidth;
+      body.style.height = prev.bodyHeight;
+      html.style.overflow = prev.htmlOverflow;
+    };
+  }, []);
 
   const handleTabChange = React.useCallback((tabId: string) => {
     setActiveTab(tabId);

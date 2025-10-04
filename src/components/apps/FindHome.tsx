@@ -21,7 +21,7 @@ export function FindHome() {
   }, []);
 
   return (
-    <div className="min-h-screen pb-24">
+    <div className="h-screen overflow-y-auto pb-24">
       {/* Header Section */}
       <div className="px-4 pt-8 pb-6">
         {/* Greeting */}

@@ -8,8 +8,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 export function ProfileOverview() {
   return (
-    <div className="container mx-auto px-4 pt-12"
-    >
+    <div className="h-screen overflow-y-auto pb-24">
+      <div className="container mx-auto px-4 pt-12">
       <div className="max-w-md mx-auto">
         <div className="flex flex-col items-center justify-center">
           {/* Avatar */}
@@ -137,6 +137,7 @@ export function ProfileOverview() {
             </TabsContent>
           </Tabs>
         </div>
+      </div>
       </div>
     </div>
   );
