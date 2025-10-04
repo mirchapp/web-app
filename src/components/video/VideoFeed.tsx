@@ -22,6 +22,7 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
   const [showProfileCard, setShowProfileCard] = React.useState(false);
   const [showMiniRestaurantSheet, setShowMiniRestaurantSheet] = React.useState(false);
   const [showRestaurantPage, setShowRestaurantPage] = React.useState(false);
+  const [isProfileClosing, setIsProfileClosing] = React.useState(false);
   const safeAreaInsets = useSafeArea();
 
   // Prevent background scrolling on Flix tab
@@ -138,8 +139,8 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
 
     // Only close if it was a horizontal drag to the right (swipe right to close)
     if (isDraggingHorizontally.current === true && swipeDistance > 100) {
-      // Close immediately and let the exit animation handle it
-      setShowProfileCard(false);
+      // Controlled close to immediately allow touches to pass through backdrop
+      handleProfileClose();
     } else {
       // Snap back to position with animation
       setDragOffset(0);
@@ -151,6 +152,15 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
     touchCurrentX.current = 0;
     touchCurrentY.current = 0;
     isDraggingHorizontally.current = null;
+  };
+
+  const handleProfileClose = () => {
+    setIsProfileClosing(true);
+    // Wait for slide-out before unmounting to free pointer events immediately
+    setTimeout(() => {
+      setIsProfileClosing(false);
+      setShowProfileCard(false);
+    }, 300);
   };
 
   const renderVideoControls = (index: number) => {
@@ -314,19 +324,19 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ type: 'tween', duration: 0.25, ease: 'easeOut' }}
-            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm touch-manipulation"
-            onClick={() => setShowProfileCard(false)}
-            style={{ willChange: 'opacity' }}
+            className="fixed inset-0 z-50 bg-transparent touch-manipulation"
+            onClick={handleProfileClose}
+            style={{ willChange: 'opacity', pointerEvents: isProfileClosing ? 'none' : 'auto' }}
           >
             <motion.div
               ref={profileCardRef}
               initial={{ x: '100%', y: 0 }}
               animate={{
-                x: dragOffset > 0 ? dragOffset : 0,
+                x: isProfileClosing ? '100%' : (dragOffset > 0 ? dragOffset : 0),
                 y: 0, // Always lock Y position to 0
                 transition: dragOffset > 0
                   ? { type: 'tween', duration: 0, ease: 'linear' }
-                  : { type: 'spring', stiffness: 400, damping: 40, mass: 0.8, restDelta: 0.001, restSpeed: 0.001 }
+                  : { type: 'spring', stiffness: isProfileClosing ? 500 : 400, damping: isProfileClosing ? 45 : 40, mass: isProfileClosing ? 0.7 : 0.8, restDelta: 0.001, restSpeed: 0.001 }
               }}
               exit={{
                 x: '100%',
@@ -360,7 +370,7 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => setShowProfileCard(false)}
+                  onClick={handleProfileClose}
                   className="absolute top-4 left-4 z-20 h-8 w-8 rounded-full hover:bg-muted/50 bg-background/80 backdrop-blur-sm"
                 >
                   <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
