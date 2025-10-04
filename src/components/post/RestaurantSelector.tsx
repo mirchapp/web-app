@@ -354,6 +354,7 @@ export function RestaurantSelector({ onSelectRestaurant, onClose }: RestaurantSe
     localStorage.setItem('recentRestaurants', JSON.stringify(recent));
     setRecentRestaurants(recent);
 
+    // Immediately trigger camera/photo selection
     onSelectRestaurant(restaurant);
   };
 
@@ -419,15 +420,7 @@ export function RestaurantSelector({ onSelectRestaurant, onClose }: RestaurantSe
       {/* Header */}
       <div className="px-4 pb-3 border-b border-border/50">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-semibold text-foreground">Select Restaurant</h1>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onClose}
-            className="h-9 w-9 rounded-full"
-          >
-            <X className="h-5 w-5" />
-          </Button>
+          <h1 className="text-xl font-semibold text-foreground">Start a Post</h1>
         </div>
 
         {/* Search Bar */}

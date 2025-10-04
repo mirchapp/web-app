@@ -9,7 +9,7 @@ import { LikedHome } from '@/components/apps/LikedHome';
 import { cn } from '@/lib/utils';
 import { VideoFeed } from '@/components/video/VideoFeed';
 import mockVideos from '@/data/mock/videos.json';
-import { PostScreen } from '@/components/apps/PostScreen';
+import { PostScreen, PostEditorContext } from '@/components/apps/PostScreen';
 import { useSafeArea } from '@/hooks/useSafeArea';
 
 interface AppLayoutProps {
@@ -26,6 +26,7 @@ const ProfileTab = () => <ProfileOverview />;
 
 export function AppLayout({ children, className }: AppLayoutProps) {
   const [activeTab, setActiveTab] = React.useState('videos');
+  const [isInPostEditor, setIsInPostEditor] = React.useState(false);
 
   // Lock body scroll - each component manages its own internal scrolling
   React.useEffect(() => {
@@ -77,41 +78,45 @@ export function AppLayout({ children, className }: AppLayoutProps) {
   };
 
   return (
-    <div className={cn("min-h-screen bg-background text-foreground", className)}>
-      {/* Main content area with bottom padding for floating navigation */}
-      <main
-        className={cn(
-          activeTab === 'videos' || activeTab === 'post' ? "fixed inset-0" : ""
-        )}
-        style={{
-          height: activeTab === 'videos' || activeTab === 'post'
-            ? '100vh'
-            : 'auto',
-          paddingBottom: '0' // Removed navbar padding for testing
-        }}
-      >
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 1, y: 0, scale: 1 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.98 }}
-            transition={{
-              duration: 0.15,
-              ease: "easeOut",
-            }}
-            className="h-full"
-          >
-            {children || renderActiveComponent()}
-          </motion.div>
-        </AnimatePresence>
-      </main>
+    <PostEditorContext.Provider value={{ isInEditor: isInPostEditor, setIsInEditor: setIsInPostEditor }}>
+      <div className={cn("min-h-screen bg-background text-foreground", className)}>
+        {/* Main content area with bottom padding for floating navigation */}
+        <main
+          className={cn(
+            activeTab === 'videos' || activeTab === 'post' ? "fixed inset-0" : ""
+          )}
+          style={{
+            height: activeTab === 'videos' || activeTab === 'post'
+              ? '100vh'
+              : 'auto',
+            paddingBottom: '0' // Removed navbar padding for testing
+          }}
+        >
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 1, y: 0, scale: 1 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.98 }}
+              transition={{
+                duration: 0.15,
+                ease: "easeOut",
+              }}
+              className="h-full"
+            >
+              {children || renderActiveComponent()}
+            </motion.div>
+          </AnimatePresence>
+        </main>
 
-      {/* Floating Bottom Navigation - Re-enabled with simplified touch handling */}
-      <BottomNavigation
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
-      />
-    </div>
+        {/* Floating Bottom Navigation - Hidden when in post editor */}
+        {!isInPostEditor && (
+          <BottomNavigation
+            activeTab={activeTab}
+            onTabChange={handleTabChange}
+          />
+        )}
+      </div>
+    </PostEditorContext.Provider>
   );
 }
