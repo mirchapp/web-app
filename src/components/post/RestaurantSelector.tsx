@@ -66,6 +66,7 @@ export function RestaurantSelector({ onSelectRestaurant, onClose }: RestaurantSe
   const [userLocation, setUserLocation] = React.useState<{ lat: number; lng: number } | null>(null);
   const [isRequestingLocation, setIsRequestingLocation] = React.useState(false);
   const [locationError, setLocationError] = React.useState<string | null>(null);
+  const [hasRequestedPermission, setHasRequestedPermission] = React.useState(false);
   const searchInputRef = React.useRef<HTMLInputElement>(null);
   const debounceTimerRef = React.useRef<NodeJS.Timeout | null>(null);
   // Note: Background scroll is locked by AppLayout when post tab is active
@@ -159,11 +160,12 @@ export function RestaurantSelector({ onSelectRestaurant, onClose }: RestaurantSe
     }
   }, [userLocation, apiKey, calculateDistance, calculateDistanceKm]);
 
-  // Get user's location on mount
+  // Get user's location
   const requestUserLocation = React.useCallback(async () => {
     if (isRequestingLocation) return;
     setIsRequestingLocation(true);
     setLocationError(null);
+    setHasRequestedPermission(true);
 
     const fallbackToIP = async () => {
       try {
@@ -190,10 +192,12 @@ export function RestaurantSelector({ onSelectRestaurant, onClose }: RestaurantSe
               lng: position.coords.longitude,
             });
             setLocationError(null);
+            localStorage.setItem('locationPermissionGranted', 'true');
             resolve();
           },
           async (error) => {
             console.error('Error getting location:', error);
+            localStorage.setItem('locationPermissionGranted', 'false');
             const ok = await fallbackToIP();
             if (!ok) {
               setLocationError('Location unavailable. Please enable Location Services or try again.');
@@ -212,7 +216,13 @@ export function RestaurantSelector({ onSelectRestaurant, onClose }: RestaurantSe
     setIsRequestingLocation(false);
   }, [isRequestingLocation]);
 
-  // Note: Do NOT auto-request geolocation. PWAs and iOS Safari generally require a user gesture.
+  // Auto-request location on mount if permission was previously granted
+  React.useEffect(() => {
+    const permissionGranted = localStorage.getItem('locationPermissionGranted');
+    if (permissionGranted === 'true') {
+      requestUserLocation();
+    }
+  }, [requestUserLocation]);
 
   // Load recent restaurants from localStorage
   React.useEffect(() => {
@@ -439,8 +449,8 @@ export function RestaurantSelector({ onSelectRestaurant, onClose }: RestaurantSe
         className="flex-1 overflow-y-auto px-4 py-4 space-y-6"
         style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain', touchAction: 'pan-y' }}
       >
-        {/* Location CTA / Error */}
-        {!userLocation && (
+        {/* Location CTA / Error - only show if no location and not currently requesting */}
+        {!userLocation && !isRequestingLocation && hasRequestedPermission && (
           <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-muted/40 border border-border/50">
             <div className="text-xs text-muted-foreground">
               {locationError ? locationError : 'Enable location to see nearby restaurants by distance.'}
@@ -450,9 +460,24 @@ export function RestaurantSelector({ onSelectRestaurant, onClose }: RestaurantSe
               variant="outline"
               className="h-8 rounded-lg"
               onClick={() => requestUserLocation()}
-              disabled={isRequestingLocation}
             >
-              {isRequestingLocation ? 'Locating…' : 'Use current location'}
+              Try again
+            </Button>
+          </div>
+        )}
+        {/* Initial location request prompt */}
+        {!userLocation && !isRequestingLocation && !hasRequestedPermission && (
+          <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-muted/40 border border-border/50">
+            <div className="text-xs text-muted-foreground">
+              Enable location to see nearby restaurants by distance.
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8 rounded-lg"
+              onClick={() => requestUserLocation()}
+            >
+              Enable location
             </Button>
           </div>
         )}
