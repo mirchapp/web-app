@@ -148,7 +148,7 @@ export function RestaurantSelector({ onSelectRestaurant, onClose }: RestaurantSe
           } as Restaurant & { _distanceKm: number };
         })
         .sort((a: Restaurant & { _distanceKm: number }, b: Restaurant & { _distanceKm: number }) => a._distanceKm - b._distanceKm)
-        .map(({ _distanceKm, ...rest }: Restaurant & { _distanceKm: number }) => rest as Restaurant);
+        .map(({ _distanceKm: _unused, ...rest }: Restaurant & { _distanceKm: number }) => rest as Restaurant);
 
         setNearbyRestaurants(restaurants);
       }
@@ -157,7 +157,7 @@ export function RestaurantSelector({ onSelectRestaurant, onClose }: RestaurantSe
     } finally {
       setIsLoading(false);
     }
-  }, [userLocation, apiKey, calculateDistance]);
+  }, [userLocation, apiKey, calculateDistance, calculateDistanceKm]);
 
   // Get user's location on mount
   const requestUserLocation = React.useCallback(async () => {
@@ -314,7 +314,7 @@ export function RestaurantSelector({ onSelectRestaurant, onClose }: RestaurantSe
         const restaurants = (await Promise.all(detailsPromises))
           .filter((r): r is (Restaurant & { _distanceKm?: number }) => r !== null)
           .sort((a, b) => (a._distanceKm ?? Number.POSITIVE_INFINITY) - (b._distanceKm ?? Number.POSITIVE_INFINITY))
-          .map(({ _distanceKm, ...rest }) => rest as Restaurant);
+          .map(({ _distanceKm: _unused, ...rest }) => rest as Restaurant);
         setSuggestions(restaurants);
       }
     } catch (error) {

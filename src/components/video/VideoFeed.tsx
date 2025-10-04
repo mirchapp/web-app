@@ -69,7 +69,7 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
     const targetTop = targetIndex * itemHeight;
 
     // Disable snapping and momentum temporarily and lock overflow to stop kinetic scroll
-    (scroller.style as any).scrollSnapType = 'none';
+    scroller.style.scrollSnapType = 'none';
     scroller.style.overflowY = 'hidden';
     scroller.style.setProperty('-webkit-overflow-scrolling', 'auto');
 
@@ -85,7 +85,7 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
       const el = scrollContainerRef.current;
       if (!el) return;
       el.style.setProperty('-webkit-overflow-scrolling', 'touch');
-      (el.style as any).scrollSnapType = 'y mandatory';
+      el.style.scrollSnapType = 'y mandatory';
     }, 60);
   }, []);
 
@@ -198,7 +198,6 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
     }, 300);
   };
 
-  const renderVideoControls = (index: number) => null;
 
   return (
     <div className="fixed inset-0 bg-black">
@@ -411,7 +410,7 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
                   "h-12 w-12 rounded-full backdrop-blur-sm transition-all duration-300",
                   "bg-black/30 hover:bg-black/40"
                 )}
-                style={{ touchAction: 'manipulation' as any }}
+                style={{ touchAction: 'manipulation' }}
               >
                 <Heart className="h-6 w-6 text-white" />
               </Button>
@@ -430,7 +429,7 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
                   "h-12 w-12 rounded-full backdrop-blur-sm transition-all duration-300",
                   "bg-black/30 hover:bg-black/40"
                 )}
-                style={{ touchAction: 'manipulation' as any }}
+                style={{ touchAction: 'manipulation' }}
               >
                 <Bookmark className="h-6 w-6 text-white" />
               </Button>
@@ -459,7 +458,7 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
                   setShowProfileCard(true);
                 }}
                 className="relative h-11 w-11 rounded-full overflow-hidden ring-2 ring-white/50 flex-shrink-0 hover:ring-white/70 transition-all duration-200 cursor-pointer"
-                style={{ touchAction: 'manipulation' as any }}
+                style={{ touchAction: 'manipulation' }}
               >
                 <Image
                   src={videos[currentVideoIndex].user.avatar}
@@ -477,7 +476,7 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
                       setShowProfileCard(true);
                     }}
                     className="text-sm font-semibold text-white hover:text-white/80 transition-colors duration-200 touch-manipulation"
-                    style={{ textShadow: '0 2px 8px rgba(0,0,0,0.8)', touchAction: 'manipulation' as any }}
+                    style={{ textShadow: '0 2px 8px rgba(0,0,0,0.8)', touchAction: 'manipulation' }}
                   >
                     {videos[currentVideoIndex].user.username}
                   </button>
@@ -486,7 +485,7 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
                       variant="ghost"
                       size="sm"
                       className="h-7 px-3 rounded-full border border-white/60 bg-transparent text-white hover:bg-white/20 hover:text-white hover:border-white text-xs font-medium"
-                      style={{ textShadow: '0 1px 4px rgba(0,0,0,0.6)', touchAction: 'manipulation' as any }}
+                      style={{ textShadow: '0 1px 4px rgba(0,0,0,0.6)', touchAction: 'manipulation' }}
                     >
                       Follow
                     </Button>

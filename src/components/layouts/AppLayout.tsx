@@ -26,7 +26,6 @@ const ProfileTab = () => <ProfileOverview />;
 
 export function AppLayout({ children, className }: AppLayoutProps) {
   const [activeTab, setActiveTab] = React.useState('videos');
-  const safeAreaInsets = useSafeArea();
 
   // Lock background scroll for full-screen modals (post, videos)
   React.useEffect(() => {
