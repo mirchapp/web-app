@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { X, RotateCcw, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useSafeArea } from '@/hooks/useSafeArea';
-import Image from 'next/image';
+import NextImage from 'next/image';
 
 interface CameraCaptureProps {
   restaurantName: string;
@@ -25,6 +25,46 @@ export function CameraCapture({ restaurantName, onCapture, onBack }: CameraCaptu
   const [facingMode, setFacingMode] = React.useState<'user' | 'environment'>('environment');
   const [useFileInput, setUseFileInput] = React.useState(false);
 
+  // Crop an image dataURL to 9:16 aspect, center-cropped, output JPEG
+  const cropToReelsAspect = React.useCallback(async (dataUrl: string): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new window.Image();
+      img.onload = () => {
+        const sourceWidth = img.width;
+        const sourceHeight = img.height;
+        const targetAspect = 9 / 16; // portrait 9:16
+
+        // Compute crop rectangle for object-fit: cover behavior
+        let cropWidth = sourceWidth;
+        let cropHeight = Math.round(sourceWidth / targetAspect);
+        if (cropHeight > sourceHeight) {
+          cropHeight = sourceHeight;
+          cropWidth = Math.round(sourceHeight * targetAspect);
+        }
+
+        const sx = Math.max(0, Math.floor((sourceWidth - cropWidth) / 2));
+        const sy = Math.max(0, Math.floor((sourceHeight - cropHeight) / 2));
+
+        // Output at 1080x1920 for quality (keeps file sizes reasonable)
+        const outWidth = 1080;
+        const outHeight = 1920;
+
+        const canvas = document.createElement('canvas');
+        canvas.width = outWidth;
+        canvas.height = outHeight;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(dataUrl);
+          return;
+        }
+        ctx.drawImage(img, sx, sy, cropWidth, cropHeight, 0, 0, outWidth, outHeight);
+        resolve(canvas.toDataURL('image/jpeg', 0.9));
+      };
+      img.onerror = () => resolve(dataUrl);
+      img.src = dataUrl;
+    });
+  }, []);
+
   // Detect if we're in iOS PWA standalone mode
   const isIOSPWA = React.useMemo(() => {
     if (typeof window === 'undefined') return false;
@@ -34,7 +74,7 @@ export function CameraCapture({ restaurantName, onCapture, onBack }: CameraCaptu
   }, []);
 
   // Handle file input for iOS PWA and fallback
-  const handleFileInput = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileInput = React.useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
 
     // Reset the input value to allow re-selecting the same file
@@ -53,10 +93,18 @@ export function CameraCapture({ restaurantName, onCapture, onBack }: CameraCaptu
     setIsVideo(isVideoFile);
 
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
       const mediaData = event.target?.result as string;
-      // Skip preview and go directly to editor
-      onCapture(mediaData, isVideoFile);
+      if (!mediaData) {
+        onBack();
+        return;
+      }
+      if (isVideoFile) {
+        onCapture(mediaData, true);
+      } else {
+        const cropped = await cropToReelsAspect(mediaData);
+        onCapture(cropped, false);
+      }
     };
     reader.readAsDataURL(file);
   }, [onCapture, onBack]);
@@ -180,9 +228,14 @@ export function CameraCapture({ restaurantName, onCapture, onBack }: CameraCaptu
     // Camera will restart via useEffect
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (capturedImage) {
-      onCapture(capturedImage, isVideo);
+      if (isVideo) {
+        onCapture(capturedImage, true);
+      } else {
+        const cropped = await cropToReelsAspect(capturedImage);
+        onCapture(cropped, false);
+      }
     }
   };
 
@@ -265,7 +318,7 @@ export function CameraCapture({ restaurantName, onCapture, onBack }: CameraCaptu
                   className="absolute inset-0 w-full h-full object-cover"
                 />
               ) : (
-                <Image
+                <NextImage
                   src={capturedImage}
                   alt="Captured photo"
                   fill
