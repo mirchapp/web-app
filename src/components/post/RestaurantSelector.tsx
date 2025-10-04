@@ -68,30 +68,7 @@ export function RestaurantSelector({ onSelectRestaurant, onClose }: RestaurantSe
   const [locationError, setLocationError] = React.useState<string | null>(null);
   const searchInputRef = React.useRef<HTMLInputElement>(null);
   const debounceTimerRef = React.useRef<NodeJS.Timeout | null>(null);
-  // Lock background scroll while selector is open
-  React.useEffect(() => {
-    const body = document.body;
-    const prev = {
-      overflow: body.style.overflow,
-      position: body.style.position,
-      width: body.style.width,
-      height: body.style.height,
-      overscrollBehavior: (body.style as any).overscrollBehavior,
-    };
-    body.style.overflow = 'hidden';
-    body.style.position = 'fixed';
-    body.style.width = '100%';
-    body.style.height = '100%';
-    (body.style as any).overscrollBehavior = 'none';
-
-    return () => {
-      body.style.overflow = prev.overflow;
-      body.style.position = prev.position;
-      body.style.width = prev.width;
-      body.style.height = prev.height;
-      (body.style as any).overscrollBehavior = prev.overscrollBehavior;
-    };
-  }, []);
+  // Note: Background scroll is locked by AppLayout when post tab is active
 
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
@@ -170,8 +147,8 @@ export function RestaurantSelector({ onSelectRestaurant, onClose }: RestaurantSe
             _distanceKm: distanceKm,
           } as Restaurant & { _distanceKm: number };
         })
-        .sort((a, b) => a._distanceKm - b._distanceKm)
-        .map(({ _distanceKm, ...rest }) => rest as Restaurant);
+        .sort((a: Restaurant & { _distanceKm: number }, b: Restaurant & { _distanceKm: number }) => a._distanceKm - b._distanceKm)
+        .map(({ _distanceKm, ...rest }: Restaurant & { _distanceKm: number }) => rest as Restaurant);
 
         setNearbyRestaurants(restaurants);
       }
