@@ -51,12 +51,14 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
 
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
   const profileCardRef = React.useRef<HTMLDivElement>(null);
+  const profileScrollRef = React.useRef<HTMLDivElement>(null);
   const touchStartX = React.useRef<number>(0);
   const touchStartY = React.useRef<number>(0);
   const touchCurrentX = React.useRef<number>(0);
   const touchCurrentY = React.useRef<number>(0);
   const isDraggingHorizontally = React.useRef<boolean | null>(null);
   const [dragOffset, setDragOffset] = React.useState<number>(0);
+  const [isHorizontalDrag, setIsHorizontalDrag] = React.useState<boolean>(false);
 
   // Finalize snap position and cancel momentum so taps register immediately
   const finalizeSnapAndCancelMomentum = React.useCallback(() => {
@@ -135,36 +137,43 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
     touchCurrentX.current = e.touches[0].clientX;
     touchCurrentY.current = e.touches[0].clientY;
     isDraggingHorizontally.current = null; // Reset direction detection
+    setIsHorizontalDrag(false); // Reset state
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    touchCurrentX.current = e.touches[0].clientX;
-    touchCurrentY.current = e.touches[0].clientY;
+    const currentX = e.touches[0].clientX;
+    const currentY = e.touches[0].clientY;
 
-    const diffX = touchCurrentX.current - touchStartX.current;
-    const diffY = touchCurrentY.current - touchStartY.current;
+    const diffX = currentX - touchStartX.current;
+    const diffY = currentY - touchStartY.current;
+    const absX = Math.abs(diffX);
+    const absY = Math.abs(diffY);
 
-    // Determine drag direction on first significant movement
-    if (isDraggingHorizontally.current === null) {
-      const absX = Math.abs(diffX);
-      const absY = Math.abs(diffY);
-
-      // Only set direction if movement is significant enough (> 10px)
-      if (absX > 10 || absY > 10) {
-        // If horizontal movement is greater than vertical, it's a horizontal drag
-        isDraggingHorizontally.current = absX > absY;
-      }
+    // Lock direction immediately on first movement
+    if (isDraggingHorizontally.current === null && (absX > 3 || absY > 3)) {
+      // If ANY vertical component exists, lock to vertical scrolling
+      // Only allow horizontal if it's PURELY horizontal (absY <= 3px tolerance)
+      const isHorizontal = absY <= 3 && absX > absY;
+      isDraggingHorizontally.current = isHorizontal;
+      setIsHorizontalDrag(isHorizontal); // Update state to trigger re-render
     }
 
-    // Only allow horizontal dragging - block all vertical movement
+    // Handle based on locked direction
     if (isDraggingHorizontally.current === true) {
-      // Always prevent default when horizontal dragging to block vertical movement
+      // Prevent scrolling when dragging card horizontally
       e.preventDefault();
+      e.stopPropagation();
 
       if (diffX > 0) {
         setDragOffset(diffX);
       }
+    } else if (isDraggingHorizontally.current === false) {
+      // Allow normal scrolling - don't interfere
+      setDragOffset(0);
     }
+
+    touchCurrentX.current = currentX;
+    touchCurrentY.current = currentY;
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
@@ -187,6 +196,7 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
     touchCurrentX.current = 0;
     touchCurrentY.current = 0;
     isDraggingHorizontally.current = null;
+    setIsHorizontalDrag(false);
   };
 
   const handleProfileClose = () => {
@@ -215,40 +225,41 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
           >
             <motion.div
               ref={profileCardRef}
-              initial={{ x: '100%', y: 0 }}
+              initial={{ x: '100%' }}
               animate={{
                 x: isProfileClosing ? '100%' : (dragOffset > 0 ? dragOffset : 0),
-                y: 0, // Always lock Y position to 0
                 transition: dragOffset > 0
                   ? { type: 'tween', duration: 0, ease: 'linear' }
                   : { type: 'spring', stiffness: isProfileClosing ? 500 : 400, damping: isProfileClosing ? 45 : 40, mass: isProfileClosing ? 0.7 : 0.8, restDelta: 0.001, restSpeed: 0.001 }
               }}
               exit={{
                 x: '100%',
-                y: 0, // Keep Y locked during exit
                 transition: { type: 'spring', stiffness: 500, damping: 45, mass: 0.7 }
               }}
               className="absolute right-0 top-0 h-full w-full max-w-md mx-auto bg-background shadow-2xl"
               onClick={(e) => e.stopPropagation()}
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
+              drag={false}
+              dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+              dragElastic={0}
               style={{
                 willChange: dragOffset !== 0 ? 'transform' : 'auto',
                 backfaceVisibility: 'hidden',
                 WebkitBackfaceVisibility: 'hidden',
-                transform: 'translateZ(0)',
-                WebkitTransform: 'translateZ(0)',
+                y: 0,
                 touchAction: 'none' // Disable all default touch behaviors on the card
               }}
             >
               {/* Profile Card Content */}
               <div
+                ref={profileScrollRef}
                 className="h-full overflow-y-auto relative"
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
                 style={{
                   WebkitOverflowScrolling: 'touch',
                   overscrollBehavior: 'contain',
-                  touchAction: 'pan-y' // Only allow vertical scrolling, never horizontal
+                  touchAction: isHorizontalDrag ? 'none' : 'pan-y'
                 }}
               >
                 {/* Back Button - Absolute Positioning */}
