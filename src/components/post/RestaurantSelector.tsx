@@ -64,8 +64,34 @@ export function RestaurantSelector({ onSelectRestaurant, onClose }: RestaurantSe
   const [nearbyRestaurants, setNearbyRestaurants] = React.useState<Restaurant[]>([]);
   const [isLoading, setIsLoading] = React.useState(false);
   const [userLocation, setUserLocation] = React.useState<{ lat: number; lng: number } | null>(null);
+  const [isRequestingLocation, setIsRequestingLocation] = React.useState(false);
+  const [locationError, setLocationError] = React.useState<string | null>(null);
   const searchInputRef = React.useRef<HTMLInputElement>(null);
   const debounceTimerRef = React.useRef<NodeJS.Timeout | null>(null);
+  // Lock background scroll while selector is open
+  React.useEffect(() => {
+    const body = document.body;
+    const prev = {
+      overflow: body.style.overflow,
+      position: body.style.position,
+      width: body.style.width,
+      height: body.style.height,
+      overscrollBehavior: (body.style as any).overscrollBehavior,
+    };
+    body.style.overflow = 'hidden';
+    body.style.position = 'fixed';
+    body.style.width = '100%';
+    body.style.height = '100%';
+    (body.style as any).overscrollBehavior = 'none';
+
+    return () => {
+      body.style.overflow = prev.overflow;
+      body.style.position = prev.position;
+      body.style.width = prev.width;
+      body.style.height = prev.height;
+      (body.style as any).overscrollBehavior = prev.overscrollBehavior;
+    };
+  }, []);
 
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
@@ -84,6 +110,19 @@ export function RestaurantSelector({ onSelectRestaurant, onClose }: RestaurantSe
       return `${Math.round(distance * 1000)}m away`;
     }
     return `${distance.toFixed(1)}km away`;
+  }, []);
+
+  // Numeric distance in KM for sorting
+  const calculateDistanceKm = React.useCallback((from: { lat: number; lng: number }, to: PlaceLocation) => {
+    const R = 6371;
+    const dLat = (to.latitude - from.lat) * Math.PI / 180;
+    const dLon = (to.longitude - from.lng) * Math.PI / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(from.lat * Math.PI / 180) * Math.cos(to.latitude * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
   }, []);
 
   const fetchNearbyRestaurants = React.useCallback(async () => {
@@ -118,15 +157,21 @@ export function RestaurantSelector({ onSelectRestaurant, onClose }: RestaurantSe
       const data = await response.json();
 
       if (data.places) {
-        const restaurants: Restaurant[] = data.places.map((place: Place) => ({
-          id: place.id,
-          name: place.displayName?.text || 'Unknown Restaurant',
-          address: place.formattedAddress || '',
-          rating: place.rating,
-          photo: place.photos?.[0]?.name ? `https://places.googleapis.com/v1/${place.photos[0].name}/media?key=${apiKey}&maxHeightPx=400&maxWidthPx=400` : undefined,
-          distance: place.location ? calculateDistance(userLocation, place.location) : undefined,
-          placeId: place.id,
-        }));
+        const restaurants = data.places.map((place: Place) => {
+          const distanceKm = place.location && userLocation ? calculateDistanceKm(userLocation, place.location) : Number.POSITIVE_INFINITY;
+          return {
+            id: place.id,
+            name: place.displayName?.text || 'Unknown Restaurant',
+            address: place.formattedAddress || '',
+            rating: place.rating,
+            photo: place.photos?.[0]?.name ? `https://places.googleapis.com/v1/${place.photos[0].name}/media?key=${apiKey}&maxHeightPx=400&maxWidthPx=400` : undefined,
+            distance: place.location && userLocation ? calculateDistance(userLocation, place.location) : undefined,
+            placeId: place.id,
+            _distanceKm: distanceKm,
+          } as Restaurant & { _distanceKm: number };
+        })
+        .sort((a, b) => a._distanceKm - b._distanceKm)
+        .map(({ _distanceKm, ...rest }) => rest as Restaurant);
 
         setNearbyRestaurants(restaurants);
       }
@@ -138,21 +183,59 @@ export function RestaurantSelector({ onSelectRestaurant, onClose }: RestaurantSe
   }, [userLocation, apiKey, calculateDistance]);
 
   // Get user's location on mount
-  React.useEffect(() => {
-    if ('geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setUserLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          });
-        },
-        (error) => {
-          console.error('Error getting location:', error);
+  const requestUserLocation = React.useCallback(async () => {
+    if (isRequestingLocation) return;
+    setIsRequestingLocation(true);
+    setLocationError(null);
+
+    const fallbackToIP = async () => {
+      try {
+        const res = await fetch('https://ipapi.co/json/', { cache: 'no-store' });
+        if (!res.ok) throw new Error('ipapi request failed');
+        const data = await res.json();
+        if (typeof data.latitude === 'number' && typeof data.longitude === 'number') {
+          setUserLocation({ lat: data.latitude, lng: data.longitude });
+          setLocationError(null);
+          return true;
         }
-      );
+      } catch (e) {
+        console.error('IP geolocation failed:', e);
+      }
+      return false;
+    };
+
+    if ('geolocation' in navigator) {
+      await new Promise<void>((resolve) => {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            setUserLocation({
+              lat: position.coords.latitude,
+              lng: position.coords.longitude,
+            });
+            setLocationError(null);
+            resolve();
+          },
+          async (error) => {
+            console.error('Error getting location:', error);
+            const ok = await fallbackToIP();
+            if (!ok) {
+              setLocationError('Location unavailable. Please enable Location Services or try again.');
+            }
+            resolve();
+          },
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+        );
+      });
+    } else {
+      const ok = await fallbackToIP();
+      if (!ok) {
+        setLocationError('Geolocation not supported on this device.');
+      }
     }
-  }, []);
+    setIsRequestingLocation(false);
+  }, [isRequestingLocation]);
+
+  // Note: Do NOT auto-request geolocation. PWAs and iOS Safari generally require a user gesture.
 
   // Load recent restaurants from localStorage
   React.useEffect(() => {
@@ -226,12 +309,15 @@ export function RestaurantSelector({ onSelectRestaurant, onClose }: RestaurantSe
                 method: 'GET',
                 headers: {
                   'X-Goog-Api-Key': apiKey,
-                  'X-Goog-FieldMask': 'id,displayName,formattedAddress,rating,photos',
+                  'X-Goog-FieldMask': 'id,displayName,formattedAddress,rating,photos,location',
                 },
               });
 
               const placeDetails: Place = await detailsResponse.json();
 
+              const distanceKm = (userLocation && placeDetails.location)
+                ? calculateDistanceKm(userLocation, placeDetails.location)
+                : Number.POSITIVE_INFINITY;
               return {
                 id: placeDetails.id,
                 name: placeDetails.displayName?.text || suggestion.placePrediction!.text?.text || 'Unknown Restaurant',
@@ -239,14 +325,19 @@ export function RestaurantSelector({ onSelectRestaurant, onClose }: RestaurantSe
                 rating: placeDetails.rating,
                 photo: placeDetails.photos?.[0]?.name ? `https://places.googleapis.com/v1/${placeDetails.photos[0].name}/media?key=${apiKey}&maxHeightPx=400&maxWidthPx=400` : undefined,
                 placeId: placeId,
-              };
+                distance: (userLocation && placeDetails.location) ? calculateDistance(userLocation, placeDetails.location) : undefined,
+                _distanceKm: distanceKm,
+              } as Restaurant & { _distanceKm: number };
             } catch (error) {
               console.error('Error fetching place details:', error);
               return null;
             }
           });
 
-        const restaurants = (await Promise.all(detailsPromises)).filter((r): r is Restaurant => r !== null);
+        const restaurants = (await Promise.all(detailsPromises))
+          .filter((r): r is (Restaurant & { _distanceKm?: number }) => r !== null)
+          .sort((a, b) => (a._distanceKm ?? Number.POSITIVE_INFINITY) - (b._distanceKm ?? Number.POSITIVE_INFINITY))
+          .map(({ _distanceKm, ...rest }) => rest as Restaurant);
         setSuggestions(restaurants);
       }
     } catch (error) {
@@ -332,7 +423,7 @@ export function RestaurantSelector({ onSelectRestaurant, onClose }: RestaurantSe
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ type: 'tween', duration: 0.25, ease: 'easeOut' }}
-      className="fixed inset-0 z-50 bg-background"
+      className="fixed inset-0 z-50 bg-background flex flex-col"
       style={{
         paddingTop: `${Math.max(safeAreaInsets.top, 16)}px`,
         paddingBottom: `${Math.max(safeAreaInsets.bottom, 16)}px`,
@@ -368,6 +459,23 @@ export function RestaurantSelector({ onSelectRestaurant, onClose }: RestaurantSe
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6">
+        {/* Location CTA / Error */}
+        {!userLocation && (
+          <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-muted/40 border border-border/50">
+            <div className="text-xs text-muted-foreground">
+              {locationError ? locationError : 'Enable location to see nearby restaurants by distance.'}
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8 rounded-lg"
+              onClick={() => requestUserLocation()}
+              disabled={isRequestingLocation}
+            >
+              {isRequestingLocation ? 'Locating…' : 'Use current location'}
+            </Button>
+          </div>
+        )}
         {/* Search Results */}
         {searchQuery && (
           <div>
