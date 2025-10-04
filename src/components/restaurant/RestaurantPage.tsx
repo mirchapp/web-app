@@ -34,12 +34,12 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
       {isOpen && (
         <motion.div
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
+          animate={{ opacity: isClosing ? 0 : 1 }}
           exit={{ opacity: 0 }}
-          transition={{ type: 'tween', duration: 0.25, ease: 'easeOut' }}
+          transition={{ type: 'tween', duration: 0.3, ease: 'easeOut' }}
           className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm touch-manipulation"
           onClick={handleClose}
-          style={{ willChange: 'opacity' }}
+          style={{ willChange: 'opacity', pointerEvents: isClosing ? 'none' : 'auto' }}
         >
           <motion.div
             initial={{ y: '100%' }}
