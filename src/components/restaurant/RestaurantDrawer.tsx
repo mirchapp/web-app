@@ -17,6 +17,17 @@ interface RestaurantDrawerProps {
 
 export function RestaurantDrawer({ isOpen, onClose, onExpand, restaurant }: RestaurantDrawerProps) {
   const safeAreaInsets = useSafeArea();
+  const [isClosing, setIsClosing] = React.useState(false);
+
+  const handleClose = () => {
+    // Begin closing animation and immediately allow touches to pass through backdrop
+    setIsClosing(true);
+    // Wait for the sheet animation to complete before unmounting
+    setTimeout(() => {
+      setIsClosing(false);
+      onClose();
+    }, 300);
+  };
 
   return (
     <AnimatePresence mode="wait">
@@ -27,18 +38,18 @@ export function RestaurantDrawer({ isOpen, onClose, onExpand, restaurant }: Rest
           exit={{ opacity: 0 }}
           transition={{ type: 'tween', duration: 0.25, ease: 'easeOut' }}
           className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm touch-manipulation"
-          onClick={onClose}
-          style={{ willChange: 'opacity' }}
+          onClick={handleClose}
+          style={{ willChange: 'opacity', pointerEvents: isClosing ? 'none' : 'auto' }}
         >
           <motion.div
             initial={{ y: '100%' }}
-            animate={{ y: 0 }}
+            animate={{ y: isClosing ? '100%' : 0 }}
             exit={{ y: '100%' }}
             transition={{
               type: 'spring',
-              stiffness: 400,
-              damping: 40,
-              mass: 0.8,
+              stiffness: isClosing ? 500 : 400,
+              damping: isClosing ? 45 : 40,
+              mass: isClosing ? 0.7 : 0.8,
               restDelta: 0.001,
               restSpeed: 0.001
             }}
