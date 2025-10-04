@@ -53,7 +53,7 @@ export function BottomNavigation({
   const [isDragging, setIsDragging] = React.useState(false);
   const [dragX, setDragX] = React.useState<number | null>(null);
   const [pillLayout, setPillLayout] = React.useState<{ left: number; width: number; top: number; bottom: number }>({ left: 4, width: 0, top: 4, bottom: 4 });
-  const [isDarkBackground, setIsDarkBackground] = React.useState(false);
+  const [isDarkBackground, setIsDarkBackground] = React.useState(activeTab === 'videos' || activeTab === 'post');
   const safeAreaInsets = useSafeArea();
   
   // Disable drag interactions to avoid interfering with global touch/click events
@@ -234,9 +234,19 @@ export function BottomNavigation({
         const avg = totalLuminance / sampleCount;
         setIsDarkBackground(avg < 0.5);
       } else {
-        setIsDarkBackground(false);
+        // Fallback: use tab type when can't detect
+        setIsDarkBackground(activeTab === 'videos' || activeTab === 'post');
       }
     };
+
+    // Set immediately based on tab type for instant feedback
+    setIsDarkBackground(activeTab === 'videos' || activeTab === 'post');
+
+    // Then run actual detection after animations complete
+    const timeoutIds: NodeJS.Timeout[] = [];
+    timeoutIds.push(setTimeout(() => requestAnimationFrame(detectBackground), 200));
+    timeoutIds.push(setTimeout(() => requestAnimationFrame(detectBackground), 350));
+
     let ticking = false;
     const schedule = () => {
       if (ticking) return;
@@ -246,10 +256,11 @@ export function BottomNavigation({
         ticking = false;
       });
     };
-    detectBackground();
+
     window.addEventListener('scroll', schedule, true);
     window.addEventListener('resize', schedule);
     return () => {
+      timeoutIds.forEach(clearTimeout);
       window.removeEventListener('scroll', schedule, true);
       window.removeEventListener('resize', schedule);
     };
