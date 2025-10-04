@@ -10,13 +10,15 @@ interface RestaurantRowProps {
   restaurantName: string;
   verified: boolean;
   onClick: () => void;
+  onTouchStartCapture?: React.TouchEventHandler<HTMLButtonElement>;
 }
 
-export function RestaurantRow({ restaurantLogo, restaurantName, verified, onClick }: RestaurantRowProps) {
+export function RestaurantRow({ restaurantLogo, restaurantName, verified, onClick, onTouchStartCapture }: RestaurantRowProps) {
   const [isPressing, setIsPressing] = React.useState(false);
 
   return (
     <button
+      onTouchStartCapture={onTouchStartCapture}
       onClick={(e) => {
         e.stopPropagation();
         onClick();

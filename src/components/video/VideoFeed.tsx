@@ -58,6 +58,41 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
   const isDraggingHorizontally = React.useRef<boolean | null>(null);
   const [dragOffset, setDragOffset] = React.useState<number>(0);
 
+  // Finalize snap position and cancel momentum so taps register immediately
+  const finalizeSnapAndCancelMomentum = React.useCallback(() => {
+    const scroller = scrollContainerRef.current;
+    if (!scroller) return;
+
+    const currentTop = scroller.scrollTop;
+    const itemHeight = scroller.clientHeight || 1;
+    const targetIndex = Math.round(currentTop / itemHeight);
+    const targetTop = targetIndex * itemHeight;
+
+    // Disable snapping and momentum temporarily and lock overflow to stop kinetic scroll
+    (scroller.style as any).scrollSnapType = 'none';
+    scroller.style.overflowY = 'hidden';
+    scroller.style.setProperty('-webkit-overflow-scrolling', 'auto');
+
+    // Jump to the nearest frame immediately
+    scroller.scrollTo({ top: targetTop, left: 0, behavior: 'auto' });
+
+    // Force reflow to apply the style changes synchronously
+    void scroller.offsetHeight;
+
+    // Restore scrolling and snapping shortly after so UX remains smooth
+    scroller.style.overflowY = 'auto';
+    setTimeout(() => {
+      const el = scrollContainerRef.current;
+      if (!el) return;
+      el.style.setProperty('-webkit-overflow-scrolling', 'touch');
+      (el.style as any).scrollSnapType = 'y mandatory';
+    }, 60);
+  }, []);
+
+  const handleInteractiveTouchStart = React.useCallback(() => {
+    finalizeSnapAndCancelMomentum();
+  }, [finalizeSnapAndCancelMomentum]);
+
   // Track scroll position to update current video
   React.useEffect(() => {
     const handleScroll = () => {
@@ -163,156 +198,7 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
     }, 300);
   };
 
-  const renderVideoControls = (index: number) => {
-    const currentVideo = videos[index];
-    if (!currentVideo) return null;
-
-    // Determine if we need dark or light styling based on background
-    const isDarkBackground = true; // Most food videos are dark or vibrant
-
-    return (
-      <>
-        {/* Action Buttons - Right Side */}
-        <div
-          className="absolute right-0 flex flex-col gap-6 z-10"
-          style={{
-            bottom: `calc(5.25rem + ${Math.max(safeAreaInsets.bottom, 24)}px)`,
-            paddingRight: '1.25rem',
-            pointerEvents: 'auto',
-          }}
-        >
-          {/* Like Button */}
-          <div className="flex flex-col items-center gap-1">
-            <Button
-              size="icon"
-              variant="ghost"
-              className={cn(
-                "h-12 w-12 rounded-full backdrop-blur-sm transition-all duration-300",
-                isDarkBackground
-                  ? "bg-black/30 hover:bg-black/40"
-                  : "bg-white/30 hover:bg-white/40"
-              )}
-            >
-              <Heart className={cn(
-                "h-6 w-6 transition-colors duration-300",
-                currentVideo.stats.isLiked ? "fill-red-500 text-red-500" : (isDarkBackground ? "text-white" : "text-gray-800")
-              )} />
-            </Button>
-            <span
-              className={cn(
-                "text-xs font-semibold transition-colors duration-300",
-                isDarkBackground ? "text-white" : "text-gray-800"
-              )}
-              style={{
-                textShadow: isDarkBackground
-                  ? '0 1px 4px rgba(0,0,0,0.8)'
-                  : '0 1px 2px rgba(255,255,255,0.6)'
-              }}
-            >
-              {currentVideo.stats.likes}
-            </span>
-          </div>
-
-          {/* Save Button */}
-          <div className="flex flex-col items-center gap-1">
-            <Button
-              size="icon"
-              variant="ghost"
-              className={cn(
-                "h-12 w-12 rounded-full backdrop-blur-sm transition-all duration-300",
-                isDarkBackground
-                  ? "bg-black/30 hover:bg-black/40"
-                  : "bg-white/30 hover:bg-white/40"
-              )}
-            >
-              <Bookmark className={cn(
-                "h-6 w-6 transition-colors duration-300",
-                currentVideo.stats.isBookmarked ? "fill-yellow-500 text-yellow-500" : (isDarkBackground ? "text-white" : "text-gray-800")
-              )} />
-            </Button>
-            <span
-              className={cn(
-                "text-xs font-semibold transition-colors duration-300",
-                isDarkBackground ? "text-white" : "text-gray-800"
-              )}
-              style={{
-                textShadow: isDarkBackground
-                  ? '0 1px 4px rgba(0,0,0,0.8)'
-                  : '0 1px 2px rgba(255,255,255,0.6)'
-              }}
-            >
-              Save
-            </span>
-          </div>
-        </div>
-
-        {/* Creator Info - Bottom Overlay */}
-        <div
-          className="absolute left-0 right-0 px-5 z-10"
-          style={{
-            bottom: `calc(5.25rem + ${Math.max(safeAreaInsets.bottom, 24)}px)`,
-            pointerEvents: 'auto',
-          }}
-        >
-          <div className="flex items-start gap-3">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowProfileCard(true);
-              }}
-              className="relative h-11 w-11 rounded-full overflow-hidden ring-2 ring-white/50 flex-shrink-0 hover:ring-white/70 transition-all duration-200 cursor-pointer"
-            >
-              <Image
-                src={currentVideo.user.avatar}
-                alt={currentVideo.user.username}
-                fill
-                className="object-cover pointer-events-none"
-                unoptimized
-              />
-            </button>
-            <div className="flex-1 min-w-0">
-              {/* Row 1: User name + Follow button */}
-              <div className="flex items-center gap-2 mb-2">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowProfileCard(true);
-                  }}
-                  className="text-sm font-semibold text-white hover:text-white/80 transition-colors duration-200 touch-manipulation"
-                  style={{ textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}
-                >
-                  {currentVideo.user.username}
-                </button>
-                {!currentVideo.user.isFollowing && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 px-3 rounded-full border border-white/60 bg-transparent text-white hover:bg-white/20 hover:text-white hover:border-white text-xs font-medium"
-                    style={{ textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}
-                  >
-                    Follow
-                  </Button>
-                )}
-              </div>
-
-              {/* Row 2: Restaurant logo + name + chevron (tappable) */}
-              <RestaurantRow
-                restaurantLogo={currentVideo.restaurant.logo}
-                restaurantName={currentVideo.restaurant.name}
-                verified={currentVideo.restaurant.verified}
-                onClick={() => setShowMiniRestaurantSheet(true)}
-              />
-
-              {/* Dish name - smaller, muted */}
-              <p className="text-xs text-white/60" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.7)' }}>
-                {currentVideo.dish}
-              </p>
-            </div>
-          </div>
-        </div>
-      </>
-    );
-  };
+  const renderVideoControls = (index: number) => null;
 
   return (
     <div className="fixed inset-0 bg-black">
@@ -504,6 +390,125 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
         restaurant={videos[currentVideoIndex]?.restaurant}
       />
 
+      {/* Overlay Controls (outside scroll container to avoid tap delays during momentum) */}
+      {videos[currentVideoIndex] && (
+        <div className="absolute inset-0 z-20 pointer-events-none">
+          {/* Action Buttons - Right Side */}
+          <div
+            className="absolute right-0 flex flex-col gap-6 pointer-events-auto"
+            style={{
+              bottom: `calc(5.25rem + ${Math.max(safeAreaInsets.bottom, 24)}px)`,
+              paddingRight: '1.25rem',
+            }}
+            onTouchStartCapture={handleInteractiveTouchStart}
+            onPointerDownCapture={handleInteractiveTouchStart}
+          >
+            <div className="flex flex-col items-center gap-1">
+              <Button
+                size="icon"
+                variant="ghost"
+                className={cn(
+                  "h-12 w-12 rounded-full backdrop-blur-sm transition-all duration-300",
+                  "bg-black/30 hover:bg-black/40"
+                )}
+                style={{ touchAction: 'manipulation' as any }}
+              >
+                <Heart className="h-6 w-6 text-white" />
+              </Button>
+              <span
+                className="text-xs font-semibold text-white"
+                style={{ textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}
+              >
+                {videos[currentVideoIndex].stats.likes}
+              </span>
+            </div>
+            <div className="flex flex-col items-center gap-1">
+              <Button
+                size="icon"
+                variant="ghost"
+                className={cn(
+                  "h-12 w-12 rounded-full backdrop-blur-sm transition-all duration-300",
+                  "bg-black/30 hover:bg-black/40"
+                )}
+                style={{ touchAction: 'manipulation' as any }}
+              >
+                <Bookmark className="h-6 w-6 text-white" />
+              </Button>
+              <span
+                className="text-xs font-semibold text-white"
+                style={{ textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}
+              >
+                Save
+              </span>
+            </div>
+          </div>
+
+          {/* Creator Info - Bottom Overlay */}
+          <div
+            className="absolute left-0 right-0 px-5 pointer-events-auto"
+            style={{
+              bottom: `calc(5.25rem + ${Math.max(safeAreaInsets.bottom, 24)}px)`,
+            }}
+            onTouchStartCapture={handleInteractiveTouchStart}
+            onPointerDownCapture={handleInteractiveTouchStart}
+          >
+            <div className="flex items-start gap-3">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowProfileCard(true);
+                }}
+                className="relative h-11 w-11 rounded-full overflow-hidden ring-2 ring-white/50 flex-shrink-0 hover:ring-white/70 transition-all duration-200 cursor-pointer"
+                style={{ touchAction: 'manipulation' as any }}
+              >
+                <Image
+                  src={videos[currentVideoIndex].user.avatar}
+                  alt={videos[currentVideoIndex].user.username}
+                  fill
+                  className="object-cover pointer-events-none"
+                  unoptimized
+                />
+              </button>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-2">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowProfileCard(true);
+                    }}
+                    className="text-sm font-semibold text-white hover:text-white/80 transition-colors duration-200 touch-manipulation"
+                    style={{ textShadow: '0 2px 8px rgba(0,0,0,0.8)', touchAction: 'manipulation' as any }}
+                  >
+                    {videos[currentVideoIndex].user.username}
+                  </button>
+                  {!videos[currentVideoIndex].user.isFollowing && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 px-3 rounded-full border border-white/60 bg-transparent text-white hover:bg-white/20 hover:text-white hover:border-white text-xs font-medium"
+                      style={{ textShadow: '0 1px 4px rgba(0,0,0,0.6)', touchAction: 'manipulation' as any }}
+                    >
+                      Follow
+                    </Button>
+                  )}
+                </div>
+
+                <RestaurantRow
+                  restaurantLogo={videos[currentVideoIndex].restaurant.logo}
+                  restaurantName={videos[currentVideoIndex].restaurant.name}
+                  verified={videos[currentVideoIndex].restaurant.verified}
+                  onClick={() => setShowMiniRestaurantSheet(true)}
+                />
+
+                <p className="text-xs text-white/60" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.7)' }}>
+                  {videos[currentVideoIndex].dish}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Scrollable Container */}
       <div
         ref={scrollContainerRef}
@@ -530,7 +535,6 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
               unoptimized
               priority={index === 0}
             />
-            {renderVideoControls(index)}
           </div>
         ))}
       </div>
