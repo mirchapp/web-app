@@ -87,9 +87,10 @@ export function AppLayout({ children, className }: AppLayoutProps) {
           )}
           style={{
             height: activeTab === 'videos' || activeTab === 'post'
-              ? '100vh'
+              ? '100dvh'
               : 'auto',
-            paddingBottom: '0' // Removed navbar padding for testing
+            paddingBottom: '0', // Removed navbar padding for testing
+            overflow: 'hidden'
           }}
         >
           <AnimatePresence mode="wait">

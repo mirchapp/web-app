@@ -58,9 +58,9 @@ export function PostScreen() {
     setIsInEditor(false);
   };
 
-  const handlePublish = () => {
+  const handlePublish = (data: { caption: string; rating: 'loved' | 'liked' | 'meh' | 'not_for_me' }) => {
     // TODO: Handle post publishing
-    console.log('Publishing post...');
+    console.log('Publishing post...', data);
   };
 
   const handleClose = () => {
