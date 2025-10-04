@@ -10,7 +10,6 @@ import { cn } from '@/lib/utils';
 import { VideoFeed } from '@/components/video/VideoFeed';
 import mockVideos from '@/data/mock/videos.json';
 import { PostScreen, PostEditorContext } from '@/components/apps/PostScreen';
-import { useSafeArea } from '@/hooks/useSafeArea';
 
 interface AppLayoutProps {
   children?: React.ReactNode;

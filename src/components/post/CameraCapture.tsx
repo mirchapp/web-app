@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { motion } from 'framer-motion';
-import { X, Camera, RotateCcw, Check, Upload } from 'lucide-react';
+import { X, RotateCcw, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useSafeArea } from '@/hooks/useSafeArea';
 import Image from 'next/image';
@@ -29,7 +29,7 @@ export function CameraCapture({ restaurantName, onCapture, onBack }: CameraCaptu
   const isIOSPWA = React.useMemo(() => {
     if (typeof window === 'undefined') return false;
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    const isStandalone = ('standalone' in window.navigator) && (window.navigator as any).standalone;
+    const isStandalone = ('standalone' in window.navigator) && (window.navigator as unknown as { standalone?: boolean }).standalone;
     return isIOS && isStandalone;
   }, []);
 

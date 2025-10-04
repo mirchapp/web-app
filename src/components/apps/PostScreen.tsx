@@ -58,7 +58,7 @@ export function PostScreen() {
     setIsInEditor(false);
   };
 
-  const handlePublish = (data: { caption: string; rating: 'loved' | 'liked' | 'meh' | 'not_for_me' }) => {
+  const handlePublish = (data: { caption: string; rating: 'loved' | 'liked' | 'meh' | 'not_for_me'; spice?: 'too_mild' | 'just_right' | 'too_hot'; wouldOrderAgain?: boolean; tags?: Array<'spicy' | 'creamy' | 'tangy' | 'protein_heavy'> }) => {
     // TODO: Handle post publishing
     console.log('Publishing post...', data);
   };
@@ -97,7 +97,6 @@ export function PostScreen() {
   return (
     <RestaurantSelector
       onSelectRestaurant={handleSelectRestaurant}
-      onClose={handleClose}
     />
   );
 }

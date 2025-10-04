@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { motion } from 'framer-motion';
-import { Search, MapPin, Clock, X, ChevronRight, Star } from 'lucide-react';
+import { Search, MapPin, Clock, ChevronRight, Star } from 'lucide-react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { useSafeArea } from '@/hooks/useSafeArea';
@@ -53,10 +53,9 @@ interface Restaurant {
 
 interface RestaurantSelectorProps {
   onSelectRestaurant: (restaurant: Restaurant) => void;
-  onClose: () => void;
 }
 
-export function RestaurantSelector({ onSelectRestaurant, onClose }: RestaurantSelectorProps) {
+export function RestaurantSelector({ onSelectRestaurant }: RestaurantSelectorProps) {
   const safeAreaInsets = useSafeArea();
   const [searchQuery, setSearchQuery] = React.useState('');
   const [suggestions, setSuggestions] = React.useState<Restaurant[]>([]);
@@ -149,7 +148,7 @@ export function RestaurantSelector({ onSelectRestaurant, onClose }: RestaurantSe
           } as Restaurant & { _distanceKm: number };
         })
         .sort((a: Restaurant & { _distanceKm: number }, b: Restaurant & { _distanceKm: number }) => a._distanceKm - b._distanceKm)
-        .map(({ _distanceKm: _unused, ...rest }: Restaurant & { _distanceKm: number }) => rest as Restaurant);
+        .map(({ _distanceKm: _ignored, ...rest }: Restaurant & { _distanceKm: number }) => rest as Restaurant);
 
         setNearbyRestaurants(restaurants);
       }
@@ -324,7 +323,7 @@ export function RestaurantSelector({ onSelectRestaurant, onClose }: RestaurantSe
         const restaurants = (await Promise.all(detailsPromises))
           .filter((r): r is (Restaurant & { _distanceKm?: number }) => r !== null)
           .sort((a, b) => (a._distanceKm ?? Number.POSITIVE_INFINITY) - (b._distanceKm ?? Number.POSITIVE_INFINITY))
-          .map(({ _distanceKm: _unused, ...rest }) => rest as Restaurant);
+          .map(({ _distanceKm: _ignored, ...rest }) => rest as Restaurant);
         setSuggestions(restaurants);
       }
     } catch (error) {

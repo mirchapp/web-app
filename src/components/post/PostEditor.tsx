@@ -24,7 +24,7 @@ type TagValue = 'spicy' | 'creamy' | 'tangy' | 'protein_heavy';
 
 export function PostEditor({
   restaurantName,
-  restaurantId,
+  restaurantId: _restaurantId,
   restaurantAddress,
   restaurantPhoto,
   restaurantRating,
@@ -159,7 +159,8 @@ export function PostEditor({
               const el = captionRef.current;
               if (el) {
                 try {
-                  (el as any).focus({ preventScroll: true });
+                  // focus({ preventScroll }) is supported in modern browsers
+                  (el as HTMLTextAreaElement & { focus: (options?: FocusOptions) => void }).focus({ preventScroll: true });
                 } catch {
                   el.focus();
                   window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
