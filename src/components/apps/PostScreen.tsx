@@ -58,15 +58,12 @@ export function PostScreen() {
     setIsInEditor(false);
   };
 
-  const handlePublish = (data: { caption: string; rating: 'loved' | 'liked' | 'meh' | 'not_for_me'; spice?: 'too_mild' | 'just_right' | 'too_hot'; wouldOrderAgain?: boolean; tags?: Array<'spicy' | 'creamy' | 'tangy' | 'protein_heavy'> }) => {
+  const handlePublish = (data: { caption: string; rating: string; valueForMoney?: string; wouldOrderAgain?: boolean; menuItemId?: string; menuItemName?: string }) => {
     // TODO: Handle post publishing
     console.log('Publishing post...', data);
   };
 
-  const handleClose = () => {
-    // TODO: Handle close action (e.g., navigate back or show confirmation)
-    console.log('Close restaurant selector');
-  };
+  
 
   if (currentStep === 'edit-post' && selectedRestaurant && capturedMedia) {
     return (

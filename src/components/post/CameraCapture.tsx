@@ -122,7 +122,7 @@ export function CameraCapture({ restaurantName, onCapture, onBack }: CameraCaptu
     }, 50); // Small delay to ensure input is mounted
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [cropToReelsAspect]);
 
   // Start camera (will try getUserMedia first, fallback to file input on iOS PWA issues)
   React.useEffect(() => {

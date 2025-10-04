@@ -7,6 +7,9 @@ import Image from 'next/image';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { RestaurantMenuPage } from '@/components/restaurant/RestaurantMenuPage';
+import { NewPostRatings } from '@/components/ratings/NewPostRatings';
+import type { TasteValue } from '@/components/ratings/ReactionBar';
+import type { ValueForMoneyValue } from '@/components/ratings/FlavorDetailsCard';
 
 interface PostEditorProps {
   restaurantName: string;
@@ -17,16 +20,14 @@ interface PostEditorProps {
   mediaData: string;
   isVideo: boolean;
   onBack: () => void;
-  onPublish: (data: { caption: string; rating: RatingValue; spice?: SpiceValue; wouldOrderAgain?: boolean; tags?: TagValue[] }) => void;
+  onPublish: (data: { caption: string; rating: TasteValue; valueForMoney?: ValueForMoneyValue; wouldOrderAgain?: boolean; menuItemId?: string; menuItemName?: string }) => void;
 }
 
-type RatingValue = 'loved' | 'liked' | 'meh' | 'not_for_me';
-type SpiceValue = 'too_mild' | 'just_right' | 'too_hot';
-type TagValue = 'spicy' | 'creamy' | 'tangy' | 'protein_heavy';
+// Legacy types removed; using TasteValue/ValueForMoneyValue from rating components
 
 export function PostEditor({
   restaurantName,
-  restaurantId: _restaurantId,
+  restaurantId,
   restaurantAddress,
   restaurantPhoto,
   restaurantRating,
@@ -37,11 +38,10 @@ export function PostEditor({
 }: PostEditorProps) {
   const safeAreaInsets = useSafeArea();
   const [caption, setCaption] = React.useState('');
-  const [rating, setRating] = React.useState<RatingValue | null>(null);
-  const [spice, setSpice] = React.useState<SpiceValue | null>(null);
+  const [rating, setRating] = React.useState<TasteValue | null>(null);
+  const [valueForMoney, setValueForMoney] = React.useState<ValueForMoneyValue | null>(null);
   const [wouldOrderAgain, setWouldOrderAgain] = React.useState<boolean | null>(null);
-  const [showMore, setShowMore] = React.useState(false);
-  const [tags, setTags] = React.useState<TagValue[]>([]);
+  // Removed showMore/tags; using compact ratings component
   const [isKeyboardOpen, setIsKeyboardOpen] = React.useState(false);
   const captionRef = React.useRef<HTMLTextAreaElement>(null);
   const maxCaptionLength = 2200;
@@ -84,13 +84,6 @@ export function PostEditor({
       vv.removeEventListener('scroll', handleViewportChange);
     };
   }, []);
-
-  const ratingOptions: Array<{ value: RatingValue; emoji: string; label: string; description: string }> = [
-    { value: 'loved', emoji: '❤️', label: 'Loved it', description: 'I’d totally order again; standout dish' },
-    { value: 'liked', emoji: '🙂', label: 'Liked it', description: 'It was good; would eat again casually' },
-    { value: 'meh', emoji: '😐', label: 'It’s okay', description: 'Average, not memorable' },
-    { value: 'not_for_me', emoji: '👎', label: 'Not for me', description: 'Didn’t like it / wouldn’t order again' },
-  ];
 
   // Menu selector state
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
@@ -249,162 +242,14 @@ export function PostEditor({
 
         {/* Rating Selector */}
         <div className="mb-4">
-          <div className="mb-2 flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-foreground">How was it?</h3>
-          </div>
-          <div role="radiogroup" aria-label="Dish reaction" className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            {ratingOptions.map((opt) => {
-              const selected = rating === opt.value;
-              return (
-                <button
-                  key={opt.value}
-                  type="button"
-                  role="radio"
-                  aria-checked={selected}
-                  aria-label={`${opt.label} — ${opt.description}`}
-                  onClick={() => setRating(opt.value)}
-                  className={
-                    [
-                      'h-12 rounded-2xl border px-3 flex items-center justify-center gap-2 transition-colors touch-manipulation',
-                      selected
-                        ? 'border-primary bg-primary/10 text-primary ring-2 ring-primary/20'
-                        : 'border-border/50 bg-muted/30 hover:bg-muted/50'
-                    ].join(' ')
-                  }
-                >
-                  <span className="text-lg leading-none" aria-hidden>
-                    {opt.emoji}
-                  </span>
-                  <span className="text-sm font-medium">{opt.label}</span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Optional add-ons appear after a rating is chosen */}
-          {rating && (
-            <div className="mt-3 space-y-3">
-              {/* Spice level */}
-              <div>
-                <p className="text-xs font-medium text-muted-foreground mb-1">How was the spice?</p>
-                <div role="radiogroup" aria-label="Spice level" className="grid grid-cols-3 gap-2">
-                  {[
-                    { value: 'too_mild' as SpiceValue, label: 'Too mild', icon: '🌶️' },
-                    { value: 'just_right' as SpiceValue, label: 'Just right', icon: '✅' },
-                    { value: 'too_hot' as SpiceValue, label: 'Too hot', icon: '🔥' },
-                  ].map((opt) => {
-                    const selected = spice === opt.value;
-                    return (
-                      <button
-                        key={opt.value}
-                        type="button"
-                        role="radio"
-                        aria-checked={selected}
-                        aria-label={`${opt.label}`}
-                        onClick={() => setSpice(opt.value)}
-                        className={[
-                          'h-10 rounded-xl border px-2 flex items-center justify-center gap-1.5 transition-colors text-xs',
-                          selected
-                            ? 'border-primary bg-primary/10 text-primary ring-2 ring-primary/20'
-                            : 'border-border/50 bg-muted/30 hover:bg-muted/50'
-                        ].join(' ')}
-                      >
-                        <span aria-hidden>{opt.icon}</span>
-                        <span className="font-medium">{opt.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Would order again */}
-              <div>
-                <p className="text-xs font-medium text-muted-foreground mb-1">Would you order this again?</p>
-                <div className="grid grid-cols-2 gap-2">
-                  {[
-                    { value: true, label: 'Yes', icon: '✅' },
-                    { value: false, label: 'No', icon: '❌' },
-                  ].map((opt) => {
-                    const selected = wouldOrderAgain === opt.value;
-                    return (
-                      <button
-                        key={String(opt.value)}
-                        type="button"
-                        role="radio"
-                        aria-checked={selected}
-                        aria-label={`${opt.label}`}
-                        onClick={() => setWouldOrderAgain(opt.value)}
-                        className={[
-                          'h-10 rounded-xl border px-3 flex items-center justify-center gap-2 transition-colors text-sm',
-                          selected
-                            ? 'border-primary bg-primary/10 text-primary ring-2 ring-primary/20'
-                            : 'border-border/50 bg-muted/30 hover:bg-muted/50'
-                        ].join(' ')}
-                      >
-                        <span aria-hidden>{opt.icon}</span>
-                        <span className="font-medium">{opt.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* More button */}
-              <div className="pt-1">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowMore((v) => !v)}
-                  className="h-8 rounded-full px-3 text-xs"
-                  aria-expanded={showMore}
-                >
-                  {showMore ? 'Less' : 'More'}
-                </Button>
-              </div>
-
-              {showMore && (
-                <div className="space-y-2">
-                  <p className="text-xs font-medium text-muted-foreground">Tag it?</p>
-                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                    {[
-                      { value: 'spicy' as TagValue, label: 'Spicy', emoji: '🥵' },
-                      { value: 'creamy' as TagValue, label: 'Creamy', emoji: '🧈' },
-                      { value: 'tangy' as TagValue, label: 'Tangy', emoji: '🍋' },
-                      { value: 'protein_heavy' as TagValue, label: 'Protein-heavy', emoji: '🍗' },
-                    ].map((opt) => {
-                      const selected = tags.includes(opt.value);
-                      return (
-                        <button
-                          key={opt.value}
-                          type="button"
-                          role="checkbox"
-                          aria-checked={selected}
-                          aria-label={`${opt.label}`}
-                          onClick={() =>
-                            setTags((prev) =>
-                              prev.includes(opt.value)
-                                ? prev.filter((t) => t !== opt.value)
-                                : [...prev, opt.value]
-                            )
-                          }
-                          className={[
-                            'h-10 rounded-xl border px-3 flex items-center justify-center gap-2 transition-colors text-sm',
-                            selected
-                              ? 'border-primary bg-primary/10 text-primary ring-2 ring-primary/20'
-                              : 'border-border/50 bg-muted/30 hover:bg-muted/50'
-                          ].join(' ')}
-                        >
-                          <span aria-hidden>{opt.emoji}</span>
-                          <span className="font-medium">{opt.label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
+          <NewPostRatings
+            taste={rating}
+            valueForMoney={valueForMoney}
+            wouldOrderAgain={wouldOrderAgain}
+            onChangeTaste={setRating}
+            onChangeValueForMoney={setValueForMoney}
+            onChangeWouldOrderAgain={setWouldOrderAgain}
+          />
         </div>
 
         
@@ -580,7 +425,7 @@ export function PostEditor({
           Save Draft
         </Button>
         <Button
-          onClick={() => rating && onPublish({ caption, rating, spice: spice ?? undefined, wouldOrderAgain: wouldOrderAgain ?? undefined, tags: tags.length ? tags : undefined })}
+          onClick={() => rating && onPublish({ caption, rating, valueForMoney: valueForMoney ?? undefined, wouldOrderAgain: wouldOrderAgain ?? undefined, menuItemId: selectedMenuItem?.id, menuItemName: selectedMenuItem?.name })}
           disabled={!rating}
           className="flex-1 h-12 rounded-2xl text-base font-semibold"
         >
