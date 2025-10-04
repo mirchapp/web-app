@@ -250,7 +250,7 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
                 e.stopPropagation();
                 setShowProfileCard(true);
               }}
-              className="relative h-11 w-11 rounded-full overflow-hidden ring-2 ring-white/50 flex-shrink-0 hover:ring-white/70 transition-all duration-200 cursor-pointer touch-optimized"
+              className="relative h-11 w-11 rounded-full overflow-hidden ring-2 ring-white/50 flex-shrink-0 hover:ring-white/70 transition-all duration-200 cursor-pointer"
             >
               <Image
                 src={currentVideo.user.avatar}

@@ -25,7 +25,7 @@ const VideosTab = () => <VideoFeed videos={mockVideos} />;
 const ProfileTab = () => <ProfileOverview />;
 
 export function AppLayout({ children, className }: AppLayoutProps) {
-  const [activeTab, setActiveTab] = React.useState('discover');
+  const [activeTab, setActiveTab] = React.useState('videos');
   const safeAreaInsets = useSafeArea();
 
   const handleTabChange = React.useCallback((tabId: string) => {
@@ -60,9 +60,7 @@ export function AppLayout({ children, className }: AppLayoutProps) {
           height: activeTab === 'videos'
             ? '100vh'
             : 'auto',
-          paddingBottom: activeTab === 'videos'
-            ? '0'
-            : `calc(8rem + ${Math.max(safeAreaInsets.bottom, 24)}px)`
+          paddingBottom: '0' // Removed navbar padding for testing
         }}
       >
         <AnimatePresence mode="wait">
@@ -82,7 +80,7 @@ export function AppLayout({ children, className }: AppLayoutProps) {
         </AnimatePresence>
       </main>
 
-      {/* Floating Bottom Navigation */}
+      {/* Floating Bottom Navigation - Re-enabled with simplified touch handling */}
       <BottomNavigation
         activeTab={activeTab}
         onTabChange={handleTabChange}

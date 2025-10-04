@@ -56,6 +56,9 @@ export function BottomNavigation({
   const [isDarkBackground, setIsDarkBackground] = React.useState(false);
   const safeAreaInsets = useSafeArea();
   
+  // Disable drag interactions to avoid interfering with global touch/click events
+  const dragEnabled = false;
+  
   const tintMap: Record<string, { light: string; glow: string }> = {
     discover: { light: 'rgba(96, 165, 250, 0.06)', glow: 'rgba(59, 130, 246, 0.1)' },
     liked: { light: 'rgba(252, 165, 165, 0.06)', glow: 'rgba(248, 113, 113, 0.1)' },
@@ -196,89 +199,59 @@ export function BottomNavigation({
     };
   }, [activeTab, isDragging, dragX]);
 
-  // Detect background brightness
+  // Detect background brightness without toggling navbar interactivity
   React.useEffect(() => {
     const detectBackground = () => {
       if (!containerRef.current) return;
-      
       const rect = containerRef.current.getBoundingClientRect();
-      
-      try {
-        // Temporarily hide navbar to sample what's behind it
-        const originalPointerEvents = containerRef.current.style.pointerEvents;
-        const originalVisibility = containerRef.current.style.visibility;
-        
-        containerRef.current.style.pointerEvents = 'none';
-        containerRef.current.style.visibility = 'hidden';
-        
-        // Sample multiple points across the navbar area
-        let totalLuminance = 0;
-        let sampleCount = 0;
-        
-        // Sample 5 points horizontally across the navbar
-        for (let i = 0; i < 5; i++) {
-          const x = rect.left + (rect.width * (i + 1)) / 6;
-          const y = rect.top + rect.height / 2; // Middle of navbar height
-          
-          const elementsAtPoint = document.elementsFromPoint(x, y);
-          
-          // Find first non-transparent element
+      let totalLuminance = 0;
+      let sampleCount = 0;
+      for (let i = 0; i < 5; i++) {
+        const x = rect.left + (rect.width * (i + 1)) / 6;
+        const y = rect.top + rect.height / 2;
+        const elementsAtPoint = document.elementsFromPoint(x, y);
         for (const element of elementsAtPoint) {
-          const styles = window.getComputedStyle(element);
+          // Skip elements that are part of the navbar itself
+          if (containerRef.current.contains(element)) continue;
+          const styles = window.getComputedStyle(element as Element);
           const bgColor = styles.backgroundColor;
-            
-            // Parse RGB values
-            const rgbMatch = bgColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?/);
-            if (rgbMatch) {
-              const r = parseInt(rgbMatch[1]);
-              const g = parseInt(rgbMatch[2]);
-              const b = parseInt(rgbMatch[3]);
-              const a = rgbMatch[4] ? parseFloat(rgbMatch[4]) : 1;
-              
-              // Only use opaque or semi-opaque backgrounds
-              if (a > 0.1) {
-                // Calculate relative luminance (WCAG formula)
-                const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-                totalLuminance += luminance;
-                sampleCount++;
-                break; // Found a valid background, stop checking this point
-              }
+          const rgbMatch = bgColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?/);
+          if (rgbMatch) {
+            const r = parseInt(rgbMatch[1]);
+            const g = parseInt(rgbMatch[2]);
+            const b = parseInt(rgbMatch[3]);
+            const a = rgbMatch[4] ? parseFloat(rgbMatch[4]) : 1;
+            if (a > 0.1) {
+              const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+              totalLuminance += luminance;
+              sampleCount++;
+              break;
             }
           }
         }
-        
-        // Restore navbar visibility
-        containerRef.current.style.pointerEvents = originalPointerEvents;
-        containerRef.current.style.visibility = originalVisibility;
-        
-        if (sampleCount > 0) {
-          const avgLuminance = totalLuminance / sampleCount;
-          setIsDarkBackground(avgLuminance < 0.5);
-        } else {
-          // Fallback to light background
-          setIsDarkBackground(false);
-        }
-      } catch {
-        // Restore visibility in case of error
-        if (containerRef.current) {
-          containerRef.current.style.pointerEvents = '';
-          containerRef.current.style.visibility = '';
-        }
+      }
+      if (sampleCount > 0) {
+        const avg = totalLuminance / sampleCount;
+        setIsDarkBackground(avg < 0.5);
+      } else {
         setIsDarkBackground(false);
       }
     };
-    
-    // Run initially and on scroll/resize
+    let ticking = false;
+    const schedule = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        detectBackground();
+        ticking = false;
+      });
+    };
     detectBackground();
-    const interval = setInterval(detectBackground, 100);
-    
-    window.addEventListener('scroll', detectBackground, true);
-    window.addEventListener('resize', detectBackground);
-    
+    window.addEventListener('scroll', schedule, true);
+    window.addEventListener('resize', schedule);
     return () => {
-      clearInterval(interval);
-      window.removeEventListener('scroll', detectBackground, true);
-      window.removeEventListener('resize', detectBackground);
+      window.removeEventListener('scroll', schedule, true);
+      window.removeEventListener('resize', schedule);
     };
   }, [activeTab]);
 
@@ -382,42 +355,14 @@ export function BottomNavigation({
         {/* Tab container */}
         <div 
           ref={containerRef}
-          className="relative flex items-center justify-between px-3 py-1 touch-none select-none overflow-visible"
-          onPointerDown={(e) => { 
-            e.preventDefault();
-            setIsDragging(true); 
-            handleDrag(e.nativeEvent); 
-          }}
-          onPointerMove={(e) => {
-            if (isDragging) {
-              e.preventDefault();
-              handleDrag(e.nativeEvent);
-            }
-          }}
-          onPointerUp={(e) => {
-            e.preventDefault();
-            handleRelease(e.nativeEvent);
-            setIsDragging(false);
-          }}
-          onPointerCancel={(e) => {
-            e.preventDefault();
-            handleRelease(e.nativeEvent);
-            setIsDragging(false);
-          }}
-          onTouchStart={(e) => {
-            setIsDragging(true);
-            handleDrag(e.nativeEvent);
-          }}
-          onTouchMove={(e) => {
-            if (isDragging) {
-              e.preventDefault();
-              handleDrag(e.nativeEvent);
-            }
-          }}
-          onTouchEnd={(e) => {
-            handleRelease(e.nativeEvent);
-            setIsDragging(false);
-          }}
+          className="relative flex items-center justify-between px-3 py-1 select-none touch-manipulation overflow-visible"
+          onPointerDown={dragEnabled ? (e) => { e.preventDefault(); setIsDragging(true); handleDrag(e.nativeEvent); } : undefined}
+          onPointerMove={dragEnabled ? (e) => { if (isDragging) { e.preventDefault(); handleDrag(e.nativeEvent); } } : undefined}
+          onPointerUp={dragEnabled ? (e) => { e.preventDefault(); handleRelease(e.nativeEvent); setIsDragging(false); } : undefined}
+          onPointerCancel={dragEnabled ? (e) => { e.preventDefault(); handleRelease(e.nativeEvent); setIsDragging(false); } : undefined}
+          onTouchStart={dragEnabled ? (e) => { setIsDragging(true); handleDrag(e.nativeEvent); } : undefined}
+          onTouchMove={dragEnabled ? (e) => { if (isDragging) { e.preventDefault(); handleDrag(e.nativeEvent); } } : undefined}
+          onTouchEnd={dragEnabled ? (e) => { handleRelease(e.nativeEvent); setIsDragging(false); } : undefined}
         >
           {/* Floating pill that follows pointer and expands while dragging */}
           <motion.span
@@ -443,8 +388,8 @@ export function BottomNavigation({
             }}
             transition={{
               type: "spring",
-              stiffness: isDragging ? 700 : 500,
-              damping: isDragging ? 45 : 35,
+              stiffness: 500,
+              damping: 35,
               mass: 0.6,
               restDelta: 0.001,
               restSpeed: 0.001,

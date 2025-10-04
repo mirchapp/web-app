@@ -150,24 +150,11 @@
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Global touch optimization for all buttons and interactive elements */
+  /* Minimal global touch normalization */
   button,
   a,
-  [role="button"],
-  [type="button"],
-  [type="submit"],
-  input[type="checkbox"],
-  input[type="radio"],
-  [data-radix-collection-item] {
-    touch-action: manipulation;
+  [role="button"] {
     -webkit-tap-highlight-color: transparent;
-    /* Prevent callout menu on long-press */
-    -webkit-touch-callout: none;
-    /* Instant feedback on tap */
-    cursor: pointer;
-    /* Ensure proper touch handling */
-    -webkit-user-select: none;
-    user-select: none;
   }
 
   /* Improve active state feedback for better touch response perception */
@@ -190,28 +177,7 @@
     -webkit-user-select: text;
   }
 
-  /* Enhanced touch optimization for Radix UI components */
-  [data-radix-tabs-trigger],
-  [data-radix-tabs-list],
-  [data-radix-collection-item],
-  [data-state] {
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
-    -webkit-touch-callout: none;
-    cursor: pointer;
-  }
-
-  /* Immediate touch response for all interactive elements */
-  button:not(:disabled),
-  [role="button"]:not([aria-disabled="true"]),
-  [data-radix-tabs-trigger]:not([data-disabled]),
-  [data-radix-collection-item]:not([data-disabled]) {
-    transform: translateZ(0);
-    -webkit-transform: translateZ(0);
-    will-change: transform;
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-  }
+  /* Remove aggressive global transforms; keep things simple */
 
   /* Hardware acceleration for common transforms */
   [class*="transform"],
@@ -360,15 +326,11 @@
     pointer-events: auto !important;
   }
 
-  /* GPU-accelerated utilities for smooth animations */
+  /* Optional GPU accelerate utility (kept lean) */
   .gpu-accelerate {
-    transform: translateZ(0);
-    -webkit-transform: translateZ(0);
     will-change: transform;
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
-    perspective: 1000px;
-    -webkit-perspective: 1000px;
   }
 
   /* Smooth scrolling containers */
@@ -395,20 +357,7 @@
     }
   }
 
-  /* Mobile touch optimization utilities */
-  .touch-optimized {
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    user-select: none;
-    cursor: pointer;
-    transform: translateZ(0);
-    -webkit-transform: translateZ(0);
-    will-change: transform;
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-  }
+  /* Removed app-wide touch utility to avoid side effects */
 
   /* Better font rendering on mobile */
   .optimize-text {
