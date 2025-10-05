@@ -76,13 +76,12 @@ export const metadata: Metadata = {
   },
   other: {
     "apple-mobile-web-app-capable": "yes",
-    "apple-mobile-web-app-status-bar-style": "default",
+    "apple-mobile-web-app-status-bar-style": "black-translucent",
     "apple-mobile-web-app-title": "Mirch",
     "format-detection": "telephone=no",
     "mobile-web-app-capable": "yes",
-    "msapplication-TileColor": "#ffffff",
+    "msapplication-TileColor": "#100C14",
     "msapplication-config": "/browserconfig.xml",
-    "theme-color": "#ffffff",
   },
 };
 
@@ -101,6 +100,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <meta name="theme-color" content="#100C14" media="(prefers-color-scheme: dark)" />
+        <meta name="theme-color" content="#FDFCFE" media="(prefers-color-scheme: light)" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
