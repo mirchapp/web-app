@@ -27,7 +27,6 @@ interface PostEditorProps {
 
 export function PostEditor({
   restaurantName,
-  restaurantId,
   restaurantAddress,
   restaurantPhoto,
   restaurantRating,

@@ -18,11 +18,9 @@ export function CameraCapture({ restaurantName, onCapture, onBack }: CameraCaptu
   const videoRef = React.useRef<HTMLVideoElement>(null);
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
-  const [stream, setStream] = React.useState<MediaStream | null>(null);
   const [capturedImage, setCapturedImage] = React.useState<string | null>(null);
   const [isVideo, setIsVideo] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
-  const [facingMode, setFacingMode] = React.useState<'user' | 'environment'>('environment');
+  const [facingMode] = React.useState<'user' | 'environment'>('environment');
   const [useFileInput, setUseFileInput] = React.useState(false);
 
   // Crop an image dataURL to 9:16 aspect, center-cropped, output JPEG
@@ -107,7 +105,7 @@ export function CameraCapture({ restaurantName, onCapture, onBack }: CameraCaptu
       }
     };
     reader.readAsDataURL(file);
-  }, [onCapture, onBack]);
+  }, [onCapture, onBack, cropToReelsAspect]);
 
   const triggerFileInput = () => {
     fileInputRef.current?.click();
@@ -153,8 +151,6 @@ export function CameraCapture({ restaurantName, onCapture, onBack }: CameraCaptu
         try {
           const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
           currentStream = mediaStream;
-          setStream(mediaStream);
-          setError(null);
 
           if (videoRef.current) {
             videoRef.current.srcObject = mediaStream;
@@ -170,8 +166,6 @@ export function CameraCapture({ restaurantName, onCapture, onBack }: CameraCaptu
 
           const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
           currentStream = mediaStream;
-          setStream(mediaStream);
-          setError(null);
 
           if (videoRef.current) {
             videoRef.current.srcObject = mediaStream;
@@ -197,31 +191,27 @@ export function CameraCapture({ restaurantName, onCapture, onBack }: CameraCaptu
     };
   }, [facingMode, useFileInput, isIOSPWA]);
 
-  const handleCapture = () => {
-    if (!videoRef.current || !canvasRef.current) return;
+  // Unused: keeping for potential future use with getUserMedia
+  // const handleCapture = () => {
+  //   if (!videoRef.current || !canvasRef.current) return;
 
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    const context = canvas.getContext('2d');
+  //   const video = videoRef.current;
+  //   const canvas = canvasRef.current;
+  //   const context = canvas.getContext('2d');
 
-    if (!context) return;
+  //   if (!context) return;
 
-    // Set canvas dimensions to match video
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+  //   // Set canvas dimensions to match video
+  //   canvas.width = video.videoWidth;
+  //   canvas.height = video.videoHeight;
 
-    // Draw the video frame to canvas
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+  //   // Draw the video frame to canvas
+  //   context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    // Get image data as base64
-    const imageData = canvas.toDataURL('image/jpeg', 0.9);
-    setCapturedImage(imageData);
-
-    // Stop the camera stream
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-    }
-  };
+  //   // Get image data as base64
+  //   const imageData = canvas.toDataURL('image/jpeg', 0.9);
+  //   setCapturedImage(imageData);
+  // };
 
   const handleRetake = () => {
     setCapturedImage(null);
@@ -239,10 +229,11 @@ export function CameraCapture({ restaurantName, onCapture, onBack }: CameraCaptu
     }
   };
 
-  const handleFlipCamera = () => {
-    setFacingMode(prev => prev === 'user' ? 'environment' : 'user');
-    setCapturedImage(null);
-  };
+  // Unused: keeping for potential future use with getUserMedia
+  // const handleFlipCamera = () => {
+  //   setFacingMode(prev => prev === 'user' ? 'environment' : 'user');
+  //   setCapturedImage(null);
+  // };
 
   // Handle file input cancel detection using native event listener
   React.useEffect(() => {

@@ -148,7 +148,7 @@ export function RestaurantSelector({ onSelectRestaurant }: RestaurantSelectorPro
           } as Restaurant & { _distanceKm: number };
         })
         .sort((a: Restaurant & { _distanceKm: number }, b: Restaurant & { _distanceKm: number }) => a._distanceKm - b._distanceKm)
-        .map(({ _distanceKm: _ignored, ...rest }: Restaurant & { _distanceKm: number }) => rest as Restaurant);
+        .map(({ _distanceKm: _, ...rest }: Restaurant & { _distanceKm: number }) => rest as Restaurant);
 
         setNearbyRestaurants(restaurants);
       }
@@ -323,7 +323,7 @@ export function RestaurantSelector({ onSelectRestaurant }: RestaurantSelectorPro
         const restaurants = (await Promise.all(detailsPromises))
           .filter((r): r is (Restaurant & { _distanceKm?: number }) => r !== null)
           .sort((a, b) => (a._distanceKm ?? Number.POSITIVE_INFINITY) - (b._distanceKm ?? Number.POSITIVE_INFINITY))
-          .map(({ _distanceKm: _ignored, ...rest }) => rest as Restaurant);
+          .map(({ _distanceKm: _, ...rest }) => rest as Restaurant);
         setSuggestions(restaurants);
       }
     } catch (error) {

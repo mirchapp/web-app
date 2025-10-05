@@ -6,10 +6,9 @@ import { MapPin, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { createClient } from '@/utils/supabase/client';
-import { useRouter } from 'next/navigation';
 
 export function ProfileOverview() {
-  const [user, setUser] = React.useState<any>(null);
+  const [user, setUser] = React.useState<{ id: string; email?: string } | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [isSignUp, setIsSignUp] = React.useState(false);
   const [email, setEmail] = React.useState('');
@@ -19,7 +18,6 @@ export function ProfileOverview() {
   const [message, setMessage] = React.useState<string | null>(null);
 
   const supabase = createClient();
-  const router = useRouter();
 
   React.useEffect(() => {
     const getUser = async () => {
@@ -28,7 +26,7 @@ export function ProfileOverview() {
       setLoading(false);
     };
     getUser();
-  }, []);
+  }, [supabase.auth]);
 
   if (loading) {
     return (
