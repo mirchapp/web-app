@@ -96,23 +96,64 @@ export function ProfileOverview() {
     };
 
     return (
-      <div className="h-screen overflow-y-auto pb-24">
-        <div className="container mx-auto px-4 pt-12">
+      <div className="h-screen overflow-y-auto pb-24 relative">
+        {/* Animated floating glow background */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div
+            className="absolute top-[15%] left-[15%] w-[500px] h-[500px] rounded-full opacity-20 blur-[120px] animate-pulse"
+            style={{
+              background: 'radial-gradient(circle, rgba(138, 66, 214, 0.4), transparent 70%)',
+              animation: 'float 8s ease-in-out infinite'
+            }}
+          />
+          <div
+            className="absolute bottom-[20%] right-[10%] w-[400px] h-[400px] rounded-full opacity-15 blur-[100px]"
+            style={{
+              background: 'radial-gradient(circle, rgba(192, 132, 252, 0.3), transparent 70%)',
+              animation: 'float 10s ease-in-out infinite reverse'
+            }}
+          />
+        </div>
+
+        <div className="container mx-auto px-4 pt-20 relative z-10">
           <div className="max-w-md mx-auto">
-            <div className="flex flex-col items-center justify-center min-h-[60vh]">
-              <div className="text-center mb-8">
-                <h1 className="text-3xl font-bold text-foreground mb-2">
+            <div
+              className="flex flex-col items-center justify-center min-h-[60vh] animate-fade-in"
+              style={{
+                animation: 'fadeIn 0.6s ease-out'
+              }}
+            >
+              {/* Brand Logo/Icon */}
+              <div className="mb-2 relative -mb-4">
+                <div className="relative w-40 h-28">
+                  <Image
+                    src="/mirch-logo-transparent.png"
+                    alt="Mirch"
+                    width={160}
+                    height={112}
+                    className="object-contain scale-125 object-top"
+                    style={{
+                      filter: 'drop-shadow(0 0 30px rgba(138, 66, 214, 0.6)) drop-shadow(0 0 15px rgba(138, 66, 214, 0.4))'
+                    }}
+                    priority
+                  />
+                </div>
+                <div className="absolute inset-0 blur-2xl opacity-30 bg-primary/40 rounded-full -z-10" />
+              </div>
+
+              <div className="text-center mb-6">
+                <h1 className="text-4xl font-bold mb-3 bg-gradient-to-br from-foreground via-foreground to-foreground/70 bg-clip-text text-transparent">
                   {isSignUp ? 'Create Account' : 'Welcome Back'}
                 </h1>
-                <p className="text-muted-foreground">
+                <p className="text-sm text-muted-foreground/80 max-w-xs mx-auto leading-relaxed">
                   {isSignUp
-                    ? 'Sign up to start sharing your food experiences'
+                    ? 'Join Mirch to start sharing your culinary adventures'
                     : 'Sign in to view your profile and continue exploring'
                   }
                 </p>
               </div>
 
-              <form className="w-full space-y-4" onSubmit={isSignUp ? handleSignUp : handleLogin}>
+              <form className="w-full space-y-5" onSubmit={isSignUp ? handleSignUp : handleLogin}>
                 {error && (
                   <div className="rounded-md bg-red-50 dark:bg-red-950/20 p-4">
                     <p className="text-sm text-red-800 dark:text-red-400">{error}</p>
@@ -131,7 +172,10 @@ export function ProfileOverview() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="w-full h-12 px-4 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full h-14 px-5 rounded-[14px] border border-white/5 bg-white/[0.02] text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/30 transition-all duration-200 shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)]"
+                    style={{
+                      boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.1), 0 0 0 1px rgba(255,255,255,0.03)'
+                    }}
                   />
                   <input
                     type="password"
@@ -139,24 +183,27 @@ export function ProfileOverview() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="w-full h-12 px-4 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full h-14 px-5 rounded-[14px] border border-white/5 bg-white/[0.02] text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/30 transition-all duration-200 shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)]"
+                    style={{
+                      boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.1), 0 0 0 1px rgba(255,255,255,0.03)'
+                    }}
                   />
                 </div>
 
                 <Button
                   type="submit"
                   disabled={authLoading}
-                  className="w-full h-12 text-base font-medium"
+                  className="w-full h-14 text-base font-semibold rounded-[14px] bg-primary hover:bg-primary/90 shadow-[0_4px_20px_rgba(138,66,214,0.35)] hover:shadow-[0_6px_24px_rgba(138,66,214,0.45)] transition-all duration-200 active:scale-[0.98]"
                 >
                   {authLoading ? (isSignUp ? 'Creating account...' : 'Signing in...') : (isSignUp ? 'Sign Up' : 'Sign In')}
                 </Button>
 
-                <div className="relative">
+                <div className="relative py-2">
                   <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-border" />
+                    <div className="w-full border-t border-white/[0.08]" />
                   </div>
-                  <div className="relative flex justify-center text-sm">
-                    <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+                  <div className="relative flex justify-center text-xs">
+                    <span className="bg-background px-3 text-muted-foreground/60 font-medium">Or continue with</span>
                   </div>
                 </div>
 
@@ -164,9 +211,12 @@ export function ProfileOverview() {
                   type="button"
                   variant="outline"
                   onClick={handleGoogleAuth}
-                  className="w-full h-12 text-base font-medium"
+                  className="w-full h-14 text-base font-medium rounded-[14px] bg-[#1a1a1a] border border-white/[0.08] hover:bg-[#242424] hover:border-white/[0.12] transition-all duration-200 active:scale-[0.98]"
+                  style={{
+                    boxShadow: '0 0 0 1px rgba(255,255,255,0.03), 0 2px 8px rgba(0,0,0,0.2)'
+                  }}
                 >
-                  <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
+                  <svg className="h-5 w-5 mr-3" viewBox="0 0 24 24">
                     <path
                       fill="#4285F4"
                       d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -187,11 +237,11 @@ export function ProfileOverview() {
                   Sign {isSignUp ? 'up' : 'in'} with Google
                 </Button>
 
-                <div className="text-center text-sm">
+                <div className="text-center text-sm pt-2">
                   <button
                     type="button"
                     onClick={() => setIsSignUp(!isSignUp)}
-                    className="text-primary hover:underline"
+                    className="text-primary/90 hover:text-primary transition-colors duration-200 font-medium"
                   >
                     {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
                   </button>
