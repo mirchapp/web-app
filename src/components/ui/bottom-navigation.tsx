@@ -234,18 +234,19 @@ export function BottomNavigation({
         const avg = totalLuminance / sampleCount;
         setIsDarkBackground(avg < 0.5);
       } else {
-        // Fallback: use tab type when can't detect
-        setIsDarkBackground(activeTab === 'videos' || activeTab === 'post');
+        // Fallback: check if html has dark class (theme-aware)
+        const isDark = document.documentElement.classList.contains('dark');
+        setIsDarkBackground(isDark);
       }
     };
 
-    // Set immediately based on tab type for instant feedback
-    setIsDarkBackground(activeTab === 'videos' || activeTab === 'post');
+    // Run detection immediately (synchronously) to prevent flash
+    detectBackground();
 
-    // Then run actual detection after animations complete
+    // Then run again after a short delay to catch any layout changes
     const timeoutIds: NodeJS.Timeout[] = [];
-    timeoutIds.push(setTimeout(() => requestAnimationFrame(detectBackground), 200));
-    timeoutIds.push(setTimeout(() => requestAnimationFrame(detectBackground), 350));
+    timeoutIds.push(setTimeout(() => requestAnimationFrame(detectBackground), 50));
+    timeoutIds.push(setTimeout(() => requestAnimationFrame(detectBackground), 150));
 
     let ticking = false;
     const schedule = () => {
