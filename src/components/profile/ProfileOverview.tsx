@@ -100,14 +100,14 @@ export function ProfileOverview() {
         {/* Animated floating glow background */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div
-            className="absolute top-[15%] left-[15%] w-[500px] h-[500px] rounded-full opacity-20 blur-[120px] animate-pulse"
+            className="absolute top-[15%] left-[15%] w-[500px] h-[500px] rounded-full opacity-10 dark:opacity-20 blur-[120px] animate-pulse"
             style={{
               background: 'radial-gradient(circle, rgba(138, 66, 214, 0.4), transparent 70%)',
               animation: 'float 8s ease-in-out infinite'
             }}
           />
           <div
-            className="absolute bottom-[20%] right-[10%] w-[400px] h-[400px] rounded-full opacity-15 blur-[100px]"
+            className="absolute bottom-[20%] right-[10%] w-[400px] h-[400px] rounded-full opacity-8 dark:opacity-15 blur-[100px]"
             style={{
               background: 'radial-gradient(circle, rgba(192, 132, 252, 0.3), transparent 70%)',
               animation: 'float 10s ease-in-out infinite reverse'
@@ -126,12 +126,25 @@ export function ProfileOverview() {
               {/* Brand Logo/Icon */}
               <div className="mb-2 relative -mb-4">
                 <div className="relative w-40 h-28">
+                  {/* Light mode logo */}
+                  <Image
+                    src="/mirch-logo-transparent-dark.png"
+                    alt="Mirch"
+                    width={160}
+                    height={112}
+                    className="object-contain scale-125 object-top dark:hidden"
+                    style={{
+                      filter: 'drop-shadow(0 0 30px rgba(138, 66, 214, 0.6)) drop-shadow(0 0 15px rgba(138, 66, 214, 0.4))'
+                    }}
+                    priority
+                  />
+                  {/* Dark mode logo */}
                   <Image
                     src="/mirch-logo-transparent.png"
                     alt="Mirch"
                     width={160}
                     height={112}
-                    className="object-contain scale-125 object-top"
+                    className="object-contain scale-125 object-top hidden dark:block"
                     style={{
                       filter: 'drop-shadow(0 0 30px rgba(138, 66, 214, 0.6)) drop-shadow(0 0 15px rgba(138, 66, 214, 0.4))'
                     }}
@@ -172,10 +185,7 @@ export function ProfileOverview() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="w-full h-14 px-5 rounded-[14px] border border-white/5 bg-white/[0.02] text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/30 transition-all duration-200 shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)]"
-                    style={{
-                      boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.1), 0 0 0 1px rgba(255,255,255,0.03)'
-                    }}
+                    className="w-full h-14 px-5 rounded-[14px] border border-border/30 dark:border-white/5 bg-card/50 dark:bg-white/[0.02] text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/30 transition-all duration-200 shadow-sm dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)]"
                   />
                   <input
                     type="password"
@@ -183,10 +193,7 @@ export function ProfileOverview() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="w-full h-14 px-5 rounded-[14px] border border-white/5 bg-white/[0.02] text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/30 transition-all duration-200 shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)]"
-                    style={{
-                      boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.1), 0 0 0 1px rgba(255,255,255,0.03)'
-                    }}
+                    className="w-full h-14 px-5 rounded-[14px] border border-border/30 dark:border-white/5 bg-card/50 dark:bg-white/[0.02] text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/30 transition-all duration-200 shadow-sm dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)]"
                   />
                 </div>
 
@@ -211,10 +218,7 @@ export function ProfileOverview() {
                   type="button"
                   variant="outline"
                   onClick={handleGoogleAuth}
-                  className="w-full h-14 text-base font-medium rounded-[14px] bg-[#1a1a1a] border border-white/[0.08] hover:bg-[#242424] hover:border-white/[0.12] transition-all duration-200 active:scale-[0.98]"
-                  style={{
-                    boxShadow: '0 0 0 1px rgba(255,255,255,0.03), 0 2px 8px rgba(0,0,0,0.2)'
-                  }}
+                  className="w-full h-14 text-base font-medium rounded-[14px] bg-card dark:bg-[#1a1a1a] border border-border/50 dark:border-white/[0.08] hover:bg-accent dark:hover:bg-[#242424] hover:border-border dark:hover:border-white/[0.12] transition-all duration-200 active:scale-[0.98] shadow-sm dark:shadow-[0_0_0_1px_rgba(255,255,255,0.03),0_2px_8px_rgba(0,0,0,0.2)]"
                 >
                   <svg className="h-5 w-5 mr-3" viewBox="0 0 24 24">
                     <path
