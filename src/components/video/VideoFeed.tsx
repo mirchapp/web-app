@@ -293,6 +293,24 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
                   touchAction: isHorizontalDrag ? 'none' : 'pan-y'
                 }}
               >
+                {/* Animated floating glow background - matching profile overview */}
+                <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                  <div
+                    className="absolute top-[10%] left-[20%] w-[500px] h-[500px] rounded-full opacity-10 dark:opacity-20 blur-[120px] animate-pulse"
+                    style={{
+                      background: 'radial-gradient(circle, rgba(138, 66, 214, 0.4), transparent 70%)',
+                      animation: 'float 8s ease-in-out infinite'
+                    }}
+                  />
+                  <div
+                    className="absolute bottom-[15%] right-[15%] w-[400px] h-[400px] rounded-full opacity-8 dark:opacity-15 blur-[100px]"
+                    style={{
+                      background: 'radial-gradient(circle, rgba(192, 132, 252, 0.3), transparent 70%)',
+                      animation: 'float 10s ease-in-out infinite reverse'
+                    }}
+                  />
+                </div>
+
                 {/* Back Button - Absolute Positioning */}
                 <Button
                   variant="ghost"
@@ -305,12 +323,17 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
                   </svg>
                 </Button>
 
-                <div className="container mx-auto px-4 pt-12 pb-32">
+                <div className="container mx-auto px-4 pt-12 pb-32 relative z-10">
                   <div className="max-w-md mx-auto">
-                    <div className="flex flex-col items-center justify-center">
-                      {/* Avatar */}
-                      <div className="relative mb-6">
-                        <div className="relative h-32 w-32 sm:h-40 sm:w-40 rounded-full overflow-hidden ring-2 ring-primary/10 dark:ring-primary/20 shadow-sm">
+                    <div
+                      className="flex flex-col items-center justify-center animate-fade-in"
+                      style={{
+                        animation: 'fadeIn 0.6s ease-out'
+                      }}
+                    >
+                      {/* Avatar with glow effect */}
+                      <div className="relative mb-8">
+                        <div className="relative h-32 w-32 sm:h-40 sm:w-40 rounded-full overflow-hidden ring-2 ring-primary/20 dark:ring-primary/30 shadow-[0_0_30px_rgba(138,66,214,0.2)]">
                           <Image
                             src={videos[currentVideoIndex]?.user.avatar || ''}
                             alt={videos[currentVideoIndex]?.user.username || ''}
@@ -319,15 +342,18 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
                             unoptimized
                           />
                         </div>
+                        <div className="absolute inset-0 blur-3xl opacity-20 bg-primary/40 rounded-full -z-10" />
                       </div>
 
-                      {/* Name */}
-                      <h1 className="text-2xl sm:text-3xl font-semibold text-foreground mb-3">
-                        {videos[currentVideoIndex]?.user.username}
-                      </h1>
+                      {/* Name with elegant typography */}
+                      <div className="mb-2 text-center">
+                        <h1 className="text-4xl font-thin mb-2 bg-gradient-to-br from-foreground via-foreground to-foreground/70 bg-clip-text text-transparent">
+                          {videos[currentVideoIndex]?.user.username}
+                        </h1>
+                      </div>
 
                       {/* Location */}
-                      <div className="flex items-center gap-1.5 mb-6 text-muted-foreground">
+                      <div className="flex items-center gap-1.5 mb-8 text-muted-foreground/80">
                         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -335,42 +361,48 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
                         <span className="text-sm">Waterloo, ON</span>
                       </div>
 
-                      {/* Stats with Dividers */}
-                      <div className="flex items-center gap-8 mb-6 px-4">
-                        <div className="flex flex-col items-center">
+                      {/* Stats with refined styling */}
+                      <div className="flex items-center gap-10 mb-8 px-4">
+                        <div className="flex flex-col items-center gap-1">
                           <span className="text-2xl font-semibold text-foreground">12.5K</span>
-                          <span className="text-xs text-muted-foreground">Followers</span>
+                          <span className="text-xs text-muted-foreground/60">Followers</span>
                         </div>
-                        <div className="h-10 w-px bg-border" />
-                        <div className="flex flex-col items-center">
+                        <div className="h-12 w-px bg-border/40 dark:bg-white/[0.08]" />
+                        <div className="flex flex-col items-center gap-1">
                           <span className="text-2xl font-semibold text-foreground">890</span>
-                          <span className="text-xs text-muted-foreground">Following</span>
+                          <span className="text-xs text-muted-foreground/60">Following</span>
                         </div>
-                        <div className="h-10 w-px bg-border" />
-                        <div className="flex flex-col items-center">
+                        <div className="h-12 w-px bg-border/40 dark:bg-white/[0.08]" />
+                        <div className="flex flex-col items-center gap-1">
                           <span className="text-2xl font-semibold text-foreground">234</span>
-                          <span className="text-xs text-muted-foreground">Posts</span>
+                          <span className="text-xs text-muted-foreground/60">Posts</span>
                         </div>
                       </div>
 
-                      {/* Bio */}
-                      <p className="text-base leading-relaxed text-muted-foreground text-center mb-6 px-4 max-w-xs">
+                      {/* Bio with refined typography */}
+                      <p className="text-center text-sm leading-relaxed text-muted-foreground/80 mb-6 px-4 max-w-xs">
                         Food enthusiast sharing my culinary adventures. Always on the hunt for the perfect dish and hidden gems in the city.
                       </p>
 
                       {/* Joined Date */}
-                      <div className="flex items-center gap-1.5 text-muted-foreground mb-6">
+                      <div className="flex items-center gap-1.5 text-muted-foreground/70 mb-8">
                         <Calendar className="h-4 w-4" />
-                        <span className="text-sm">Joined September 2024</span>
+                        <span className="text-xs">Joined September 2024</span>
                       </div>
 
-                      {/* Action Buttons */}
-                      <div className="flex gap-3 w-full max-w-xs mb-8">
-                        <Button className="flex-1 h-11 rounded-xl font-medium" variant="default">
+                      {/* Action Buttons - matching elegant style */}
+                      <div className="flex gap-3 w-full max-w-xs mb-10">
+                        <Button
+                          className="flex-1 h-11 rounded-[14px] font-medium shadow-[0_4px_20px_rgba(138,66,214,0.35)] hover:shadow-[0_6px_24px_rgba(138,66,214,0.45)] transition-all duration-200"
+                          variant="default"
+                        >
                           <UserPlus className="h-4 w-4 mr-2" />
                           Follow
                         </Button>
-                        <Button className="flex-1 h-11 rounded-xl font-medium" variant="outline">
+                        <Button
+                          className="flex-1 h-11 rounded-[14px] font-medium border-border/30 dark:border-white/5 bg-card/50 dark:bg-white/[0.02] hover:bg-accent dark:hover:bg-white/[0.05] transition-all duration-200 shadow-sm dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)]"
+                          variant="outline"
+                        >
                           <MessageCircle className="h-4 w-4 mr-2" />
                           Message
                         </Button>
@@ -378,7 +410,7 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
 
                       {/* Recent Posts Section */}
                       <div className="w-full">
-                        <h2 className="text-lg font-semibold text-foreground mb-4 text-center">Recent Posts</h2>
+                        <h2 className="text-base font-medium text-foreground/60 mb-5 text-center">Recent Posts</h2>
                         <div className="columns-2 gap-2 space-y-2">
                           {[
                             { id: 'photo-1546069901-ba9599a7e63c', height: 200 }, // burger
