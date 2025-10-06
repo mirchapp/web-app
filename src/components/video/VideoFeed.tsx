@@ -24,6 +24,9 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
   const [showRestaurantPage, setShowRestaurantPage] = React.useState(false);
   const [isProfileClosing, setIsProfileClosing] = React.useState(false);
   const [followedUsers, setFollowedUsers] = React.useState<Set<string>>(new Set());
+  const [likedPosts, setLikedPosts] = React.useState<Set<string>>(new Set());
+  const [showHeartAnimation, setShowHeartAnimation] = React.useState(false);
+  const lastTapRef = React.useRef<number>(0);
   const safeAreaInsets = useSafeArea();
 
   // Prevent background scrolling on Flix tab
@@ -208,6 +211,26 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
       setShowProfileCard(false);
     }, 300);
   };
+
+  const handleDoubleTap = React.useCallback(() => {
+    const now = Date.now();
+    const timeSinceLastTap = now - lastTapRef.current;
+
+    if (timeSinceLastTap < 300 && timeSinceLastTap > 0) {
+      // Double tap detected - like the post
+      setLikedPosts(prev => {
+        const newSet = new Set(prev);
+        newSet.add(videos[currentVideoIndex].id);
+        return newSet;
+      });
+
+      // Show heart animation
+      setShowHeartAnimation(true);
+      setTimeout(() => setShowHeartAnimation(false), 400);
+    }
+
+    lastTapRef.current = now;
+  }, [currentVideoIndex, videos]);
 
 
   return (
@@ -401,6 +424,21 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
         restaurant={videos[currentVideoIndex]?.restaurant}
       />
 
+      {/* Heart Animation Overlay */}
+      <AnimatePresence>
+        {showHeartAnimation && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 1.3 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none"
+          >
+            <Heart className="w-32 h-32 text-white fill-white drop-shadow-[0_0_40px_rgba(255,255,255,0.8)]" />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Overlay Controls (outside scroll container to avoid tap delays during momentum) */}
       {videos[currentVideoIndex] && (
         <div className="absolute inset-0 z-20 pointer-events-none">
@@ -418,23 +456,43 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
               <Button
                 size="icon"
                 variant="ghost"
+                onClick={() => {
+                  setLikedPosts(prev => {
+                    const newSet = new Set(prev);
+                    const isLiked = likedPosts.has(videos[currentVideoIndex].id);
+                    if (isLiked) {
+                      newSet.delete(videos[currentVideoIndex].id);
+                    } else {
+                      newSet.add(videos[currentVideoIndex].id);
+                    }
+                    return newSet;
+                  });
+                }}
                 className={cn(
                   "h-12 w-12 rounded-full backdrop-blur-xl transition-all duration-200 ease-in-out",
-                  "bg-black/40 hover:bg-black/50",
+                  likedPosts.has(videos[currentVideoIndex].id)
+                    ? "bg-primary/20 hover:bg-primary/30 border border-primary/40 hover:border-primary/60"
+                    : "bg-black/40 hover:bg-black/50",
                   "hover:scale-105 active:scale-95"
                 )}
                 style={{
                   touchAction: 'manipulation',
-                  boxShadow: '0 4px 16px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+                  boxShadow: likedPosts.has(videos[currentVideoIndex].id)
+                    ? '0 0 12px rgba(138, 66, 214, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+                    : '0 4px 16px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
                 }}
               >
-                <Heart className="h-5 w-5 text-white stroke-[1.5]" />
+                {likedPosts.has(videos[currentVideoIndex].id) ? (
+                  <Heart className="h-5 w-5 text-white fill-white" />
+                ) : (
+                  <Heart className="h-5 w-5 text-white stroke-[1.5]" />
+                )}
               </Button>
               <span
                 className="text-xs font-medium text-white"
                 style={{ textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}
               >
-                {videos[currentVideoIndex].stats.likes}
+                {videos[currentVideoIndex].stats.likes + (likedPosts.has(videos[currentVideoIndex].id) ? 1 : 0)}
               </span>
             </div>
             <div className="flex flex-col items-center gap-1">
@@ -508,6 +566,7 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation();
+
                           setFollowedUsers(prev => {
                             const newSet = new Set(prev);
                             if (isFollowing) {
@@ -571,6 +630,7 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
             key={video.id}
             className="relative w-full h-full snap-start snap-always"
             style={{ pointerEvents: 'auto' }}
+            onClick={handleDoubleTap}
           >
             <Image
               src={video.src}
