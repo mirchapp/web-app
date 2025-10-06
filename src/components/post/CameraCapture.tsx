@@ -282,7 +282,7 @@ export function CameraCapture({ restaurantName, onCapture, onBack }: CameraCaptu
           <div className="absolute top-0 left-0 right-0 z-10 px-4 py-4 bg-gradient-to-b from-black/60 to-transparent"
             style={{ paddingTop: `${Math.max(safeAreaInsets.top + 8, 16)}px` }}
           >
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-3">
               <Button
                 variant="ghost"
                 size="icon"
@@ -296,6 +296,14 @@ export function CameraCapture({ restaurantName, onCapture, onBack }: CameraCaptu
               </div>
               <div className="w-10" /> {/* Spacer */}
             </div>
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3, ease: 'easeOut' }}
+              className="text-center"
+            >
+              <p className="text-sm text-white/70 font-medium">Step 2 of 3 — Capture your dish</p>
+            </motion.div>
           </div>
 
           {/* Preview */}

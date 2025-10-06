@@ -96,7 +96,7 @@ export function PostEditor({
         className="bg-background px-4 pt-1 pb-3 border-b border-border/50 flex-shrink-0 select-none"
         style={{ paddingTop: `${safeAreaInsets.top}px` }}
       >
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 mb-2">
           <Button
             variant="ghost"
             size="icon"
@@ -110,6 +110,14 @@ export function PostEditor({
           </h1>
           <div className="w-12" />
         </div>
+        <motion.div
+          initial={{ opacity: 0, y: -5 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2, ease: 'easeOut' }}
+          className="text-center"
+        >
+          <p className="text-xs text-muted-foreground/70 font-medium">Step 3 of 3 — Add details and share</p>
+        </motion.div>
       </div>
 
       {/* Content (scrolls between header and footer) */}

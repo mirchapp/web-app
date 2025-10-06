@@ -142,7 +142,7 @@ export function ProfileOverview() {
           />
         </div>
 
-        <div className="container mx-auto px-4 pt-20 relative z-10">
+        <div className="container mx-auto px-4 pt-16 relative z-10">
           <div className="max-w-md mx-auto">
             <div
               className="flex flex-col items-center justify-center min-h-[60vh] animate-fade-in"
@@ -322,7 +322,7 @@ export function ProfileOverview() {
   // Logged in - show profile
   return (
     <div className="h-screen overflow-y-auto pb-24">
-      <div className="container mx-auto px-4 pt-12">
+      <div className="container mx-auto px-4 pt-16">
       <div className="max-w-md mx-auto">
         <div className="flex flex-col items-center justify-center">
           {/* Avatar */}
