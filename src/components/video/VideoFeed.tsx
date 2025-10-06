@@ -23,6 +23,7 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
   const [showMiniRestaurantSheet, setShowMiniRestaurantSheet] = React.useState(false);
   const [showRestaurantPage, setShowRestaurantPage] = React.useState(false);
   const [isProfileClosing, setIsProfileClosing] = React.useState(false);
+  const [followedUsers, setFollowedUsers] = React.useState<Set<string>>(new Set());
   const safeAreaInsets = useSafeArea();
 
   // Prevent background scrolling on Flix tab
@@ -418,15 +419,19 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
                 size="icon"
                 variant="ghost"
                 className={cn(
-                  "h-12 w-12 rounded-full backdrop-blur-sm transition-all duration-300",
-                  "bg-black/30 hover:bg-black/40"
+                  "h-12 w-12 rounded-full backdrop-blur-xl transition-all duration-200 ease-in-out",
+                  "bg-black/40 hover:bg-black/50",
+                  "hover:scale-105 active:scale-95"
                 )}
-                style={{ touchAction: 'manipulation' }}
+                style={{
+                  touchAction: 'manipulation',
+                  boxShadow: '0 4px 16px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+                }}
               >
-                <Heart className="h-6 w-6 text-white" />
+                <Heart className="h-5 w-5 text-white stroke-[1.5]" />
               </Button>
               <span
-                className="text-xs font-semibold text-white"
+                className="text-xs font-medium text-white"
                 style={{ textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}
               >
                 {videos[currentVideoIndex].stats.likes}
@@ -437,15 +442,19 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
                 size="icon"
                 variant="ghost"
                 className={cn(
-                  "h-12 w-12 rounded-full backdrop-blur-sm transition-all duration-300",
-                  "bg-black/30 hover:bg-black/40"
+                  "h-12 w-12 rounded-full backdrop-blur-xl transition-all duration-200 ease-in-out",
+                  "bg-black/40 hover:bg-black/50",
+                  "hover:scale-105 active:scale-95"
                 )}
-                style={{ touchAction: 'manipulation' }}
+                style={{
+                  touchAction: 'manipulation',
+                  boxShadow: '0 4px 16px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+                }}
               >
-                <Bookmark className="h-6 w-6 text-white" />
+                <Bookmark className="h-5 w-5 text-white stroke-[1.5]" />
               </Button>
               <span
-                className="text-xs font-semibold text-white"
+                className="text-xs font-medium text-white"
                 style={{ textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}
               >
                 Save
@@ -486,21 +495,47 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
                       e.stopPropagation();
                       setShowProfileCard(true);
                     }}
-                    className="text-sm font-semibold text-white hover:text-white/80 transition-colors duration-200 touch-manipulation"
-                    style={{ textShadow: '0 2px 8px rgba(0,0,0,0.8)', touchAction: 'manipulation' }}
+                    className="text-sm font-medium text-white hover:text-white/90 transition-colors duration-200 touch-manipulation tracking-wide"
+                    style={{ textShadow: '0 2px 8px rgba(0,0,0,0.8)', touchAction: 'manipulation', letterSpacing: '0.02em' }}
                   >
                     {videos[currentVideoIndex].user.username}
                   </button>
-                  {!videos[currentVideoIndex].user.isFollowing && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 px-3 rounded-full border border-white/60 bg-transparent text-white hover:bg-white/20 hover:text-white hover:border-white text-xs font-medium"
-                      style={{ textShadow: '0 1px 4px rgba(0,0,0,0.6)', touchAction: 'manipulation' }}
-                    >
-                      Follow
-                    </Button>
-                  )}
+                  {(() => {
+                    const isFollowing = followedUsers.has(videos[currentVideoIndex].user.username);
+                    return (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setFollowedUsers(prev => {
+                            const newSet = new Set(prev);
+                            if (isFollowing) {
+                              newSet.delete(videos[currentVideoIndex].user.username);
+                            } else {
+                              newSet.add(videos[currentVideoIndex].user.username);
+                            }
+                            return newSet;
+                          });
+                        }}
+                        className={cn(
+                          "h-7 px-3 rounded-full backdrop-blur-xl text-xs font-medium transition-all duration-200",
+                          isFollowing
+                            ? "bg-primary/20 text-white border border-primary/40 hover:bg-primary/30 hover:border-primary/60"
+                            : "bg-black/40 text-white border border-white/30 hover:bg-black/50 hover:border-white/40"
+                        )}
+                        style={{
+                          textShadow: '0 1px 4px rgba(0,0,0,0.6)',
+                          touchAction: 'manipulation',
+                          boxShadow: isFollowing
+                            ? '0 0 12px rgba(138, 66, 214, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+                            : '0 4px 16px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+                        }}
+                      >
+                        {isFollowing ? 'Following' : 'Follow'}
+                      </Button>
+                    );
+                  })()}
                 </div>
 
                 <RestaurantRow
@@ -510,7 +545,7 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
                   onClick={() => setShowMiniRestaurantSheet(true)}
                 />
 
-                <p className="text-xs text-white/60" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.7)' }}>
+                <p className="text-xs text-white/70 font-light tracking-wide mt-1.5" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.7)', letterSpacing: '0.01em' }}>
                   {videos[currentVideoIndex].dish}
                 </p>
               </div>
@@ -545,6 +580,8 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
               unoptimized
               priority={index === 0}
             />
+            {/* Soft gradient overlay from bottom for text legibility */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent pointer-events-none" />
           </div>
         ))}
       </div>
