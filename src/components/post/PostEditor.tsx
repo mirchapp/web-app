@@ -90,22 +90,40 @@ export function PostEditor({
   const [showMediaPreview, setShowMediaPreview] = React.useState(false);
 
   return (
-    <div className="fixed inset-0 z-50 bg-background flex flex-col min-h-0 overflow-hidden touch-none">
+    <div className="fixed inset-0 z-50 bg-background flex flex-col min-h-0">
+      {/* Animated floating glow background - matching login screen */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        <div
+          className="absolute top-[10%] left-[20%] w-[500px] h-[500px] rounded-full opacity-10 dark:opacity-20 blur-[120px] animate-pulse"
+          style={{
+            background: 'radial-gradient(circle, rgba(138, 66, 214, 0.4), transparent 70%)',
+            animation: 'float 8s ease-in-out infinite'
+          }}
+        />
+        <div
+          className="absolute bottom-[15%] right-[15%] w-[400px] h-[400px] rounded-full opacity-8 dark:opacity-15 blur-[100px]"
+          style={{
+            background: 'radial-gradient(circle, rgba(192, 132, 252, 0.3), transparent 70%)',
+            animation: 'float 10s ease-in-out infinite reverse'
+          }}
+        />
+      </div>
+
       {/* Header */}
       <div
-        className="bg-background px-4 pt-1 pb-3 border-b border-border/50 flex-shrink-0 select-none"
+        className="bg-background/80 backdrop-blur-sm px-4 pt-1 pb-4 border-b border-border/30 flex-shrink-0 select-none relative z-10"
         style={{ paddingTop: `${safeAreaInsets.top}px` }}
       >
-        <div className="flex items-center gap-2 mb-2">
+        <div className="flex items-center gap-2 mb-3">
           <Button
             variant="ghost"
             size="icon"
             onClick={onBack}
-            className="h-12 w-12 rounded-full -ml-2"
+            className="h-12 w-12 rounded-full -ml-2 hover:bg-muted/50"
           >
             <ChevronLeft className="size-6" />
           </Button>
-          <h1 className="flex-1 text-center text-lg font-semibold text-foreground">
+          <h1 className="flex-1 text-center text-2xl font-bold bg-gradient-to-br from-foreground via-foreground to-foreground/70 bg-clip-text text-transparent">
             New Post
           </h1>
           <div className="w-12" />
@@ -116,24 +134,30 @@ export function PostEditor({
           transition={{ duration: 0.5, delay: 0.2, ease: 'easeOut' }}
           className="text-center"
         >
-          <p className="text-xs text-muted-foreground/70 font-medium">Step 3 of 3 — Add details and share</p>
+          <p className="text-sm text-muted-foreground/70 font-medium">Step 3 of 3 — Add details and share</p>
         </motion.div>
       </div>
 
       {/* Content (scrolls between header and footer) */}
       <div
         id="post-editor-scroll"
-        className="flex-1 min-h-0 overflow-y-auto px-4 py-6"
+        className="flex-1 min-h-0 overflow-y-auto px-4 py-6 relative z-10"
         style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain', touchAction: 'pan-y', paddingBottom: isKeyboardOpen ? '12px' : undefined }}
       >
-        {/* Media Preview */}
-        <div className="relative w-full aspect-square md:aspect-[9/16] rounded-3xl overflow-hidden bg-muted shadow-lg ring-1 ring-black/5 mb-4">
+        {/* Media Preview - Enhanced */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: 'easeOut' }}
+          className="relative w-full aspect-square md:aspect-[9/16] rounded-[20px] overflow-hidden bg-muted/30 mb-6"
+          style={{ boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.05)' }}
+        >
           <Button
             type="button"
             variant="ghost"
             size="sm"
             onClick={() => setShowMediaPreview(true)}
-            className="absolute top-3 left-3 z-10 h-8 rounded-full px-3 bg-black/40 hover:bg-black/55 text-white backdrop-blur-sm"
+            className="absolute top-3 left-3 z-10 h-7 rounded-full px-3 bg-white/10 hover:bg-white/20 text-white backdrop-blur-xl border border-white/20 text-xs font-medium transition-all duration-200"
             aria-label="Preview media"
           >
             Preview
@@ -154,12 +178,15 @@ export function PostEditor({
               unoptimized
             />
           )}
-        </div>
-
-        <div role="separator" aria-orientation="horizontal" className="my-4 h-px bg-border/50" />
+        </motion.div>
 
         {/* Caption Input */}
-        <div className="mb-4">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1, ease: 'easeOut' }}
+          className="mb-8"
+        >
           <textarea
             ref={captionRef}
             value={caption}
@@ -189,11 +216,14 @@ export function PostEditor({
             placeholder="Add a caption..."
             maxLength={maxCaptionLength}
             rows={4}
-            className="w-full px-4 py-3 rounded-2xl bg-muted/50 border border-border/50 focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm text-foreground placeholder:text-muted-foreground resize-none transition-all"
+            className="w-full px-5 py-4 rounded-[14px] border border-border/30 dark:border-white/5 bg-card/50 dark:bg-white/[0.02] text-foreground placeholder:text-muted-foreground/70 resize-none focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/30 transition-all duration-200 shadow-sm dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)]"
           />
-        </div>
-
-        <div role="separator" aria-orientation="horizontal" className="my-4 h-px bg-border/50" />
+          <div className="flex justify-end mt-2 px-1">
+            <span className="text-xs text-muted-foreground/50">
+              {caption.length}/{maxCaptionLength}
+            </span>
+          </div>
+        </motion.div>
 
         {/* Restaurant Info */}
         <div className="rounded-2xl border border-border/50 bg-muted/30 p-4 mb-4 active:scale-[0.995] transition-transform"

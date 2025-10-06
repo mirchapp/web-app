@@ -16,7 +16,8 @@ export async function middleware(request: NextRequest) {
   }
 
   // Rewrite diners subdomain to /diners path without changing URL
-  if (subdomain === 'diners' && !pathname.startsWith('/diners')) {
+  // Skip rewriting for auth routes (they're shared across subdomains)
+  if (subdomain === 'diners' && !pathname.startsWith('/diners') && !pathname.startsWith('/auth')) {
     const url = request.nextUrl.clone()
     url.pathname = `/diners${pathname}`
     return NextResponse.rewrite(url)
