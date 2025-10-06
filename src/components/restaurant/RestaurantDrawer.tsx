@@ -71,8 +71,8 @@ export function RestaurantDrawer({ isOpen, onClose, onExpand, restaurant }: Rest
 
             {/* Restaurant Info */}
             <div className="px-6 pt-6 pb-6">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="relative h-16 w-16 rounded-xl overflow-hidden flex-shrink-0 bg-muted">
+              <div className="flex items-center gap-4 mb-5">
+                <div className="relative h-16 w-16 rounded-[14px] overflow-hidden flex-shrink-0 bg-muted ring-2 ring-primary/10 dark:ring-primary/20 shadow-sm">
                   <Image
                     src={restaurant.logo || ''}
                     alt={restaurant.name}
@@ -82,7 +82,7 @@ export function RestaurantDrawer({ isOpen, onClose, onExpand, restaurant }: Rest
                   />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 mb-1">
+                  <div className="flex items-center gap-1.5 mb-1.5">
                     <h3 className="text-lg font-semibold text-foreground">
                       {restaurant.name}
                     </h3>
@@ -96,7 +96,7 @@ export function RestaurantDrawer({ isOpen, onClose, onExpand, restaurant }: Rest
                       </svg>
                     )}
                   </div>
-                  <div className="flex items-center gap-1 text-sm text-muted-foreground mb-0.5">
+                  <div className="flex items-center gap-1 text-sm text-muted-foreground/80">
                     <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
                     <span className="font-medium">{restaurant.rating}</span>
                     <span className="text-xs">• Restaurant</span>
@@ -105,12 +105,12 @@ export function RestaurantDrawer({ isOpen, onClose, onExpand, restaurant }: Rest
               </div>
 
               {/* Distance & Address */}
-              <div className="mb-4 space-y-2">
+              <div className="mb-5 space-y-2">
                 <div className="flex items-start gap-2 text-sm">
-                  <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                  <MapPin className="h-4 w-4 text-muted-foreground/70 mt-0.5 flex-shrink-0" />
                   <div className="flex-1">
                     <p className="text-foreground font-medium">{restaurant.distance} away</p>
-                    <p className="text-muted-foreground text-xs">{restaurant.address}</p>
+                    <p className="text-muted-foreground/70 text-xs">{restaurant.address}</p>
                   </div>
                 </div>
               </div>
@@ -119,7 +119,7 @@ export function RestaurantDrawer({ isOpen, onClose, onExpand, restaurant }: Rest
               <div className="grid grid-cols-3 gap-2">
                 <Button
                   variant="outline"
-                  className="h-11 bg-background hover:bg-muted/50 border-border/50 font-medium rounded-xl active:scale-95 transition-transform"
+                  className="h-11 bg-card/50 dark:bg-white/[0.02] hover:bg-accent dark:hover:bg-white/[0.05] border-border/30 dark:border-white/5 font-medium rounded-[14px] active:scale-95 transition-all duration-200 shadow-sm dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)]"
                   onClick={(e) => {
                     e.stopPropagation();
                     onExpand();
@@ -130,7 +130,7 @@ export function RestaurantDrawer({ isOpen, onClose, onExpand, restaurant }: Rest
                 </Button>
                 <Button
                   variant="outline"
-                  className="h-11 bg-background hover:bg-muted/50 border-border/50 font-medium rounded-xl active:scale-95 transition-transform"
+                  className="h-11 bg-card/50 dark:bg-white/[0.02] hover:bg-accent dark:hover:bg-white/[0.05] border-border/30 dark:border-white/5 font-medium rounded-[14px] active:scale-95 transition-all duration-200 shadow-sm dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)]"
                   onClick={(e) => {
                     e.stopPropagation();
                     console.log('Open in map');
@@ -141,7 +141,7 @@ export function RestaurantDrawer({ isOpen, onClose, onExpand, restaurant }: Rest
                 </Button>
                 <Button
                   variant="outline"
-                  className="h-11 bg-background hover:bg-muted/50 border-border/50 font-medium rounded-xl active:scale-95 transition-transform"
+                  className="h-11 bg-card/50 dark:bg-white/[0.02] hover:bg-accent dark:hover:bg-white/[0.05] border-border/30 dark:border-white/5 font-medium rounded-[14px] active:scale-95 transition-all duration-200 shadow-sm dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)]"
                   onClick={(e) => {
                     e.stopPropagation();
                     window.open(`tel:${restaurant.phone}`);
