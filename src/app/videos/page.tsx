@@ -3,24 +3,54 @@
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { 
-  PlayIcon, 
-  ClockIcon, 
-  EyeIcon 
+import { motion } from 'framer-motion';
+import {
+  PlayIcon,
+  ClockIcon,
+  EyeIcon
 } from '@heroicons/react/24/outline';
 
 export default function VideosPage() {
   return (
     <AppLayout>
       <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-6">
+        {/* Animated floating glow background - matching login and post screens */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div
+            className="absolute top-[10%] left-[20%] w-[500px] h-[500px] rounded-full opacity-10 dark:opacity-20 blur-[120px] animate-pulse"
+            style={{
+              background: 'radial-gradient(circle, rgba(138, 66, 214, 0.4), transparent 70%)',
+              animation: 'float 8s ease-in-out infinite'
+            }}
+          />
+          <div
+            className="absolute bottom-[15%] right-[15%] w-[400px] h-[400px] rounded-full opacity-8 dark:opacity-15 blur-[100px]"
+            style={{
+              background: 'radial-gradient(circle, rgba(192, 132, 252, 0.3), transparent 70%)',
+              animation: 'float 10s ease-in-out infinite reverse'
+            }}
+          />
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ type: 'tween', duration: 0.25, ease: 'easeOut' }}
+          className="container mx-auto px-4 py-6 relative z-10"
+        >
           {/* Header */}
-          <div className="mb-8">
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+            className="mb-8"
+          >
             <h1 className="text-3xl font-bold text-foreground mb-2">Videos</h1>
             <p className="text-muted-foreground">
               Discover amazing food content and cooking tutorials
             </p>
-          </div>
+          </motion.div>
 
           {/* Featured Video */}
           <Card className="mb-8 overflow-hidden">
@@ -116,7 +146,7 @@ export default function VideosPage() {
               </Card>
             ))}
           </div>
-        </div>
+        </motion.div>
       </div>
     </AppLayout>
   );

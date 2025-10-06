@@ -99,10 +99,36 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" style={{ backgroundColor: 'var(--background)' }}>
       <head>
-        <meta name="theme-color" content="#100C14" media="(prefers-color-scheme: dark)" />
+        <style>{`:root{--background:#FDFCFE;--foreground:#100C14}@media(prefers-color-scheme:dark){:root{--background:#100C14;--foreground:#FDFCFE}}`}</style>
+        {/* Ensure Safari toolbars match site background at initial paint and after theme changes */}
         <meta name="theme-color" content="#FDFCFE" media="(prefers-color-scheme: light)" />
+        <meta name="theme-color" content="#100C14" media="(prefers-color-scheme: dark)" />
+        <meta name="color-scheme" content="light dark" />
+        <meta id="theme-color" name="theme-color" content="#FDFCFE" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(() => {
+  try {
+    const el = document.querySelector('meta#theme-color');
+    const setThemeColor = () => {
+      const root = document.documentElement;
+      const styles = getComputedStyle(root);
+      const bg = styles.getPropertyValue('--background')?.trim();
+      if (el && bg) el.setAttribute('content', bg);
+    };
+    // Initial set as soon as possible
+    setThemeColor();
+    // Update on theme class changes
+    new MutationObserver(setThemeColor).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    // Update on prefers-color-scheme change
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    mq.addEventListener?.('change', setThemeColor);
+  } catch {}
+})();`,
+          }}
+        />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}

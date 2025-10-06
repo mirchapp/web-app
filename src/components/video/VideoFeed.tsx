@@ -26,8 +26,15 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
   const [followedUsers, setFollowedUsers] = React.useState<Set<string>>(new Set());
   const [likedPosts, setLikedPosts] = React.useState<Set<string>>(new Set());
   const [showHeartAnimation, setShowHeartAnimation] = React.useState(false);
+  const [hasAnimated, setHasAnimated] = React.useState(false);
   const lastTapRef = React.useRef<number>(0);
   const safeAreaInsets = useSafeArea();
+
+  // Trigger initial animation
+  React.useEffect(() => {
+    const timer = setTimeout(() => setHasAnimated(true), 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Prevent background scrolling on Flix tab
   React.useEffect(() => {
@@ -443,7 +450,10 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
       {videos[currentVideoIndex] && (
         <div className="absolute inset-0 z-20 pointer-events-none">
           {/* Action Buttons - Right Side */}
-          <div
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: hasAnimated ? 1 : 0, x: hasAnimated ? 0 : 20 }}
+            transition={{ duration: 0.4, ease: 'easeOut', delay: 0.1 }}
             className="absolute right-0 flex flex-col gap-6 pointer-events-auto"
             style={{
               bottom: `calc(5.25rem + ${Math.max(safeAreaInsets.bottom, 24)}px)`,
@@ -518,10 +528,13 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
                 Save
               </span>
             </div>
-          </div>
+          </motion.div>
 
           {/* Creator Info - Bottom Overlay */}
-          <div
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: hasAnimated ? 1 : 0, y: hasAnimated ? 0 : 20 }}
+            transition={{ duration: 0.4, ease: 'easeOut', delay: 0.2 }}
             className="absolute left-0 right-0 px-5 pointer-events-auto"
             style={{
               bottom: `calc(5.25rem + ${Math.max(safeAreaInsets.bottom, 24)}px)`,
@@ -609,7 +622,7 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
                 </p>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       )}
 

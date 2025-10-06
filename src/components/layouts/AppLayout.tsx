@@ -27,10 +27,12 @@ export function AppLayout({ children, className }: AppLayoutProps) {
   const [activeTab, setActiveTab] = React.useState('videos');
   const [isInPostEditor, setIsInPostEditor] = React.useState(false);
 
-  // Lock body scroll - each component manages its own internal scrolling
+  // Lock body scroll only for immersive tabs (videos/post). Allow scrolling elsewhere.
   React.useEffect(() => {
     const body = document.body;
     const html = document.documentElement;
+
+    const shouldLock = activeTab === 'videos' || activeTab === 'post';
 
     const prev = {
       bodyOverflow: body.style.overflow,
@@ -40,11 +42,19 @@ export function AppLayout({ children, className }: AppLayoutProps) {
       htmlOverflow: html.style.overflow,
     };
 
-    body.style.overflow = 'hidden';
-    body.style.position = 'fixed';
-    body.style.width = '100%';
-    body.style.height = '100%';
-    html.style.overflow = 'hidden';
+    if (shouldLock) {
+      body.style.overflow = 'hidden';
+      body.style.position = 'fixed';
+      body.style.width = '100%';
+      body.style.height = '100%';
+      html.style.overflow = 'hidden';
+    } else {
+      body.style.overflow = '';
+      body.style.position = '';
+      body.style.width = '';
+      body.style.height = '';
+      html.style.overflow = '';
+    }
 
     return () => {
       body.style.overflow = prev.bodyOverflow;
@@ -53,7 +63,7 @@ export function AppLayout({ children, className }: AppLayoutProps) {
       body.style.height = prev.bodyHeight;
       html.style.overflow = prev.htmlOverflow;
     };
-  }, []);
+  }, [activeTab]);
 
   const handleTabChange = React.useCallback((tabId: string) => {
     setActiveTab(tabId);
@@ -88,18 +98,18 @@ export function AppLayout({ children, className }: AppLayoutProps) {
             height: activeTab === 'videos' || activeTab === 'post'
               ? '100dvh'
               : 'auto',
-            paddingBottom: '0', // Removed navbar padding for testing
-            overflow: 'hidden'
+            paddingBottom: '0',
+            overflow: activeTab === 'videos' || activeTab === 'post' ? 'hidden' : 'visible'
           }}
         >
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
-              initial={{ opacity: 1, y: 0, scale: 1 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -10, scale: 0.98 }}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
               transition={{
-                duration: 0.15,
+                duration: 0.2,
                 ease: "easeOut",
               }}
               className="h-full"

@@ -123,7 +123,7 @@ export function ProfileOverview() {
     };
 
     return (
-      <div className="h-screen overflow-y-auto pb-24 relative">
+      <div className="relative" style={{ minHeight: '100dvh', paddingBottom: 'calc(env(safe-area-inset-bottom, 20px) + 88px)' }}>
         {/* Animated floating glow background */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div
@@ -321,7 +321,7 @@ export function ProfileOverview() {
 
   // Logged in - show profile
   return (
-    <div className="h-screen overflow-y-auto pb-24">
+      <div className="relative" style={{ minHeight: '100dvh', paddingBottom: 'calc(env(safe-area-inset-bottom, 20px) + 88px)' }}>
       <div className="container mx-auto px-4 pt-16">
       <div className="max-w-md mx-auto">
         <div className="flex flex-col items-center justify-center">

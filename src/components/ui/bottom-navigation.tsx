@@ -243,10 +243,11 @@ export function BottomNavigation({
     // Run detection immediately (synchronously) to prevent flash
     detectBackground();
 
-    // Then run again after a short delay to catch any layout changes
+    // Then run again after a short delay to catch any layout changes and page transitions
     const timeoutIds: NodeJS.Timeout[] = [];
     timeoutIds.push(setTimeout(() => requestAnimationFrame(detectBackground), 50));
     timeoutIds.push(setTimeout(() => requestAnimationFrame(detectBackground), 150));
+    timeoutIds.push(setTimeout(() => requestAnimationFrame(detectBackground), 300));
 
     let ticking = false;
     const schedule = () => {
