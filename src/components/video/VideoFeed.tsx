@@ -512,7 +512,7 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
             transition={{ duration: 0.4, ease: 'easeOut', delay: 0.1 }}
             className="absolute right-0 flex flex-col gap-6 pointer-events-auto"
             style={{
-              bottom: `calc(${isPWA ? '7rem' : '5.5rem'} + ${Math.max(safeAreaInsets.bottom, 24)}px)`,
+              bottom: `calc(${isPWA ? '7rem' : '5rem'} + ${Math.max(safeAreaInsets.bottom, 24)}px)`,
               paddingRight: '1.25rem',
             }}
             onTouchStartCapture={handleInteractiveTouchStart}
@@ -593,7 +593,7 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
             transition={{ duration: 0.4, ease: 'easeOut', delay: 0.2 }}
             className="absolute left-0 right-0 px-5 pointer-events-auto"
             style={{
-              bottom: `calc(${isPWA ? '7rem' : '5.5rem'} + ${Math.max(safeAreaInsets.bottom, 24)}px)`,
+              bottom: `calc(${isPWA ? '7rem' : '5rem'} + ${Math.max(safeAreaInsets.bottom, 24)}px)`,
             }}
             onTouchStartCapture={handleInteractiveTouchStart}
             onPointerDownCapture={handleInteractiveTouchStart}
