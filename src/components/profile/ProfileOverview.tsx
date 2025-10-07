@@ -245,7 +245,7 @@ export function ProfileOverview() {
           />
         </div>
 
-        <div className="container mx-auto px-4 relative z-10 w-full h-full flex items-start overflow-y-auto" style={{ paddingTop: isStandalone ? '4rem' : '2rem', paddingBottom: bottomPadding }}>
+        <div className="container mx-auto px-4 relative z-10 w-full h-full flex items-start overflow-y-auto" style={{ paddingTop: '5rem', paddingBottom: bottomPadding }}>
           <div className="max-w-md mx-auto w-full">
             <div
               className="flex flex-col items-center animate-fade-in"
@@ -456,7 +456,7 @@ export function ProfileOverview() {
         />
       </div>
 
-      <div className="container mx-auto px-4 pt-20 relative z-10">
+      <div className="container mx-auto px-4 pt-28 relative z-10">
         <div className="max-w-md mx-auto">
           <div
             className="flex flex-col items-center justify-center animate-fade-in"
