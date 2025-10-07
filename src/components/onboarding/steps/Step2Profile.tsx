@@ -90,9 +90,19 @@ export function Step2Profile() {
     const supabase = createClient();
 
     try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        setUsernameAvailable(null);
+        setIsCheckingUsername(false);
+        return;
+      }
+
+      // Check if username exists for someone OTHER than the current user
       const { data, error } = await supabase
         .from('Profile')
-        .select('username')
+        .select('username, user_id')
         .eq('username', username)
         .maybeSingle();
 
@@ -100,7 +110,8 @@ export function Step2Profile() {
         console.error('Error checking username:', error);
         setUsernameAvailable(null);
       } else {
-        setUsernameAvailable(data === null);
+        // Available if: no one has it, OR the current user has it
+        setUsernameAvailable(data === null || data.user_id === user.id);
       }
     } catch (error) {
       console.error('Error checking username:', error);
