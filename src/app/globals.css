@@ -155,8 +155,15 @@
     /* Define consistent top padding that accounts for safe area */
     --header-top-padding: 3rem;
     --header-top-padding-safe: calc(var(--header-top-padding) + env(safe-area-inset-top, 0px));
-    --profile-top-padding: 2.5rem;
+    --profile-top-padding: 1.5rem;
     --profile-top-padding-safe: calc(var(--profile-top-padding) + env(safe-area-inset-top, 0px));
+  }
+
+  /* PWA-specific padding adjustments */
+  @media (display-mode: standalone) {
+    html {
+      --profile-top-padding: 4rem;
+    }
   }
 
   body {
