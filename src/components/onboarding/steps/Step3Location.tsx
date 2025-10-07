@@ -202,34 +202,19 @@ export function Step3Location() {
       {/* Subtle ambient glow background */}
       <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[400px] h-[400px] bg-primary/5 rounded-full blur-[100px] pointer-events-none -z-10" />
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.1 }}
-        className="text-center space-y-4"
-      >
-        <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
-          className="w-20 h-20 mx-auto rounded-full bg-primary/10 dark:bg-primary/5 flex items-center justify-center shadow-[0_4px_12px_rgba(138,66,214,0.15)]"
-        >
+      <div className="text-center space-y-4">
+        <div className="w-20 h-20 mx-auto rounded-full bg-primary/10 dark:bg-primary/5 flex items-center justify-center shadow-[0_4px_12px_rgba(138,66,214,0.15)]">
           <MapPin className="w-10 h-10 text-primary" />
-        </motion.div>
+        </div>
         <h2 className="text-4xl font-thin bg-gradient-to-br from-foreground via-foreground to-foreground/60 bg-clip-text text-transparent">
           Where are you located?
         </h2>
         <p className="text-muted-foreground/90 dark:text-muted-foreground/80 text-base leading-relaxed">
           We&apos;ll show you restaurants nearby
         </p>
-      </motion.div>
+      </div>
 
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.3, duration: 0.5 }}
-        className="space-y-6"
-      >
+      <div className="space-y-6">
         <div className="space-y-3">
           <Label htmlFor="location" className="text-sm font-medium text-foreground/80 pl-1">
             City, State/Province
@@ -335,7 +320,7 @@ export function Step3Location() {
             Skip for now
           </Button>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

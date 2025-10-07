@@ -21,21 +21,11 @@ export function Step1Welcome() {
 
   return (
     <div className="space-y-8">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1, duration: 0.4 }}
-        className="text-center space-y-4"
-      >
-        <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
-          className="flex items-center justify-center mb-2"
-        >
+      <div className="text-center space-y-4">
+        <div className="flex items-center justify-center mb-2">
           {mounted && (
             <Image
-              src={isDark ? '/mirch-logo-transparent-dark.png' : '/mirch-logo-transparent.png'}
+              src={isDark ? '/mirch-logo-transparent.png' : '/mirch-logo-transparent-dark.png'}
               alt="Mirch Logo"
               width={240}
               height={240}
@@ -44,7 +34,7 @@ export function Step1Welcome() {
               quality={100}
             />
           )}
-        </motion.div>
+        </div>
 
         <h1 className="text-4xl font-thin bg-gradient-to-br from-foreground via-foreground to-foreground/60 bg-clip-text text-transparent">
           Reimagine Dining
@@ -53,14 +43,9 @@ export function Step1Welcome() {
         <p className="text-muted-foreground/90 dark:text-muted-foreground/80 text-base max-w-sm mx-auto leading-relaxed">
           Let&apos;s get you set up so you can start discovering amazing food experiences
         </p>
-      </motion.div>
+      </div>
 
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.3, duration: 0.4 }}
-        className="space-y-6"
-      >
+      <div className="space-y-6">
         <div className="grid gap-3">
           {[
             {
@@ -93,11 +78,8 @@ export function Step1Welcome() {
               description: 'Discover new places based on your preferences and what friends love'
             }
           ].map((feature, index) => (
-            <motion.div
+            <div
               key={index}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 + index * 0.1, duration: 0.4 }}
               className="flex items-start gap-4 p-5 rounded-[14px] bg-white/70 dark:bg-white/[0.02] border border-primary/10 dark:border-white/5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] hover:border-primary/20 hover:shadow-[0_4px_12px_rgba(138,66,214,0.15)] active:scale-[0.98] transition-all duration-200"
             >
               <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 dark:bg-primary/5 flex items-center justify-center text-primary">
@@ -107,23 +89,19 @@ export function Step1Welcome() {
                 <h3 className="font-medium text-foreground/90 mb-0.5">{feature.title}</h3>
                 <p className="text-sm text-muted-foreground/80 leading-relaxed">{feature.description}</p>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7, duration: 0.4 }}
-        >
+        <div>
           <Button
             onClick={nextStep}
             className="w-full h-14 rounded-[14px] font-medium text-base shadow-[0_4px_20px_rgba(138,66,214,0.35)] hover:shadow-[0_6px_24px_rgba(138,66,214,0.45)] active:scale-[0.98] transition-all duration-200 mt-2"
           >
             Get Started
           </Button>
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
     </div>
   );
 }

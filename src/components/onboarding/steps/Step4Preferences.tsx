@@ -159,12 +159,9 @@ export function Step4Preferences() {
         <div className="space-y-4">
           <h3 className="text-sm font-medium text-foreground/90">Favorite Cuisines</h3>
           <div className="grid grid-cols-2 gap-2.5">
-            {cuisines.map((cuisine, index) => (
-              <motion.button
+            {cuisines.map((cuisine) => (
+              <button
                 key={cuisine}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.3 + index * 0.05 }}
                 onClick={() => toggleCuisine(cuisine)}
                 className={`p-4 rounded-[14px] text-sm font-medium transition-all duration-200 active:scale-95 ${
                   selectedCuisines.includes(cuisine)
@@ -173,7 +170,7 @@ export function Step4Preferences() {
                 }`}
               >
                 {cuisine}
-              </motion.button>
+              </button>
             ))}
           </div>
         </div>
@@ -181,12 +178,9 @@ export function Step4Preferences() {
         <div className="space-y-4">
           <h3 className="text-sm font-medium text-foreground/90">Dietary Restrictions (Optional)</h3>
           <div className="grid grid-cols-2 gap-2.5">
-            {dietaryRestrictions.map((restriction, index) => (
-              <motion.button
+            {dietaryRestrictions.map((restriction) => (
+              <button
                 key={restriction.id}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.5 + index * 0.05 }}
                 onClick={() => toggleRestriction(restriction.id)}
                 className={`p-4 rounded-[14px] text-sm font-medium transition-all duration-200 active:scale-95 flex items-center gap-2.5 ${
                   selectedRestrictions.includes(restriction.id)
@@ -196,7 +190,7 @@ export function Step4Preferences() {
               >
                 {restriction.icon}
                 {restriction.label}
-              </motion.button>
+              </button>
             ))}
           </div>
         </div>

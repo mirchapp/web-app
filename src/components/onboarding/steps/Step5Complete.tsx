@@ -25,30 +25,17 @@ export function Step5Complete() {
 
   return (
     <div className="space-y-10">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
-        className="text-center space-y-8 pt-8"
-      >
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-          className="w-36 h-36 mx-auto rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-[0_12px_40px_rgba(138,66,214,0.45)]"
-        >
+      <div className="text-center space-y-8 pt-8">
+        <div className="w-36 h-36 mx-auto rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-[0_12px_40px_rgba(138,66,214,0.45)]">
           <svg className="w-20 h-20 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <motion.path
-              initial={{ pathLength: 0 }}
-              animate={{ pathLength: 1 }}
-              transition={{ delay: 0.4, duration: 0.5 }}
+            <path
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={2}
               d="M5 13l4 4L19 7"
             />
           </svg>
-        </motion.div>
+        </div>
 
         <div className="space-y-4">
           <h2 className="text-5xl font-thin bg-gradient-to-br from-foreground via-foreground to-foreground/60 bg-clip-text text-transparent">
@@ -58,14 +45,9 @@ export function Step5Complete() {
             Welcome to Mirch, {data.display_name?.split(' ')[0]}! Let&apos;s start exploring
           </p>
         </div>
-      </motion.div>
+      </div>
 
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.6 }}
-        className="space-y-5"
-      >
+      <div className="space-y-5">
         <div className="p-6 rounded-[14px] bg-white/70 dark:bg-white/[0.02] border border-primary/10 dark:border-white/5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] space-y-4">
           <h3 className="font-medium text-foreground/90">Your Profile Summary</h3>
           <div className="space-y-3 text-sm">
@@ -99,7 +81,7 @@ export function Step5Complete() {
         >
           {isCompleting ? 'Setting up...' : 'Start Exploring'}
         </Button>
-      </motion.div>
+      </div>
     </div>
   );
 }
