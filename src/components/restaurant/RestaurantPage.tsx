@@ -90,7 +90,8 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
               variant="ghost"
               size="icon"
               onClick={handleClose}
-              className="absolute top-4 right-4 z-30 h-10 w-10 rounded-full bg-muted/80 hover:bg-muted backdrop-blur-sm shadow-lg ring-1 ring-black/5 dark:ring-white/10 transition-all duration-200 touch-manipulation"
+              className="absolute z-30 h-10 w-10 rounded-full bg-muted/80 hover:bg-muted backdrop-blur-sm shadow-lg ring-1 ring-black/5 dark:ring-white/10 transition-all duration-200 touch-manipulation"
+              style={{ top: isStandalone ? '3rem' : '1rem', right: '1rem' }}
             >
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -124,7 +125,7 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
                 />
               </div>
 
-              <div className="container mx-auto px-4 pb-32 relative z-10" style={{ paddingTop: isStandalone ? '8rem' : '2rem' }}>
+              <div className="container mx-auto px-4 pb-32 relative z-10" style={{ paddingTop: isStandalone ? '9rem' : '2rem' }}>
                 <div className="max-w-md mx-auto">
                   <div
                     className="flex flex-col items-center justify-center animate-fade-in"
