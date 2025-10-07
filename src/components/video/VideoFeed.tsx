@@ -297,8 +297,8 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
               dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
               dragElastic={0}
               style={{
-                top: isPWA ? `env(safe-area-inset-top)` : '0',
-                bottom: isPWA ? `env(safe-area-inset-bottom)` : '0',
+                top: isPWA ? `${safeAreaInsets.top}px` : '0',
+                bottom: isPWA ? `${safeAreaInsets.bottom}px` : '0',
                 height: isPWA ? 'auto' : '100%',
                 willChange: dragOffset !== 0 ? 'transform' : 'auto',
                 backfaceVisibility: 'hidden',
