@@ -5,7 +5,7 @@ import { Heart } from 'lucide-react';
 
 export function LikedHome() {
   return (
-    <div className="h-screen overflow-y-auto pb-24">
+    <div className="h-[100dvh] overflow-y-auto pb-24">
       {/* Header */}
       <div className="px-4 pt-8 pb-6">
         <h1 className="text-3xl font-semibold text-foreground mb-2">

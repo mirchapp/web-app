@@ -114,31 +114,19 @@ export function AppLayout({ children, className }: AppLayoutProps) {
 
     const prev = {
       bodyOverflow: body.style.overflow,
-      bodyPosition: body.style.position,
-      bodyWidth: body.style.width,
-      bodyHeight: body.style.height,
       htmlOverflow: html.style.overflow,
     };
 
     if (shouldLock) {
       body.style.overflow = 'hidden';
-      body.style.position = 'fixed';
-      body.style.width = '100%';
-      body.style.height = '100%';
       html.style.overflow = 'hidden';
     } else {
       body.style.overflow = '';
-      body.style.position = '';
-      body.style.width = '';
-      body.style.height = '';
       html.style.overflow = '';
     }
 
     return () => {
       body.style.overflow = prev.bodyOverflow;
-      body.style.position = prev.bodyPosition;
-      body.style.width = prev.bodyWidth;
-      body.style.height = prev.bodyHeight;
       html.style.overflow = prev.htmlOverflow;
     };
   }, [activeTab]);
@@ -188,7 +176,7 @@ export function AppLayout({ children, className }: AppLayoutProps) {
 
   return (
     <PostEditorContext.Provider value={{ isInEditor: isInPostEditor, setIsInEditor: setIsInPostEditor }}>
-      <div className={cn("min-h-screen bg-background text-foreground", className)}>
+      <div className={cn("min-h-[100dvh] bg-background text-foreground", className)}>
         {/* Main content area with bottom padding for floating navigation */}
         <main
           className={cn(
