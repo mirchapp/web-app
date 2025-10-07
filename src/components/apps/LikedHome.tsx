@@ -2,12 +2,18 @@
 
 import * as React from 'react';
 import { Heart } from 'lucide-react';
+import { useSafeArea } from '@/hooks/useSafeArea';
 
 export function LikedHome() {
+  const safeAreaInsets = useSafeArea();
+
+  // Base padding (4rem = 64px) + safe area top compensation
+  const topPadding = `calc(4rem + ${safeAreaInsets.top}px)`;
+
   return (
     <div className="h-full overflow-y-auto pb-24">
       {/* Header */}
-      <div className="px-4 pt-28 pb-6">
+      <div className="px-4 pb-6" style={{ paddingTop: topPadding }}>
         <h1 className="text-3xl font-semibold text-foreground mb-2">
           Liked
         </h1>
