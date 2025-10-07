@@ -41,10 +41,10 @@ export function AppLayout({ children, className }: AppLayoutProps) {
       console.log('window.innerHeight:', window.innerHeight);
       console.log('window.screen.height:', window.screen.height);
       console.log('document.documentElement.clientHeight:', document.documentElement.clientHeight);
-      console.log('visualViewport?.height:', (window as any).visualViewport?.height);
+      console.log('visualViewport?.height:', window.visualViewport?.height);
       console.log('Gap (screen - inner):', window.screen.height - window.innerHeight);
       console.log('User Agent:', navigator.userAgent);
-      console.log('Standalone:', (navigator as any).standalone);
+      console.log('Standalone:', 'standalone' in navigator ? (navigator as Navigator & { standalone?: boolean }).standalone : false);
       console.log('Display Mode:', window.matchMedia('(display-mode: standalone)').matches);
       console.log('=========================');
     };
