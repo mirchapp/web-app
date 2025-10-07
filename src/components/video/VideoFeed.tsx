@@ -291,15 +291,12 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
                 x: '100%',
                 transition: { type: 'spring', stiffness: 500, damping: 45, mass: 0.7 }
               }}
-              className="absolute right-0 w-full max-w-md mx-auto bg-background shadow-2xl"
+              className="absolute right-0 top-0 h-full w-full max-w-md mx-auto bg-background shadow-2xl"
               onClick={(e) => e.stopPropagation()}
               drag={false}
               dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
               dragElastic={0}
               style={{
-                top: isPWA ? `${safeAreaInsets.top}px` : '0',
-                bottom: isPWA ? `${safeAreaInsets.bottom}px` : '0',
-                height: isPWA ? 'auto' : '100%',
                 willChange: dragOffset !== 0 ? 'transform' : 'auto',
                 backfaceVisibility: 'hidden',
                 WebkitBackfaceVisibility: 'hidden',
@@ -344,14 +341,14 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
                   size="icon"
                   onClick={handleProfileClose}
                   className="absolute z-20 h-8 w-8 rounded-full hover:bg-muted/50 bg-background/80 backdrop-blur-sm"
-                  style={{ top: '16px', left: '1rem' }}
+                  style={{ top: `${safeAreaInsets.top + 16}px`, left: '1rem' }}
                 >
                   <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
                 </Button>
 
-                <div className="container mx-auto px-4 pb-32 relative z-10" style={{ paddingTop: '48px' }}>
+                <div className="container mx-auto px-4 pb-32 relative z-10" style={{ paddingTop: `${safeAreaInsets.top + 48}px` }}>
                   <div className="max-w-md mx-auto">
                     <div
                       className="flex flex-col items-center justify-center animate-fade-in"
