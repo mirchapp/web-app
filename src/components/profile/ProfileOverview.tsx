@@ -25,7 +25,8 @@ export function ProfileOverview() {
   const [error, setError] = React.useState<string | null>(null);
   const [message, setMessage] = React.useState<string | null>(null);
   const [showForgotPassword, setShowForgotPassword] = React.useState(false);
-  
+  const [isStandalone, setIsStandalone] = React.useState(false);
+
   const supabase = createClient();
 
   React.useEffect(() => {
@@ -48,6 +49,19 @@ export function ProfileOverview() {
     };
     getUser();
   }, [supabase]);
+
+  // Detect iOS/Android PWA standalone mode to tweak layout
+  React.useEffect(() => {
+    try {
+      const mq = window.matchMedia && window.matchMedia('(display-mode: standalone)');
+      const standalone = !!(mq && mq.matches) || (
+        typeof navigator !== 'undefined' &&
+        'standalone' in navigator &&
+        (navigator as Navigator & { standalone?: boolean }).standalone === true
+      );
+      setIsStandalone(standalone);
+    } catch {}
+  }, []);
 
   // In standalone PWA, bottom nav is still present, so use consistent padding
   const bottomPadding = 'calc(env(safe-area-inset-bottom, 20px) + 88px)';
@@ -231,7 +245,7 @@ export function ProfileOverview() {
           />
         </div>
 
-        <div className="container mx-auto px-4 relative z-10 w-full h-full flex items-start overflow-y-auto" style={{ paddingTop: '5rem', paddingBottom: bottomPadding }}>
+        <div className="container mx-auto px-4 relative z-10 w-full h-full flex items-start overflow-y-auto" style={{ paddingTop: isStandalone ? '6rem' : '2rem', paddingBottom: bottomPadding }}>
           <div className="max-w-md mx-auto w-full">
             <div
               className="flex flex-col items-center animate-fade-in"
