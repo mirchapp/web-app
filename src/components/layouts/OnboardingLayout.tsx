@@ -26,7 +26,7 @@ export function OnboardingLayout({
   const _progress = (currentStep / totalSteps) * 100;
 
   return (
-    <div className={cn("min-h-screen bg-gradient-to-b from-background to-muted/20", className)}>
+    <div className={cn("min-h-full bg-gradient-to-b from-background to-muted/20", className)}>
       {/* Animated floating glow background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div
@@ -79,7 +79,7 @@ export function OnboardingLayout({
       </div>
 
       {/* Main content - reserve space for header + safe areas */}
-      <main className="relative z-10 min-h-screen pt-24 pb-8 safe-area-bottom">
+      <main className="relative z-10 min-h-full pt-24 pb-8 safe-area-bottom">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
