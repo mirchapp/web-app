@@ -7,7 +7,7 @@ export function LikedHome() {
   return (
     <div className="h-full overflow-y-auto pb-24">
       {/* Header */}
-      <div className="px-4 pt-12 pb-6">
+      <div className="px-4 pt-16 pb-6">
         <h1 className="text-3xl font-semibold text-foreground mb-2">
           Liked
         </h1>

@@ -29,6 +29,14 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
   const [hasAnimated, setHasAnimated] = React.useState(false);
   const lastTapRef = React.useRef<number>(0);
   const safeAreaInsets = useSafeArea();
+  const [isPWA, setIsPWA] = React.useState(false);
+
+  // Detect if we're in PWA mode to adjust control positioning
+  React.useEffect(() => {
+    const nav = window.navigator as Navigator & { standalone?: boolean };
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || nav.standalone === true;
+    setIsPWA(isStandalone);
+  }, []);
 
   // Trigger initial animation
   React.useEffect(() => {
@@ -259,9 +267,16 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ type: 'tween', duration: 0.25, ease: 'easeOut' }}
-            className="fixed inset-0 z-50 bg-transparent touch-manipulation"
+            className="fixed z-50 bg-transparent touch-manipulation"
+            style={{ 
+              top: `calc(-1 * env(safe-area-inset-top))`,
+              left: `calc(-1 * env(safe-area-inset-left))`,
+              right: `calc(-1 * env(safe-area-inset-right))`,
+              bottom: `calc(-1 * env(safe-area-inset-bottom))`,
+              willChange: 'opacity', 
+              pointerEvents: isProfileClosing ? 'none' : 'auto' 
+            }}
             onClick={handleProfileClose}
-            style={{ willChange: 'opacity', pointerEvents: isProfileClosing ? 'none' : 'auto' }}
           >
             <motion.div
               ref={profileCardRef}
@@ -497,7 +512,7 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
             transition={{ duration: 0.4, ease: 'easeOut', delay: 0.1 }}
             className="absolute right-0 flex flex-col gap-6 pointer-events-auto"
             style={{
-              bottom: `calc(7rem + ${Math.max(safeAreaInsets.bottom, 24)}px)`,
+              bottom: `calc(${isPWA ? '7rem' : '5.5rem'} + ${Math.max(safeAreaInsets.bottom, 24)}px)`,
               paddingRight: '1.25rem',
             }}
             onTouchStartCapture={handleInteractiveTouchStart}
@@ -578,7 +593,7 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
             transition={{ duration: 0.4, ease: 'easeOut', delay: 0.2 }}
             className="absolute left-0 right-0 px-5 pointer-events-auto"
             style={{
-              bottom: `calc(7rem + ${Math.max(safeAreaInsets.bottom, 24)}px)`,
+              bottom: `calc(${isPWA ? '7rem' : '5.5rem'} + ${Math.max(safeAreaInsets.bottom, 24)}px)`,
             }}
             onTouchStartCapture={handleInteractiveTouchStart}
             onPointerDownCapture={handleInteractiveTouchStart}

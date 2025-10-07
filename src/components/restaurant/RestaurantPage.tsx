@@ -37,9 +37,16 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
           animate={{ opacity: isClosing ? 0 : 1 }}
           exit={{ opacity: 0 }}
           transition={{ type: 'tween', duration: 0.3, ease: 'easeOut' }}
-          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm touch-manipulation"
+          className="fixed z-50 bg-black/50 backdrop-blur-sm touch-manipulation"
           onClick={handleClose}
-          style={{ willChange: 'opacity', pointerEvents: isClosing ? 'none' : 'auto' }}
+          style={{ 
+            top: `calc(-1 * env(safe-area-inset-top))`,
+            left: `calc(-1 * env(safe-area-inset-left))`,
+            right: `calc(-1 * env(safe-area-inset-right))`,
+            bottom: `calc(-1 * env(safe-area-inset-bottom))`,
+            willChange: 'opacity', 
+            pointerEvents: isClosing ? 'none' : 'auto' 
+          }}
         >
           <motion.div
             initial={{ y: '100%' }}
