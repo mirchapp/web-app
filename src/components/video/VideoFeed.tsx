@@ -341,14 +341,14 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
                   size="icon"
                   onClick={handleProfileClose}
                   className="absolute z-20 h-8 w-8 rounded-full hover:bg-muted/50 bg-background/80 backdrop-blur-sm"
-                  style={{ top: `${safeAreaInsets.top + 16}px`, left: '1rem' }}
+                  style={{ top: 'calc(var(--overlay-card-top-padding-safe) + 1rem)', left: '1rem' }}
                 >
                   <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
                 </Button>
 
-                <div className="container mx-auto px-4 pb-32 relative z-10" style={{ paddingTop: `${safeAreaInsets.top + 48}px` }}>
+                <div className="container mx-auto px-4 pb-32 relative z-10" style={{ paddingTop: 'var(--overlay-card-top-padding-safe)' }}>
                   <div className="max-w-md mx-auto">
                     <div
                       className="flex flex-col items-center justify-center animate-fade-in"
