@@ -38,6 +38,7 @@ export function RestaurantRow({ restaurantLogo, restaurantName, verified, onClic
           ? "translate-y-[-2px] brightness-110"
           : "hover:opacity-90"
       )}
+      style={{ pointerEvents: 'auto' }}
     >
       <div className="relative h-6 w-6 rounded-md overflow-hidden flex-shrink-0 bg-white/10">
         <Image

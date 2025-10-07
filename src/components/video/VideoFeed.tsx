@@ -511,15 +511,13 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: hasAnimated ? 1 : 0, x: hasAnimated ? 0 : 20 }}
             transition={{ duration: 0.4, ease: 'easeOut', delay: 0.1 }}
-            className="absolute right-0 flex flex-col gap-6 pointer-events-auto"
+            className="absolute right-0 flex flex-col gap-6"
             style={{
               bottom: `calc(${isPWA ? '7rem' : '4rem'} + ${Math.max(safeAreaInsets.bottom, 24)}px)`,
               paddingRight: '1.25rem',
             }}
-            onTouchStartCapture={handleInteractiveTouchStart}
-            onPointerDownCapture={handleInteractiveTouchStart}
           >
-            <div className="flex flex-col items-center gap-1">
+            <div className="flex flex-col items-center gap-1" style={{ pointerEvents: 'none' }}>
               <Button
                 size="icon"
                 variant="ghost"
@@ -535,6 +533,8 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
                     return newSet;
                   });
                 }}
+                onTouchStart={handleInteractiveTouchStart}
+                onPointerDown={handleInteractiveTouchStart}
                 className={cn(
                   "h-12 w-12 rounded-full backdrop-blur-xl transition-all duration-200 ease-in-out",
                   likedPosts.has(videos[currentVideoIndex].id)
@@ -543,6 +543,7 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
                   "hover:scale-105 active:scale-95"
                 )}
                 style={{
+                  pointerEvents: 'auto',
                   touchAction: 'manipulation',
                   boxShadow: likedPosts.has(videos[currentVideoIndex].id)
                     ? '0 0 12px rgba(138, 66, 214, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
@@ -557,21 +558,24 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
               </Button>
               <span
                 className="text-xs font-medium text-white"
-                style={{ textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}
+                style={{ textShadow: '0 1px 4px rgba(0,0,0,0.8)', pointerEvents: 'none' }}
               >
                 {videos[currentVideoIndex].stats.likes + (likedPosts.has(videos[currentVideoIndex].id) ? 1 : 0)}
               </span>
             </div>
-            <div className="flex flex-col items-center gap-1">
+            <div className="flex flex-col items-center gap-1" style={{ pointerEvents: 'none' }}>
               <Button
                 size="icon"
                 variant="ghost"
+                onTouchStart={handleInteractiveTouchStart}
+                onPointerDown={handleInteractiveTouchStart}
                 className={cn(
                   "h-12 w-12 rounded-full backdrop-blur-xl transition-all duration-200 ease-in-out",
                   "bg-black/40 hover:bg-black/50",
                   "hover:scale-105 active:scale-95"
                 )}
                 style={{
+                  pointerEvents: 'auto',
                   touchAction: 'manipulation',
                   boxShadow: '0 4px 16px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
                 }}
@@ -580,7 +584,7 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
               </Button>
               <span
                 className="text-xs font-medium text-white"
-                style={{ textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}
+                style={{ textShadow: '0 1px 4px rgba(0,0,0,0.8)', pointerEvents: 'none' }}
               >
                 Save
               </span>
@@ -592,21 +596,21 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: hasAnimated ? 1 : 0, y: hasAnimated ? 0 : 20 }}
             transition={{ duration: 0.4, ease: 'easeOut', delay: 0.2 }}
-            className="absolute left-0 right-0 px-5 pointer-events-auto"
+            className="absolute left-0 right-0 px-5"
             style={{
               bottom: `calc(${isPWA ? '7rem' : '4rem'} + ${Math.max(safeAreaInsets.bottom, 24)}px)`,
             }}
-            onTouchStartCapture={handleInteractiveTouchStart}
-            onPointerDownCapture={handleInteractiveTouchStart}
           >
-            <div className="flex items-start gap-3">
+            <div className="flex items-start gap-3" style={{ pointerEvents: 'none' }}>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   setShowProfileCard(true);
                 }}
+                onTouchStart={handleInteractiveTouchStart}
+                onPointerDown={handleInteractiveTouchStart}
                 className="relative h-11 w-11 rounded-full overflow-hidden ring-2 ring-white/50 flex-shrink-0 hover:ring-white/70 transition-all duration-200 cursor-pointer"
-                style={{ touchAction: 'manipulation' }}
+                style={{ touchAction: 'manipulation', pointerEvents: 'auto' }}
               >
                 <Image
                   src={videos[currentVideoIndex].user.avatar}
@@ -616,15 +620,17 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
                   unoptimized
                 />
               </button>
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-0" style={{ pointerEvents: 'none' }}>
                 <div className="flex items-center gap-2 mb-2">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       setShowProfileCard(true);
                     }}
+                    onTouchStart={handleInteractiveTouchStart}
+                    onPointerDown={handleInteractiveTouchStart}
                     className="text-sm font-medium text-white hover:text-white/90 transition-colors duration-200 touch-manipulation tracking-wide"
-                    style={{ textShadow: '0 2px 8px rgba(0,0,0,0.8)', touchAction: 'manipulation', letterSpacing: '0.02em' }}
+                    style={{ textShadow: '0 2px 8px rgba(0,0,0,0.8)', touchAction: 'manipulation', letterSpacing: '0.02em', pointerEvents: 'auto' }}
                   >
                     {videos[currentVideoIndex].user.username}
                   </button>
@@ -647,6 +653,8 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
                             return newSet;
                           });
                         }}
+                        onTouchStart={handleInteractiveTouchStart}
+                        onPointerDown={handleInteractiveTouchStart}
                         className={cn(
                           "h-7 px-3 rounded-full backdrop-blur-xl text-xs font-medium transition-all duration-200",
                           isFollowing
@@ -656,6 +664,7 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
                         style={{
                           textShadow: '0 1px 4px rgba(0,0,0,0.6)',
                           touchAction: 'manipulation',
+                          pointerEvents: 'auto',
                           boxShadow: isFollowing
                             ? '0 0 12px rgba(138, 66, 214, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
                             : '0 4px 16px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
@@ -672,9 +681,10 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
                   restaurantName={videos[currentVideoIndex].restaurant.name}
                   verified={videos[currentVideoIndex].restaurant.verified}
                   onClick={() => setShowMiniRestaurantSheet(true)}
+                  onTouchStartCapture={handleInteractiveTouchStart}
                 />
 
-                <p className="text-xs text-white/70 font-light tracking-wide mt-1.5" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.7)', letterSpacing: '0.01em' }}>
+                <p className="text-xs text-white/70 font-light tracking-wide mt-1.5" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.7)', letterSpacing: '0.01em', pointerEvents: 'none' }}>
                   {videos[currentVideoIndex].dish}
                 </p>
               </div>
