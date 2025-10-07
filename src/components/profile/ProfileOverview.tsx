@@ -6,7 +6,6 @@ import { MapPin, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { createClient } from '@/utils/supabase/client';
-import { useSafeArea } from '@/hooks/useSafeArea';
 
 interface ProfileData {
   display_name?: string;
@@ -27,7 +26,6 @@ export function ProfileOverview() {
   const [message, setMessage] = React.useState<string | null>(null);
   const [showForgotPassword, setShowForgotPassword] = React.useState(false);
   
-  const safeAreaInsets = useSafeArea();
   const supabase = createClient();
 
   React.useEffect(() => {
@@ -53,14 +51,11 @@ export function ProfileOverview() {
 
   // In standalone PWA, bottom nav is still present, so use consistent padding
   const bottomPadding = 'calc(env(safe-area-inset-bottom, 20px) + 88px)';
-  
-  // Base padding (6rem = 96px) + safe area top compensation for consistent positioning
-  const topPadding = `calc(6rem + ${safeAreaInsets.top}px)`;
 
   if (loading) {
     return (
       <div className="relative bg-gradient-to-b from-background to-muted/20 h-full overflow-y-auto" style={{ paddingBottom: bottomPadding }}>
-        <div className="container mx-auto px-4" style={{ paddingTop: topPadding }}>
+        <div className="container mx-auto px-4" style={{ paddingTop: 'var(--profile-top-padding-safe)' }}>
           <div className="max-w-md mx-auto">
             <div className="flex flex-col items-center space-y-8 animate-pulse">
               {/* Avatar skeleton */}
@@ -447,7 +442,7 @@ export function ProfileOverview() {
         />
       </div>
 
-      <div className="container mx-auto px-4 relative z-10" style={{ paddingTop: topPadding }}>
+      <div className="container mx-auto px-4 relative z-10" style={{ paddingTop: 'var(--profile-top-padding-safe)' }}>
         <div className="max-w-md mx-auto">
           <div
             className="flex flex-col items-center justify-center animate-fade-in"

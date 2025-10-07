@@ -4,12 +4,10 @@ import * as React from 'react';
 import { Search, Sparkles } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { useSafeArea } from '@/hooks/useSafeArea';
 
 export function FindHome() {
   const [searchQuery, setSearchQuery] = React.useState('');
   const [greeting, setGreeting] = React.useState('');
-  const safeAreaInsets = useSafeArea();
 
   React.useEffect(() => {
     const hour = new Date().getHours();
@@ -22,13 +20,10 @@ export function FindHome() {
     }
   }, []);
 
-  // Base padding (4rem = 64px) + safe area top compensation
-  const topPadding = `calc(4rem + ${safeAreaInsets.top}px)`;
-
   return (
     <div className="h-full overflow-y-auto pb-24">
       {/* Header Section */}
-      <div className="px-4 pb-6" style={{ paddingTop: topPadding }}>
+      <div className="px-4 pb-6" style={{ paddingTop: 'var(--header-top-padding-safe)' }}>
         {/* Greeting */}
         <div className="mb-6">
           <h1 className="text-3xl font-semibold text-foreground mb-1">

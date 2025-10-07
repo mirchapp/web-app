@@ -151,6 +151,12 @@
     padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
     height: 100%;
     overscroll-behavior: auto;
+    
+    /* Define consistent top padding that accounts for safe area */
+    --header-top-padding: 4rem;
+    --header-top-padding-safe: calc(var(--header-top-padding) + env(safe-area-inset-top, 0px));
+    --profile-top-padding: 6rem;
+    --profile-top-padding-safe: calc(var(--profile-top-padding) + env(safe-area-inset-top, 0px));
   }
 
   body {
