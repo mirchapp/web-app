@@ -53,8 +53,45 @@ export function AppLayout({ children, className }: AppLayoutProps) {
           }
 
           if (profile && !profile.signup_completed) {
-            // User has not completed onboarding, redirect
-            router.push('/onboarding');
+            // Don't redirect if already on onboarding page
+            if (window.location.pathname === '/onboarding') {
+              setIsCheckingOnboarding(false);
+              return;
+            }
+
+            // User has not completed onboarding, redirect to diners onboarding
+            const hostname = window.location.hostname;
+            const protocol = window.location.protocol;
+            const port = window.location.port;
+
+            // Check if we're already on diners subdomain
+            const isOnDinersSubdomain = hostname.startsWith('diners.');
+
+            // Determine the diners domain
+            let dinersUrl;
+            if (hostname.includes('localhost')) {
+              // For localhost, use diners.localhost
+              if (isOnDinersSubdomain) {
+                // Already on diners.localhost, just go to /onboarding
+                router.push('/onboarding');
+                return;
+              }
+              dinersUrl = `${protocol}//diners.localhost${port ? ':' + port : ':3000'}/onboarding`;
+            } else if (hostname.includes('mirch.app')) {
+              // For production, use diners.mirch.app
+              if (isOnDinersSubdomain) {
+                // Already on diners.mirch.app, just go to /onboarding
+                router.push('/onboarding');
+                return;
+              }
+              dinersUrl = `${protocol}//diners.mirch.app/onboarding`;
+            } else {
+              // Fallback - stay on current domain
+              router.push('/onboarding');
+              return;
+            }
+
+            window.location.href = dinersUrl;
             return;
           }
         }
