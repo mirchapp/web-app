@@ -1,11 +1,11 @@
-import heic2any from 'heic2any';
-import imageCompression from 'browser-image-compression';
-
 /**
  * Convert HEIC image to JPEG
  */
 export async function convertHeicToJpeg(file: File): Promise<File> {
   try {
+    // Dynamic import to avoid SSR issues
+    const heic2any = (await import('heic2any')).default;
+
     const convertedBlob = await heic2any({
       blob: file,
       toType: 'image/jpeg',
@@ -38,6 +38,9 @@ export async function compressImage(file: File): Promise<File> {
   };
 
   try {
+    // Dynamic import to avoid SSR issues
+    const imageCompression = (await import('browser-image-compression')).default;
+
     const compressedFile = await imageCompression(file, options);
     return compressedFile;
   } catch (error) {

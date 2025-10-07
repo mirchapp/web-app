@@ -4,6 +4,7 @@ import * as React from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useOnboarding } from '../OnboardingContext';
+
 export function Step5Complete() {
   const { data, completeOnboarding } = useOnboarding();
   const [isCompleting, setIsCompleting] = React.useState(false);
@@ -14,10 +15,8 @@ export function Step5Complete() {
       // Call the context's completeOnboarding which handles the database update
       await completeOnboarding();
 
-      // Redirect to diners app
-      if (typeof window !== 'undefined') {
-        window.location.href = 'https://diners.mirch.app';
-      }
+      // Redirect to diners app using client-side navigation
+      window.location.href = 'https://diners.mirch.app';
     } catch (error) {
       console.error('Error completing onboarding:', error);
       setIsCompleting(false);
