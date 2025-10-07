@@ -45,9 +45,9 @@ export function OnboardingLayout({
         />
       </div>
 
-      {/* Step indicator with back button */}
-      <div className="fixed top-0 left-0 right-0 z-50">
-        <div className="container mx-auto px-4 pt-6 pb-4">
+      {/* Step indicator with back button - account for iOS PWA notch */}
+      <div className="fixed top-0 left-0 right-0 z-50 safe-area-top">
+        <div className="container mx-auto px-4 pt-4 pb-4">
           <div className="max-w-md mx-auto relative flex items-center justify-center">
             {showBack && onBack && (
               <motion.div
@@ -78,8 +78,8 @@ export function OnboardingLayout({
         </div>
       </div>
 
-      {/* Main content */}
-      <main className="relative z-10 min-h-screen pt-24 pb-8">
+      {/* Main content - reserve space for header + safe areas */}
+      <main className="relative z-10 min-h-screen pt-24 pb-8 safe-area-bottom">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

@@ -270,8 +270,8 @@ export function BottomNavigation({
 
   return (
     <div
-      className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none px-4"
-      style={{ paddingBottom: `${Math.max(safeAreaInsets.bottom, 16)}px` }}
+      className="fixed left-0 right-0 z-50 pointer-events-none px-4"
+      style={{ bottom: Math.max(safeAreaInsets.bottom, 0) }}
     >
       <motion.nav 
         initial={{ y: 0, opacity: 1 }}
