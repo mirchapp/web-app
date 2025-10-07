@@ -236,24 +236,19 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
   }, [currentVideoIndex, videos]);
 
 
-  // Detect if we're in PWA mode to extend content under where status bar would be
-  const [isPWA, setIsPWA] = React.useState(false);
-  React.useEffect(() => {
-    const nav = window.navigator as Navigator & { standalone?: boolean };
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || nav.standalone === true;
-    setIsPWA(isStandalone);
-  }, []);
-
   return (
     <div 
       className="fixed bg-black" 
       style={{ 
-        // In PWA, extend beyond the top to simulate translucent status bar
-        top: isPWA ? '-50px' : 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        paddingTop: isPWA ? '50px' : 0
+        // With black-translucent, we need to compensate for the safe area padding on html
+        top: `calc(-1 * env(safe-area-inset-top))`,
+        left: `calc(-1 * env(safe-area-inset-left))`,
+        right: `calc(-1 * env(safe-area-inset-right))`,
+        bottom: `calc(-1 * env(safe-area-inset-bottom))`,
+        paddingTop: `env(safe-area-inset-top)`,
+        paddingLeft: `env(safe-area-inset-left)`,
+        paddingRight: `env(safe-area-inset-right)`,
+        paddingBottom: `env(safe-area-inset-bottom)`
       }}
     >
       {/* Profile Card Overlay */}

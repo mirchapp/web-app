@@ -198,7 +198,20 @@ export function AppLayout({ children, className }: AppLayoutProps) {
 
   return (
     <PostEditorContext.Provider value={{ isInEditor: isInPostEditor, setIsInEditor: setIsInPostEditor }}>
-      <div className={cn("fixed inset-0 bg-background text-foreground overflow-hidden", className)}>
+      <div 
+        className={cn("fixed bg-background text-foreground overflow-hidden", className)}
+        style={{
+          // Compensate for the safe area padding on html element
+          top: `calc(-1 * env(safe-area-inset-top))`,
+          left: `calc(-1 * env(safe-area-inset-left))`,
+          right: `calc(-1 * env(safe-area-inset-right))`,
+          bottom: `calc(-1 * env(safe-area-inset-bottom))`,
+          paddingTop: `env(safe-area-inset-top)`,
+          paddingLeft: `env(safe-area-inset-left)`,
+          paddingRight: `env(safe-area-inset-right)`,
+          paddingBottom: `env(safe-area-inset-bottom)`
+        }}
+      >
         {/* Main content area with bottom padding for floating navigation */}
         <main
           className={cn(
