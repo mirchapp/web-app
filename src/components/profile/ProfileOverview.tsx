@@ -25,6 +25,7 @@ export function ProfileOverview() {
   const [error, setError] = React.useState<string | null>(null);
   const [message, setMessage] = React.useState<string | null>(null);
   const [showForgotPassword, setShowForgotPassword] = React.useState(false);
+  const [isStandalone, setIsStandalone] = React.useState(false);
 
   const supabase = createClient();
 
@@ -49,9 +50,26 @@ export function ProfileOverview() {
     getUser();
   }, [supabase]);
 
+  // Detect iOS/Android PWA standalone mode to tweak layout (avoid unnecessary scrollbars)
+  React.useEffect(() => {
+    try {
+      const mq = window.matchMedia && window.matchMedia('(display-mode: standalone)');
+      const standalone = !!(mq && mq.matches) || (
+        typeof navigator !== 'undefined' &&
+        'standalone' in navigator &&
+        (navigator as Navigator & { standalone?: boolean }).standalone === true
+      );
+      setIsStandalone(standalone);
+    } catch {}
+  }, []);
+
+  const bottomPadding = isStandalone
+    ? 'calc(env(safe-area-inset-bottom, 20px) + 16px)'
+    : 'calc(env(safe-area-inset-bottom, 20px) + 88px)';
+
   if (loading) {
     return (
-      <div className="relative bg-gradient-to-b from-background to-muted/20" style={{ minHeight: '100dvh', paddingBottom: 'calc(env(safe-area-inset-bottom, 20px) + 88px)' }}>
+      <div className="relative bg-gradient-to-b from-background to-muted/20" style={{ minHeight: '100dvh', paddingBottom: bottomPadding, overflow: isStandalone ? 'hidden' : 'visible' }}>
         <div className="container mx-auto px-4 pt-16">
           <div className="max-w-md mx-auto">
             <div className="flex flex-col items-center space-y-8 animate-pulse">
@@ -196,7 +214,7 @@ export function ProfileOverview() {
     };
 
     return (
-      <div className="relative" style={{ minHeight: '100dvh', paddingBottom: 'calc(env(safe-area-inset-bottom, 20px) + 88px)' }}>
+      <div className="relative" style={{ minHeight: '100dvh', paddingBottom: bottomPadding, overflow: isStandalone ? 'hidden' : 'visible' }}>
         {/* Animated floating glow background */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div
@@ -394,7 +412,7 @@ export function ProfileOverview() {
 
   // Logged in - show profile
   return (
-    <div className="relative bg-gradient-to-b from-background to-muted/20" style={{ minHeight: '100dvh', paddingBottom: 'calc(env(safe-area-inset-bottom, 20px) + 88px)' }}>
+    <div className="relative bg-gradient-to-b from-background to-muted/20" style={{ minHeight: '100dvh', paddingBottom: bottomPadding, overflow: isStandalone ? 'hidden' : 'visible' }}>
       {/* Animated floating glow background - enhanced for light mode */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div
