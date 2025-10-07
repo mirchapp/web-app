@@ -31,8 +31,61 @@ export function ProfileOverview() {
 
   if (loading) {
     return (
-      <div className="h-screen flex items-center justify-center">
-        <div className="text-muted-foreground">Loading...</div>
+      <div className="relative bg-gradient-to-b from-background to-muted/20" style={{ minHeight: '100dvh', paddingBottom: 'calc(env(safe-area-inset-bottom, 20px) + 88px)' }}>
+        <div className="container mx-auto px-4 pt-16">
+          <div className="max-w-md mx-auto">
+            <div className="flex flex-col items-center space-y-8 animate-pulse">
+              {/* Avatar skeleton */}
+              <div className="relative">
+                <div className="h-40 w-40 rounded-full bg-muted/50" />
+                <div className="absolute inset-0 blur-3xl opacity-25 bg-muted/50 rounded-full -z-10" />
+              </div>
+
+              {/* Name skeleton */}
+              <div className="space-y-2 w-full flex flex-col items-center">
+                <div className="h-10 bg-muted/50 rounded-lg w-48" />
+                <div className="h-4 bg-muted/30 rounded w-32" />
+              </div>
+
+              {/* Button skeleton */}
+              <div className="h-9 bg-muted/50 rounded-[12px] w-28" />
+
+              {/* Stats skeleton */}
+              <div className="flex items-center gap-10">
+                <div className="flex flex-col items-center gap-1">
+                  <div className="h-8 w-12 bg-muted/50 rounded" />
+                  <div className="h-3 w-16 bg-muted/30 rounded" />
+                </div>
+                <div className="h-12 w-px bg-muted/30" />
+                <div className="flex flex-col items-center gap-1">
+                  <div className="h-8 w-12 bg-muted/50 rounded" />
+                  <div className="h-3 w-16 bg-muted/30 rounded" />
+                </div>
+                <div className="h-12 w-px bg-muted/30" />
+                <div className="flex flex-col items-center gap-1">
+                  <div className="h-8 w-12 bg-muted/50 rounded" />
+                  <div className="h-3 w-16 bg-muted/30 rounded" />
+                </div>
+              </div>
+
+              {/* Bio skeleton */}
+              <div className="space-y-2 w-full max-w-xs">
+                <div className="h-3 bg-muted/30 rounded w-full" />
+                <div className="h-3 bg-muted/30 rounded w-5/6 mx-auto" />
+              </div>
+
+              {/* Tabs skeleton */}
+              <div className="w-full space-y-4">
+                <div className="h-12 bg-muted/50 rounded-2xl w-full" />
+                <div className="grid grid-cols-3 gap-2">
+                  {[...Array(9)].map((_, i) => (
+                    <div key={i} className="aspect-square bg-muted/50 rounded-2xl" />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }

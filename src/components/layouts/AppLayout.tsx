@@ -10,6 +10,8 @@ import { cn } from '@/lib/utils';
 import { VideoFeed } from '@/components/video/VideoFeed';
 import mockVideos from '@/data/mock/videos.json';
 import { PostScreen, PostEditorContext } from '@/components/apps/PostScreen';
+import { createClient } from '@/utils/supabase/client';
+import { useRouter } from 'next/navigation';
 
 interface AppLayoutProps {
   children?: React.ReactNode;
@@ -26,6 +28,45 @@ const ProfileTab = () => <ProfileOverview />;
 export function AppLayout({ children, className }: AppLayoutProps) {
   const [activeTab, setActiveTab] = React.useState('videos');
   const [isInPostEditor, setIsInPostEditor] = React.useState(false);
+  const [isCheckingOnboarding, setIsCheckingOnboarding] = React.useState(true);
+  const router = useRouter();
+  const supabase = createClient();
+
+  // Check if user needs to complete onboarding
+  React.useEffect(() => {
+    const checkOnboarding = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (user) {
+          const { data: profile, error } = await supabase
+            .from('Profile')
+            .select('signup_completed, signup_step')
+            .eq('user_id', user.id)
+            .single();
+
+          if (error) {
+            // Table might not exist yet or no profile created - skip onboarding check
+            console.warn('Could not fetch profile, skipping onboarding check:', error.message);
+            setIsCheckingOnboarding(false);
+            return;
+          }
+
+          if (profile && !profile.signup_completed) {
+            // User has not completed onboarding, redirect
+            router.push('/onboarding');
+            return;
+          }
+        }
+      } catch (error) {
+        console.error('Error checking onboarding:', error);
+      } finally {
+        setIsCheckingOnboarding(false);
+      }
+    };
+
+    checkOnboarding();
+  }, [router, supabase]);
 
   // Lock body scroll only for immersive tabs (videos/post). Allow scrolling elsewhere.
   React.useEffect(() => {
@@ -85,6 +126,28 @@ export function AppLayout({ children, className }: AppLayoutProps) {
         return <FindTab />;
     }
   };
+
+  // Show loading state while checking onboarding
+  if (isCheckingOnboarding) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <div className="w-full max-w-md space-y-8">
+          {/* Logo skeleton */}
+          <div className="flex justify-center">
+            <div className="w-20 h-20 rounded-full bg-muted/50 animate-pulse" />
+          </div>
+          {/* Content skeletons */}
+          <div className="space-y-4">
+            <div className="h-32 bg-muted/50 rounded-2xl animate-pulse" />
+            <div className="h-32 bg-muted/50 rounded-2xl animate-pulse" />
+            <div className="h-32 bg-muted/50 rounded-2xl animate-pulse" />
+          </div>
+          {/* Bottom nav skeleton */}
+          <div className="fixed bottom-0 left-0 right-0 h-20 bg-muted/30 animate-pulse" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <PostEditorContext.Provider value={{ isInEditor: isInPostEditor, setIsInEditor: setIsInPostEditor }}>
