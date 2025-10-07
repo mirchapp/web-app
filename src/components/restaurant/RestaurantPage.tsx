@@ -109,7 +109,7 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
                 />
               </div>
 
-              <div className="container mx-auto px-4 pt-12 pb-32 relative z-10">
+              <div className="container mx-auto px-4 pb-32 relative z-10" style={{ paddingTop: 'var(--profile-top-padding-safe)' }}>
                 <div className="max-w-md mx-auto">
                   <div
                     className="flex flex-col items-center justify-center animate-fade-in"
