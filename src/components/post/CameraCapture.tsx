@@ -274,13 +274,13 @@ export function CameraCapture({ restaurantName, onCapture, onBack }: CameraCaptu
           exit={{ opacity: 0 }}
           className="fixed inset-0 z-50 bg-black flex flex-col"
           style={{
-            paddingTop: `${Math.max(safeAreaInsets.top, 16)}px`,
+            paddingTop: 'var(--post-screen-top-padding-safe)',
             paddingBottom: `${Math.max(safeAreaInsets.bottom, 16)}px`,
           }}
         >
           {/* Header */}
           <div className="absolute top-0 left-0 right-0 z-10 px-4 py-4 bg-gradient-to-b from-black/60 to-transparent"
-            style={{ paddingTop: `${Math.max(safeAreaInsets.top + 8, 16)}px` }}
+            style={{ paddingTop: 'calc(var(--post-screen-top-padding-safe) + 0.5rem)' }}
           >
             <div className="flex items-center justify-between mb-3">
               <Button

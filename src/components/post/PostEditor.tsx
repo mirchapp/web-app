@@ -112,7 +112,7 @@ export function PostEditor({
       {/* Header */}
       <div
         className="bg-background/80 backdrop-blur-sm px-4 pt-1 pb-4 border-b border-border/30 flex-shrink-0 select-none relative z-10"
-        style={{ paddingTop: `${safeAreaInsets.top}px` }}
+        style={{ paddingTop: 'var(--post-screen-top-padding-safe)' }}
       >
         <div className="flex items-center gap-2 mb-3">
           <Button
@@ -316,7 +316,7 @@ export function PostEditor({
               size="icon"
               onClick={(e) => { e.stopPropagation(); setShowMediaPreview(false); }}
               className="absolute left-4 h-10 w-10 rounded-full bg-white/10 hover:bg-white/20 text-white z-30 pointer-events-auto"
-              style={{ top: `${Math.max(safeAreaInsets.top + 8, 16)}px` }}
+              style={{ top: 'calc(var(--post-screen-top-padding-safe) + 0.5rem)' }}
               aria-label="Close preview"
             >
               <X className="h-6 w-6" />

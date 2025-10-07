@@ -450,7 +450,7 @@ export function RestaurantSelector({ onSelectRestaurant }: RestaurantSelectorPro
         transition={{ type: 'tween', duration: 0.25, ease: 'easeOut' }}
         className="h-full flex flex-col relative"
         style={{
-          paddingTop: `${Math.max(safeAreaInsets.top, 16)}px`,
+          paddingTop: 'var(--post-screen-top-padding-safe)',
           paddingBottom: `${Math.max(safeAreaInsets.bottom, 16)}px`,
         }}
       >

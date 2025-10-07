@@ -159,6 +159,8 @@
     --profile-top-padding-safe: calc(var(--profile-top-padding) + env(safe-area-inset-top, 0px));
     --overlay-card-top-padding: 3rem;
     --overlay-card-top-padding-safe: calc(var(--overlay-card-top-padding) + env(safe-area-inset-top, 0px));
+    --post-screen-top-padding: 1rem;
+    --post-screen-top-padding-safe: calc(var(--post-screen-top-padding) + env(safe-area-inset-top, 0px));
   }
 
   /* PWA-specific padding adjustments */
@@ -166,6 +168,7 @@
     html {
       --profile-top-padding: 4rem;
       --overlay-card-top-padding: 4.5rem;
+      --post-screen-top-padding: 1rem;
     }
   }
 
