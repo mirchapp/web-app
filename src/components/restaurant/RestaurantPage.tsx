@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { Star, MapPin, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useSafeArea } from '@/hooks/useSafeArea';
 import type { Restaurant } from '@/types/video';
 
 interface RestaurantPageProps {
@@ -16,6 +17,20 @@ interface RestaurantPageProps {
 export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPageProps) {
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const [isClosing, setIsClosing] = React.useState(false);
+  const [isStandalone, setIsStandalone] = React.useState(false);
+
+  // Detect iOS/Android PWA standalone mode
+  React.useEffect(() => {
+    try {
+      const mq = window.matchMedia && window.matchMedia('(display-mode: standalone)');
+      const standalone = !!(mq && mq.matches) || (
+        typeof navigator !== 'undefined' &&
+        'standalone' in navigator &&
+        (navigator as Navigator & { standalone?: boolean }).standalone === true
+      );
+      setIsStandalone(standalone);
+    } catch {}
+  }, []);
 
   const handleClose = () => {
     setIsClosing(true);
@@ -109,7 +124,7 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
                 />
               </div>
 
-              <div className="container mx-auto px-4 pb-32 relative z-10" style={{ paddingTop: 'var(--profile-top-padding-safe)' }}>
+              <div className="container mx-auto px-4 pb-32 relative z-10" style={{ paddingTop: isStandalone ? '6rem' : '2rem' }}>
                 <div className="max-w-md mx-auto">
                   <div
                     className="flex flex-col items-center justify-center animate-fade-in"
