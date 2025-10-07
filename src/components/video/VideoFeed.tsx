@@ -236,8 +236,26 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
   }, [currentVideoIndex, videos]);
 
 
+  // Detect if we're in PWA mode to extend content under where status bar would be
+  const [isPWA, setIsPWA] = React.useState(false);
+  React.useEffect(() => {
+    const nav = window.navigator as Navigator & { standalone?: boolean };
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || nav.standalone === true;
+    setIsPWA(isStandalone);
+  }, []);
+
   return (
-    <div className="fixed inset-0 bg-black" style={{ paddingTop: 0 }}>
+    <div 
+      className="fixed bg-black" 
+      style={{ 
+        // In PWA, extend beyond the top to simulate translucent status bar
+        top: isPWA ? '-50px' : 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        paddingTop: isPWA ? '50px' : 0
+      }}
+    >
       {/* Profile Card Overlay */}
       <AnimatePresence mode="wait" onExitComplete={() => setDragOffset(0)}>
         {showProfileCard && (
@@ -657,8 +675,13 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
       {/* Scrollable Container */}
       <div
         ref={scrollContainerRef}
-        className="h-full overflow-y-auto snap-y snap-mandatory hide-scrollbar"
+        className="overflow-y-auto snap-y snap-mandatory hide-scrollbar"
         style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
           WebkitOverflowScrolling: 'touch',
           scrollBehavior: 'auto',
           overscrollBehavior: 'contain',

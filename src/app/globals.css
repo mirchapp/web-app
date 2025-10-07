@@ -165,14 +165,6 @@
     touch-action: manipulation;
   }
 
-  /* Fix for translucent status bar in PWA */
-  @media all and (display-mode: standalone) {
-    body {
-      /* Account for iOS status bar when using black-translucent */
-      height: 100vh;
-      height: -webkit-fill-available;
-    }
-  }
 
 
   /* Allow inputs and textareas to be interactive on iOS */
