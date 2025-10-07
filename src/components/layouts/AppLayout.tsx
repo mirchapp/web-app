@@ -177,7 +177,7 @@ export function AppLayout({ children, className }: AppLayoutProps) {
 
   return (
     <PostEditorContext.Provider value={{ isInEditor: isInPostEditor, setIsInEditor: setIsInPostEditor }}>
-      <div 
+      <div
         className={cn("fixed bg-background text-foreground overflow-hidden", className)}
         style={{
           // Compensate for the safe area padding on html element

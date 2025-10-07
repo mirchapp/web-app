@@ -226,9 +226,9 @@ export function ProfileOverview() {
     };
 
     return (
-      <div className="fixed inset-0 flex items-center" style={{ overflow: 'hidden' }}>
+      <div className="relative min-h-full bg-gradient-to-b from-background to-muted/20">
         {/* Animated floating glow background */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="fixed inset-0 overflow-hidden pointer-events-none" style={{ zIndex: 0 }}>
           <div
             className="absolute top-[15%] left-[15%] w-[500px] h-[500px] rounded-full opacity-10 dark:opacity-20 blur-[120px] animate-pulse"
             style={{
@@ -245,7 +245,7 @@ export function ProfileOverview() {
           />
         </div>
 
-        <div className="container mx-auto px-4 relative z-10 w-full h-full flex items-start overflow-y-auto" style={{ paddingTop: isStandalone ? '6rem' : '2rem', paddingBottom: bottomPadding }}>
+        <div className="container mx-auto px-4 relative flex items-center" style={{ paddingTop: isStandalone ? '6rem' : '2rem', paddingBottom: bottomPadding, minHeight: '100%', zIndex: 1 }}>
           <div className="max-w-md mx-auto w-full">
             <div
               className="flex flex-col items-center animate-fade-in"
