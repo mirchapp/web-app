@@ -77,7 +77,7 @@ export function Step2Profile() {
   const [imageToCrop, setImageToCrop] = React.useState<string>('');
   const [crop, setCrop] = React.useState({ x: 0, y: 0 });
   const [zoom, setZoom] = React.useState(1);
-  const [croppedAreaPixels, setCroppedAreaPixels] = React.useState(null);
+  const [croppedAreaPixels, setCroppedAreaPixels] = React.useState<{ x: number; y: number; width: number; height: number } | null>(null);
 
   // Check username availability
   const checkUsernameAvailability = async (username: string) => {
