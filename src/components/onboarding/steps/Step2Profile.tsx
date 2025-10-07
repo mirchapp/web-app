@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useOnboarding } from '../OnboardingContext';
 import Cropper from 'react-easy-crop';
-import { X, ArrowLeft } from 'lucide-react';
+import { X } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { processImageForUpload, dataURLToFile } from '@/utils/imageProcessing';
 
@@ -21,7 +21,7 @@ const createImage = (url: string): Promise<HTMLImageElement> =>
     image.src = url;
   });
 
-async function getCroppedImg(imageSrc: string, pixelCrop: any): Promise<string> {
+async function getCroppedImg(imageSrc: string, pixelCrop: { x: number; y: number; width: number; height: number }): Promise<string> {
   const image = await createImage(imageSrc);
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
@@ -60,7 +60,7 @@ async function getCroppedImg(imageSrc: string, pixelCrop: any): Promise<string> 
 }
 
 export function Step2Profile() {
-  const { data, updateData, nextStep, prevStep, saveProgress } = useOnboarding();
+  const { data, updateData, nextStep, saveProgress } = useOnboarding();
   const [displayName, setDisplayName] = React.useState(data.display_name || '');
   const [username, setUsername] = React.useState(data.username || '');
   const [avatarUrl, setAvatarUrl] = React.useState(data.avatar_url || '');
@@ -172,7 +172,7 @@ export function Step2Profile() {
     }
   };
 
-  const onCropComplete = React.useCallback((croppedArea: any, croppedAreaPixels: any) => {
+  const onCropComplete = React.useCallback((_croppedArea: unknown, croppedAreaPixels: { x: number; y: number; width: number; height: number }) => {
     setCroppedAreaPixels(croppedAreaPixels);
   }, []);
 
@@ -197,7 +197,7 @@ export function Step2Profile() {
         const fileName = `${user.id}/${Date.now()}.${fileExt}`;
 
         // Upload to user_avatars bucket
-        const { data: uploadData, error: uploadError } = await supabase.storage
+        const { error: uploadError } = await supabase.storage
           .from('user_avatars')
           .upload(fileName, file, {
             cacheControl: '3600',
@@ -264,7 +264,7 @@ export function Step2Profile() {
             Tell us about yourself
           </h2>
           <p className="text-muted-foreground/90 dark:text-muted-foreground/80 text-base leading-relaxed max-w-sm mx-auto">
-            We'd love to know what to call you
+            We&apos;d love to know what to call you
           </p>
         </motion.div>
 
@@ -297,6 +297,7 @@ export function Step2Profile() {
             >
               {avatarUrl ? (
                 <>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                     <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">

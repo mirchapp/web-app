@@ -94,7 +94,18 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
       const dataToSave = overrideData ? { ...data, ...overrideData } : data;
 
       // Prepare update data
-      const updateData: any = {
+      const updateData: {
+        signup_step: number;
+        updated_at: string;
+        display_name?: string;
+        username?: string;
+        avatar_url?: string;
+        location?: string;
+        favourite_cuisines?: string[];
+        dietary_preferences?: string[];
+        spice_preference?: number;
+        price_preference?: number;
+      } = {
         signup_step: currentStep,
         updated_at: new Date().toISOString(),
       };

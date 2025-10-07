@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useOnboarding } from '../OnboardingContext';
-import { MapPin, Loader2, Navigation, ArrowLeft } from 'lucide-react';
+import { MapPin, Loader2, Navigation } from 'lucide-react';
 
 interface PlaceSuggestion {
   place_id: string;
@@ -18,7 +18,7 @@ interface PlaceSuggestion {
 }
 
 export function Step3Location() {
-  const { data, updateData, nextStep, prevStep, saveProgress } = useOnboarding();
+  const { data, updateData, nextStep, saveProgress } = useOnboarding();
   const [location, setLocation] = React.useState(data.location || '');
   const [query, setQuery] = React.useState('');
   const [suggestions, setSuggestions] = React.useState<PlaceSuggestion[]>([]);
@@ -141,13 +141,13 @@ export function Step3Location() {
           if (data.results && data.results.length > 0) {
             // Find the locality (city), state, and country components
             const result = data.results[0];
-            const cityComponent = result.address_components.find((comp: any) =>
+            const cityComponent = result.address_components.find((comp: { types: string[] }) =>
               comp.types.includes('locality')
             );
-            const stateComponent = result.address_components.find((comp: any) =>
+            const stateComponent = result.address_components.find((comp: { types: string[] }) =>
               comp.types.includes('administrative_area_level_1')
             );
-            const countryComponent = result.address_components.find((comp: any) =>
+            const countryComponent = result.address_components.find((comp: { types: string[] }) =>
               comp.types.includes('country')
             );
 
@@ -220,7 +220,7 @@ export function Step3Location() {
           Where are you located?
         </h2>
         <p className="text-muted-foreground/90 dark:text-muted-foreground/80 text-base leading-relaxed">
-          We'll show you restaurants nearby
+          We&apos;ll show you restaurants nearby
         </p>
       </motion.div>
 

@@ -23,7 +23,7 @@ export function OnboardingLayout({
   showBack = false,
   className
 }: OnboardingLayoutProps) {
-  const progress = (currentStep / totalSteps) * 100;
+  const _progress = (currentStep / totalSteps) * 100;
 
   return (
     <div className={cn("min-h-screen bg-gradient-to-b from-background to-muted/20", className)}>

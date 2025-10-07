@@ -51,7 +51,7 @@ export function Step1Welcome() {
         </h1>
 
         <p className="text-muted-foreground/90 dark:text-muted-foreground/80 text-base max-w-sm mx-auto leading-relaxed">
-          Let's get you set up so you can start discovering amazing food experiences
+          Let&apos;s get you set up so you can start discovering amazing food experiences
         </p>
       </motion.div>
 

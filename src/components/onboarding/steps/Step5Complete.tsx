@@ -4,12 +4,8 @@ import * as React from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useOnboarding } from '../OnboardingContext';
-import { useRouter } from 'next/navigation';
-import { createClient } from '@/utils/supabase/client';
-
 export function Step5Complete() {
   const { data, completeOnboarding } = useOnboarding();
-  const router = useRouter();
   const [isCompleting, setIsCompleting] = React.useState(false);
 
   const handleComplete = async () => {
@@ -55,10 +51,10 @@ export function Step5Complete() {
 
         <div className="space-y-4">
           <h2 className="text-5xl font-thin bg-gradient-to-br from-foreground via-foreground to-foreground/60 bg-clip-text text-transparent">
-            You're all set!
+            You&apos;re all set!
           </h2>
           <p className="text-muted-foreground/90 dark:text-muted-foreground/80 text-base max-w-sm mx-auto leading-relaxed">
-            Welcome to Mirch, {data.display_name?.split(' ')[0]}! Let's start exploring
+            Welcome to Mirch, {data.display_name?.split(' ')[0]}! Let&apos;s start exploring
           </p>
         </div>
       </motion.div>

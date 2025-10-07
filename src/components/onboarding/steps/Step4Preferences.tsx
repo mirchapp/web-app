@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { useOnboarding } from '../OnboardingContext';
-import { Leaf, Wheat, Nut, Shell, Milk, Sprout, DollarSign, Flame, ArrowLeft } from 'lucide-react';
+import { Leaf, Wheat, Nut, Shell, Milk, Sprout, DollarSign, Flame } from 'lucide-react';
 
 const cuisines = [
   '🍕 Italian', '🍜 Japanese', '🌮 Mexican', '🍔 American',
@@ -77,7 +77,7 @@ const dietaryRestrictions: DietaryRestriction[] = [
 ];
 
 export function Step4Preferences() {
-  const { data, updateData, nextStep, prevStep, saveProgress } = useOnboarding();
+  const { data, updateData, nextStep, saveProgress } = useOnboarding();
   const [selectedCuisines, setSelectedCuisines] = React.useState<string[]>(
     data.favourite_cuisines || []
   );
