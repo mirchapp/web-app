@@ -15,7 +15,9 @@ export function Step5Complete() {
       await completeOnboarding();
 
       // Redirect to diners app
-      window.location.href = 'https://diners.mirch.app';
+      if (typeof window !== 'undefined') {
+        window.location.href = 'https://diners.mirch.app';
+      }
     } catch (error) {
       console.error('Error completing onboarding:', error);
       setIsCompleting(false);
