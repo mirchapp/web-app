@@ -347,7 +347,7 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
                   </svg>
                 </Button>
 
-                <div className="container mx-auto px-4 pb-32 relative z-10" style={{ paddingTop: isPWA ? '6rem' : '2rem' }}>
+                <div className="container mx-auto px-4 pb-32 relative z-10" style={{ paddingTop: isPWA ? '8rem' : '2rem' }}>
                   <div className="max-w-md mx-auto">
                     <div
                       className="flex flex-col items-center justify-center animate-fade-in"
