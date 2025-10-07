@@ -105,12 +105,12 @@ export function AppLayout({ children, className }: AppLayoutProps) {
     checkOnboarding();
   }, [router, supabase]);
 
-  // Lock body scroll only for immersive tabs (videos/post). Allow scrolling elsewhere.
+  // Lock body scroll only for immersive tabs (videos/post/profile). Allow scrolling elsewhere.
   React.useEffect(() => {
     const body = document.body;
     const html = document.documentElement;
 
-    const shouldLock = activeTab === 'videos' || activeTab === 'post';
+    const shouldLock = activeTab === 'videos' || activeTab === 'post' || activeTab === 'profile';
 
     const prev = {
       bodyOverflow: body.style.overflow,
@@ -213,6 +213,7 @@ export function AppLayout({ children, className }: AppLayoutProps) {
                 ease: "easeOut",
               }}
               className="h-full"
+              style={{ overflow: activeTab === 'profile' ? 'visible' : undefined }}
             >
               {children || renderActiveComponent()}
             </motion.div>

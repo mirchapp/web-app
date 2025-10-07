@@ -416,4 +416,43 @@
     text-size-adjust: 100%;
   }
 
+  /* Fix for logo with drop-shadow filter - ensure Next.js Image wrapper doesn't clip filters */
+  img[alt="Mirch"] {
+    overflow: visible !important;
+  }
+
+  /* Target the Next.js Image span wrapper that contains the logo */
+  span:has(> img[alt="Mirch"]) {
+    overflow: visible !important;
+  }
+
+  /* Also ensure any parent containers don't clip */
+  div:has(> span > img[alt="Mirch"]),
+  div:has(img[alt="Mirch"]) {
+    overflow: visible !important;
+  }
+
+  /* Profile login container - ensure no clipping */
+  .profile-login-container,
+  .profile-login-container *,
+  .profile-glow-container,
+  .logo-container-outer,
+  .logo-container-outer *,
+  .logo-container-inner,
+  .logo-container-inner *,
+  .logo-wrapper,
+  .logo-wrapper * {
+    overflow: visible !important;
+  }
+
+  /* Ensure filter effects render properly on mobile */
+  .logo-wrapper img,
+  .logo-wrapper span {
+    will-change: filter;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    -webkit-transform: translateZ(0);
+  }
+
 }
