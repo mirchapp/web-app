@@ -154,12 +154,24 @@
     @apply bg-background text-foreground;
     /* Restore default flow and scrolling for pages (Chrome & iOS Safari) */
     position: static;
-    width: auto;
-    height: auto;
+    width: 100%;
+    height: 100%;
     overflow: visible;
     overscroll-behavior: auto;
     -webkit-overflow-scrolling: touch;
     touch-action: manipulation;
+  }
+
+  /* Fix for standalone PWA mode on iOS */
+  @media all and (display-mode: standalone) {
+    html {
+      height: 100%;
+    }
+    
+    body {
+      height: 100%;
+      position: relative;
+    }
   }
 
   /* Allow inputs and textareas to be interactive on iOS */

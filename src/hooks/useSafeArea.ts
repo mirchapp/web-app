@@ -12,51 +12,42 @@ export function useSafeArea() {
 
   useEffect(() => {
     const updateSafeAreaInsets = () => {
-      // Get computed styles from the root element
-      const rootStyles = getComputedStyle(document.documentElement);
+      // Create a test element to measure actual env() values
+      const testElement = document.createElement('div');
+      testElement.style.position = 'fixed';
+      testElement.style.top = '0';
+      testElement.style.left = '0';
+      testElement.style.width = '1px';
+      testElement.style.height = '1px';
+      testElement.style.visibility = 'hidden';
+      testElement.style.pointerEvents = 'none';
+      testElement.style.paddingTop = 'env(safe-area-inset-top, 0px)';
+      testElement.style.paddingRight = 'env(safe-area-inset-right, 0px)';
+      testElement.style.paddingBottom = 'env(safe-area-inset-bottom, 0px)';
+      testElement.style.paddingLeft = 'env(safe-area-inset-left, 0px)';
       
-      // Extract safe area inset values
-      const top = parseInt(rootStyles.getPropertyValue('--safe-area-inset-top') || '0', 10);
-      const right = parseInt(rootStyles.getPropertyValue('--safe-area-inset-right') || '0', 10);
-      const bottom = parseInt(rootStyles.getPropertyValue('--safe-area-inset-bottom') || '0', 10);
-      const left = parseInt(rootStyles.getPropertyValue('--safe-area-inset-left') || '0', 10);
+      document.body.appendChild(testElement);
+      
+      const computedStyles = getComputedStyle(testElement);
+      const top = parseInt(computedStyles.paddingTop) || 0;
+      const right = parseInt(computedStyles.paddingRight) || 0;
+      const bottom = parseInt(computedStyles.paddingBottom) || 0;
+      const left = parseInt(computedStyles.paddingLeft) || 0;
+      
+      document.body.removeChild(testElement);
 
       setSafeAreaInsets({ top, right, bottom, left });
     };
 
-    // Initial update
-    updateSafeAreaInsets();
+    // Initial update - delay slightly to ensure DOM is ready
+    const initialTimeout = setTimeout(updateSafeAreaInsets, 100);
 
     // Update on resize and orientation change
     window.addEventListener('resize', updateSafeAreaInsets);
     window.addEventListener('orientationchange', updateSafeAreaInsets);
 
-    // Also try to detect safe areas using CSS env() if available
-    const testElement = document.createElement('div');
-    testElement.style.position = 'fixed';
-    testElement.style.top = 'env(safe-area-inset-top)';
-    testElement.style.right = 'env(safe-area-inset-right)';
-    testElement.style.bottom = 'env(safe-area-inset-bottom)';
-    testElement.style.left = 'env(safe-area-inset-left)';
-    testElement.style.visibility = 'hidden';
-    document.body.appendChild(testElement);
-
-    const computedStyles = getComputedStyle(testElement);
-    const detectedInsets = {
-      top: parseInt(computedStyles.top) || 0,
-      right: parseInt(computedStyles.right) || 0,
-      bottom: parseInt(computedStyles.bottom) || 0,
-      left: parseInt(computedStyles.left) || 0,
-    };
-
-    document.body.removeChild(testElement);
-
-    // Use detected values if they're different from CSS variables
-    if (detectedInsets.bottom > 0 || detectedInsets.top > 0) {
-      setSafeAreaInsets(detectedInsets);
-    }
-
     return () => {
+      clearTimeout(initialTimeout);
       window.removeEventListener('resize', updateSafeAreaInsets);
       window.removeEventListener('orientationchange', updateSafeAreaInsets);
     };

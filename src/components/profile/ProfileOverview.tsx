@@ -63,13 +63,12 @@ export function ProfileOverview() {
     } catch {}
   }, []);
 
-  const bottomPadding = isStandalone
-    ? 'calc(env(safe-area-inset-bottom, 20px) + 16px)'
-    : 'calc(env(safe-area-inset-bottom, 20px) + 88px)';
+  // In standalone PWA, bottom nav is still present, so use consistent padding
+  const bottomPadding = 'calc(env(safe-area-inset-bottom, 20px) + 88px)';
 
   if (loading) {
     return (
-      <div className="relative bg-gradient-to-b from-background to-muted/20" style={{ minHeight: '100dvh', paddingBottom: bottomPadding, overflow: isStandalone ? 'hidden' : 'visible' }}>
+      <div className="relative bg-gradient-to-b from-background to-muted/20" style={{ minHeight: '100dvh', paddingBottom: bottomPadding }}>
         <div className="container mx-auto px-4 pt-16">
           <div className="max-w-md mx-auto">
             <div className="flex flex-col items-center space-y-8 animate-pulse">
@@ -438,7 +437,7 @@ export function ProfileOverview() {
 
   // Logged in - show profile
   return (
-    <div className="relative bg-gradient-to-b from-background to-muted/20" style={{ minHeight: '100dvh', paddingBottom: bottomPadding, overflow: isStandalone ? 'hidden' : 'visible' }}>
+    <div className="relative bg-gradient-to-b from-background to-muted/20" style={{ minHeight: '100dvh', paddingBottom: bottomPadding }}>
       {/* Animated floating glow background - enhanced for light mode */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div

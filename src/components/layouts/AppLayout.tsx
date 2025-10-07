@@ -12,6 +12,7 @@ import mockVideos from '@/data/mock/videos.json';
 import { PostScreen, PostEditorContext } from '@/components/apps/PostScreen';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
+import { SafeAreaDebug } from '@/components/debug/SafeAreaDebug';
 
 interface AppLayoutProps {
   children?: React.ReactNode;
@@ -215,6 +216,9 @@ export function AppLayout({ children, className }: AppLayoutProps) {
             onTabChange={handleTabChange}
           />
         )}
+
+        {/* Debug overlay - only shows in dev or with ?debug=1 */}
+        <SafeAreaDebug />
       </div>
     </PostEditorContext.Provider>
   );
