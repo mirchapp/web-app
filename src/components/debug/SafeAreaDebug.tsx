@@ -12,22 +12,37 @@ export function SafeAreaDebug() {
   const safeAreaInsets = useSafeArea();
   const [isPWA, setIsPWA] = React.useState(false);
   const [viewportHeight, setViewportHeight] = React.useState(0);
+  const [screenHeight, setScreenHeight] = React.useState(0);
+  const [documentHeight, setDocumentHeight] = React.useState(0);
+  const [bodyHeight, setBodyHeight] = React.useState(0);
+  const [cssVars, setCssVars] = React.useState({ top: '0', bottom: '0' });
 
   React.useEffect(() => {
-    // Check if debug mode is enabled
-    const urlParams = new URLSearchParams(window.location.search);
-    const debugMode = urlParams.get('debug') === '1' || process.env.NODE_ENV === 'development';
-    setShow(debugMode);
+    // Always show in development
+    setShow(true);
 
     // Detect PWA
     const nav = window.navigator as Navigator & { standalone?: boolean };
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || nav.standalone === true;
     setIsPWA(isStandalone);
 
-    // Get viewport height
-    setViewportHeight(window.innerHeight);
+    // Get all height measurements
+    const updateMeasurements = () => {
+      setViewportHeight(window.innerHeight);
+      setScreenHeight(window.screen.height);
+      setDocumentHeight(document.documentElement.clientHeight);
+      setBodyHeight(document.body.clientHeight);
+      
+      // Get CSS variables
+      const rootStyles = getComputedStyle(document.documentElement);
+      setCssVars({
+        top: rootStyles.getPropertyValue('--safe-area-inset-top').trim() || '0',
+        bottom: rootStyles.getPropertyValue('--safe-area-inset-bottom').trim() || '0'
+      });
+    };
 
-    const handleResize = () => setViewportHeight(window.innerHeight);
+    updateMeasurements();
+    const handleResize = () => updateMeasurements();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -35,16 +50,24 @@ export function SafeAreaDebug() {
   if (!show) return null;
 
   return (
-    <div className="fixed top-4 right-4 z-[9999] bg-black/90 text-white text-xs p-3 rounded-lg font-mono pointer-events-none max-w-[200px]">
-      <div className="font-bold mb-2 text-green-400">Safe Area Debug</div>
-      <div>Mode: {isPWA ? 'PWA' : 'Browser'}</div>
-      <div>VH: {viewportHeight}px</div>
-      <div className="mt-2 border-t border-white/20 pt-2">
-        <div>Top: {safeAreaInsets.top}px</div>
-        <div>Right: {safeAreaInsets.right}px</div>
-        <div>Bottom: {safeAreaInsets.bottom}px</div>
-        <div>Left: {safeAreaInsets.left}px</div>
+    <div className="fixed top-4 right-4 z-[9999] bg-black/90 text-white text-[10px] p-3 rounded-lg font-mono pointer-events-none max-w-[250px]">
+      <div className="font-bold mb-2 text-green-400">Viewport Debug</div>
+      <div className="space-y-1">
+        <div>Mode: {isPWA ? 'PWA' : 'Browser'}</div>
+        <div>window.innerHeight: {viewportHeight}px</div>
+        <div>screen.height: {screenHeight}px</div>
+        <div>document.clientHeight: {documentHeight}px</div>
+        <div>body.clientHeight: {bodyHeight}px</div>
+        <div className="mt-2 pt-2 border-t border-white/20">
+          <div>Safe Area (hook):</div>
+          <div className="pl-2">T: {safeAreaInsets.top}px, B: {safeAreaInsets.bottom}px</div>
+          <div>CSS Variables:</div>
+          <div className="pl-2">T: {cssVars.top}, B: {cssVars.bottom}</div>
+        </div>
       </div>
+      {/* Visual indicators */}
+      <div className="fixed top-0 left-0 right-0 h-[2px] bg-red-500 pointer-events-none" />
+      <div className="fixed bottom-0 left-0 right-0 h-[2px] bg-blue-500 pointer-events-none" />
     </div>
   );
 }

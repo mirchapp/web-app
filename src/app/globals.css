@@ -165,6 +165,7 @@
     touch-action: manipulation;
   }
 
+
   /* Allow inputs and textareas to be interactive on iOS */
   input,
   textarea,
