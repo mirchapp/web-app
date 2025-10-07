@@ -177,7 +177,7 @@ export function AppLayout({ children, className }: AppLayoutProps) {
 
   return (
     <PostEditorContext.Provider value={{ isInEditor: isInPostEditor, setIsInEditor: setIsInPostEditor }}>
-      <div className={cn("h-[100dvh] bg-background text-foreground overflow-hidden", className)}>
+      <div className={cn("fixed inset-0 bg-background text-foreground overflow-hidden", className)}>
         {/* Main content area with bottom padding for floating navigation */}
         <main
           className={cn(
