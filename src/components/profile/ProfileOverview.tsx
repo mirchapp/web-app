@@ -7,8 +7,16 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { createClient } from '@/utils/supabase/client';
 
+interface ProfileData {
+  display_name?: string;
+  username?: string;
+  avatar_url?: string;
+  location?: string;
+}
+
 export function ProfileOverview() {
   const [user, setUser] = React.useState<{ id: string; email?: string } | null>(null);
+  const [profile, setProfile] = React.useState<ProfileData | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [isSignUp, setIsSignUp] = React.useState(false);
   const [email, setEmail] = React.useState('');
@@ -24,10 +32,22 @@ export function ProfileOverview() {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
+
+      if (user) {
+        // Fetch profile data
+        const { data: profileData } = await supabase
+          .from('Profile')
+          .select('display_name, username, avatar_url, location')
+          .eq('user_id', user.id)
+          .single();
+
+        setProfile(profileData);
+      }
+
       setLoading(false);
     };
     getUser();
-  }, [supabase.auth]);
+  }, [supabase]);
 
   if (loading) {
     return (
@@ -404,15 +424,23 @@ export function ProfileOverview() {
             {/* Avatar with enhanced glow effect */}
             <div className="relative mb-8">
               <div className="relative h-32 w-32 sm:h-40 sm:w-40 rounded-full overflow-hidden ring-2 ring-primary/30 dark:ring-primary/30 shadow-[0_8px_30px_rgba(138,66,214,0.25)] dark:shadow-[0_0_30px_rgba(138,66,214,0.2)]">
-                <Image
-                  src="/faizaan.jpeg"
-                  alt="Faizaan Qureshi"
-                  fill
-                  className="object-cover"
-                  priority
-                  sizes="(max-width: 640px) 128px, 160px"
-                  unoptimized
-                />
+                {profile?.avatar_url ? (
+                  <Image
+                    src={profile.avatar_url}
+                    alt={profile.display_name || 'User'}
+                    fill
+                    className="object-cover"
+                    priority
+                    sizes="(max-width: 640px) 128px, 160px"
+                    unoptimized
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                    <svg className="w-20 h-20 text-primary/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
+                )}
               </div>
               <div className="absolute inset-0 blur-3xl opacity-25 dark:opacity-20 bg-primary/50 dark:bg-primary/40 rounded-full -z-10" />
             </div>
@@ -420,15 +448,17 @@ export function ProfileOverview() {
             {/* Name with elegant typography */}
             <div className="mb-2 text-center">
               <h1 className="text-4xl font-thin mb-2 bg-gradient-to-br from-foreground via-foreground to-foreground/60 bg-clip-text text-transparent">
-                Faizaan Qureshi
+                {profile?.display_name || 'User'}
               </h1>
             </div>
 
             {/* Location */}
-            <div className="flex items-center gap-1.5 mb-4 text-muted-foreground/80">
-              <MapPin className="h-4 w-4" />
-              <span className="text-sm">Waterloo, ON</span>
-            </div>
+            {profile?.location && (
+              <div className="flex items-center gap-1.5 mb-4 text-muted-foreground/80">
+                <MapPin className="h-4 w-4" />
+                <span className="text-sm">{profile.location}</span>
+              </div>
+            )}
 
             {/* Edit Profile Button - enhanced for light mode */}
             <div className="mb-8">
