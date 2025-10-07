@@ -177,18 +177,15 @@ export function AppLayout({ children, className }: AppLayoutProps) {
 
   return (
     <PostEditorContext.Provider value={{ isInEditor: isInPostEditor, setIsInEditor: setIsInPostEditor }}>
-      <div className={cn("min-h-[100dvh] bg-background text-foreground", className)}>
+      <div className={cn("h-[100dvh] bg-background text-foreground overflow-hidden", className)}>
         {/* Main content area with bottom padding for floating navigation */}
         <main
           className={cn(
-            activeTab === 'videos' || activeTab === 'post' ? "fixed inset-0" : ""
+            "h-full",
+            activeTab === 'videos' || activeTab === 'post' ? "overflow-hidden" : "overflow-y-auto"
           )}
           style={{
-            height: activeTab === 'videos' || activeTab === 'post'
-              ? '100dvh'
-              : 'auto',
-            paddingBottom: '0',
-            overflow: activeTab === 'videos' || activeTab === 'post' ? 'hidden' : 'visible'
+            paddingBottom: activeTab === 'videos' || activeTab === 'post' ? '0' : 'env(safe-area-inset-bottom, 0px)'
           }}
         >
           <AnimatePresence mode="wait">

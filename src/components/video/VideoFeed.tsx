@@ -36,22 +36,8 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
     return () => clearTimeout(timer);
   }, []);
 
-  // Prevent background scrolling on Flix tab
-  React.useEffect(() => {
-    // Always prevent background scrolling when VideoFeed is mounted
-    document.body.style.overflow = 'hidden';
-    document.body.style.position = 'fixed';
-    document.body.style.width = '100%';
-    document.body.style.height = '100%';
-
-    // Cleanup on unmount
-    return () => {
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.width = '';
-      document.body.style.height = '';
-    };
-  }, []);
+  // Note: Body scroll locking is now handled by AppLayout
+  // This component just renders full height content
 
   // Reset dragOffset when profile card closes
   React.useEffect(() => {
