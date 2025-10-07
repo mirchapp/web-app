@@ -12,8 +12,6 @@ import mockVideos from '@/data/mock/videos.json';
 import { PostScreen, PostEditorContext } from '@/components/apps/PostScreen';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
-import { SafeAreaDebug } from '@/components/debug/SafeAreaDebug';
-import { ViewportDebug } from '@/components/debug/ViewportDebug';
 
 interface AppLayoutProps {
   children?: React.ReactNode;
@@ -34,25 +32,6 @@ export function AppLayout({ children, className }: AppLayoutProps) {
   const router = useRouter();
   const supabase = createClient();
 
-  // Debug PWA viewport issues
-  React.useEffect(() => {
-    const logViewport = () => {
-      console.log('=== PWA Viewport Debug ===');
-      console.log('window.innerHeight:', window.innerHeight);
-      console.log('window.screen.height:', window.screen.height);
-      console.log('document.documentElement.clientHeight:', document.documentElement.clientHeight);
-      console.log('visualViewport?.height:', window.visualViewport?.height);
-      console.log('Gap (screen - inner):', window.screen.height - window.innerHeight);
-      console.log('User Agent:', navigator.userAgent);
-      console.log('Standalone:', 'standalone' in navigator ? (navigator as Navigator & { standalone?: boolean }).standalone : false);
-      console.log('Display Mode:', window.matchMedia('(display-mode: standalone)').matches);
-      console.log('=========================');
-    };
-
-    logViewport();
-    window.addEventListener('resize', logViewport);
-    return () => window.removeEventListener('resize', logViewport);
-  }, []);
 
   // Check if user needs to complete onboarding
   React.useEffect(() => {
@@ -248,9 +227,6 @@ export function AppLayout({ children, className }: AppLayoutProps) {
           />
         )}
 
-        {/* Debug overlay - only shows in dev or with ?debug=1 */}
-        <SafeAreaDebug />
-        <ViewportDebug />
       </div>
     </PostEditorContext.Provider>
   );
