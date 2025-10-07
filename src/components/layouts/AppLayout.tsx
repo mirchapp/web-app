@@ -198,7 +198,14 @@ export function AppLayout({ children, className }: AppLayoutProps) {
 
   return (
     <PostEditorContext.Provider value={{ isInEditor: isInPostEditor, setIsInEditor: setIsInPostEditor }}>
-      <div className={cn("fixed inset-0 bg-background text-foreground overflow-hidden", className)}>
+      <div 
+        className={cn("fixed inset-0 bg-background text-foreground overflow-hidden", className)}
+        style={{
+          /* In standalone PWA with translucent status bar, extend to full viewport */
+          height: '100vh',
+          minHeight: '-webkit-fill-available'
+        }}
+      >
         {/* Main content area with bottom padding for floating navigation */}
         <main
           className={cn(

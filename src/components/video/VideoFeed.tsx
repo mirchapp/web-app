@@ -237,7 +237,7 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
 
 
   return (
-    <div className="fixed inset-0 bg-black">
+    <div className="fixed inset-0 bg-black" style={{ paddingTop: 0 }}>
       {/* Profile Card Overlay */}
       <AnimatePresence mode="wait" onExitComplete={() => setDragOffset(0)}>
         {showProfileCard && (
