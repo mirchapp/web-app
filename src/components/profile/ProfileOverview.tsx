@@ -69,7 +69,7 @@ export function ProfileOverview() {
   if (loading) {
     return (
       <div className="relative bg-gradient-to-b from-background to-muted/20 h-full overflow-y-auto" style={{ paddingBottom: bottomPadding }}>
-        <div className="container mx-auto px-4 pt-24">
+        <div className="container mx-auto px-4 pt-32">
           <div className="max-w-md mx-auto">
             <div className="flex flex-col items-center space-y-8 animate-pulse">
               {/* Avatar skeleton */}
@@ -456,7 +456,7 @@ export function ProfileOverview() {
         />
       </div>
 
-      <div className="container mx-auto px-4 pt-28 relative z-10">
+      <div className="container mx-auto px-4 pt-32 relative z-10">
         <div className="max-w-md mx-auto">
           <div
             className="flex flex-col items-center justify-center animate-fade-in"
