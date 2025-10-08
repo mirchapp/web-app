@@ -430,7 +430,21 @@ export function RestaurantSelector({ onSelectRestaurant }: RestaurantSelectorPro
   );
 
   return (
-    <div className="fixed inset-0 z-50 bg-white dark:bg-[#0A0A0F]">
+    <div
+      className="fixed bg-white dark:bg-[#0A0A0F]"
+      style={{
+        // Compensate for the safe area padding on html element (like VideoFeed)
+        top: `calc(-1 * env(safe-area-inset-top))`,
+        left: `calc(-1 * env(safe-area-inset-left))`,
+        right: `calc(-1 * env(safe-area-inset-right))`,
+        bottom: `calc(-1 * env(safe-area-inset-bottom))`,
+        paddingTop: `env(safe-area-inset-top)`,
+        paddingLeft: `env(safe-area-inset-left)`,
+        paddingRight: `env(safe-area-inset-right)`,
+        paddingBottom: `env(safe-area-inset-bottom)`,
+        zIndex: 50
+      }}
+    >
       {/* Animated purple wave background - matching profile page */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Purple wave gradient */}
