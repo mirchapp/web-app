@@ -126,8 +126,39 @@ export function ProfileOverview() {
 
   if (loading) {
     return (
-      <div className="absolute inset-0 bg-gradient-to-b from-background to-muted/20 overflow-y-auto" style={{ paddingBottom: bottomPadding }}>
-        <div className="container mx-auto px-4" style={{ paddingTop: 'var(--profile-top-padding-safe)' }}>
+      <div className="absolute inset-0 bg-white dark:bg-[#0A0A0F] overflow-y-auto" style={{ paddingBottom: bottomPadding }}>
+        {/* Animated purple wave background - matching profile page */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {/* Purple wave gradient */}
+          <div
+            className="absolute left-0 right-0 h-[400px] opacity-20 dark:opacity-30"
+            style={{
+              top: '10%',
+              background: 'linear-gradient(90deg, rgba(138, 66, 214, 0.4) 0%, rgba(168, 85, 247, 0.3) 50%, rgba(138, 66, 214, 0.4) 100%)',
+              filter: 'blur(80px)',
+              transform: 'translateZ(0)',
+              animation: 'wave 8s ease-in-out infinite alternate'
+            }}
+          />
+
+          {/* Subtle stars/particles */}
+          <div className="absolute inset-0 opacity-15 dark:opacity-30">
+            {starPositions.map((star, i) => (
+              <div
+                key={i}
+                className="absolute w-1 h-1 bg-purple-500/30 dark:bg-white/20 rounded-full"
+                style={{
+                  top: `${star.top}%`,
+                  left: `${star.left}%`,
+                  animation: `twinkle ${star.duration}s ease-in-out infinite`,
+                  animationDelay: `${star.delay}s`,
+                  willChange: 'opacity',
+                }}
+              />
+            ))}
+          </div>
+        </div>
+        <div className="container mx-auto px-4 relative z-10" style={{ paddingTop: 'var(--profile-top-padding-safe)' }}>
           <div className="max-w-md mx-auto">
             <div className="flex flex-col items-center space-y-8 animate-pulse">
               {/* Avatar skeleton */}
@@ -284,23 +315,37 @@ export function ProfileOverview() {
     };
 
     return (
-      <div className="absolute inset-0 bg-gradient-to-b from-background to-muted/20 overflow-y-auto">
-        {/* Animated floating glow background */}
+      <div className="absolute inset-0 bg-white dark:bg-[#0A0A0F] overflow-y-auto">
+        {/* Animated purple wave background - matching profile page */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ zIndex: 0 }}>
+          {/* Purple wave gradient */}
           <div
-            className="absolute top-[15%] left-[15%] w-[500px] h-[500px] rounded-full opacity-10 dark:opacity-20 blur-[120px] animate-pulse"
+            className="absolute left-0 right-0 h-[400px] opacity-20 dark:opacity-30"
             style={{
-              background: 'radial-gradient(circle, rgba(138, 66, 214, 0.4), transparent 70%)',
-              animation: 'float 8s ease-in-out infinite'
+              top: '10%',
+              background: 'linear-gradient(90deg, rgba(138, 66, 214, 0.4) 0%, rgba(168, 85, 247, 0.3) 50%, rgba(138, 66, 214, 0.4) 100%)',
+              filter: 'blur(80px)',
+              transform: 'translateZ(0)',
+              animation: 'wave 8s ease-in-out infinite alternate'
             }}
           />
-          <div
-            className="absolute bottom-[20%] right-[10%] w-[400px] h-[400px] rounded-full opacity-8 dark:opacity-15 blur-[100px]"
-            style={{
-              background: 'radial-gradient(circle, rgba(192, 132, 252, 0.3), transparent 70%)',
-              animation: 'float 10s ease-in-out infinite reverse'
-            }}
-          />
+
+          {/* Subtle stars/particles */}
+          <div className="absolute inset-0 opacity-15 dark:opacity-30">
+            {starPositions.map((star, i) => (
+              <div
+                key={i}
+                className="absolute w-1 h-1 bg-purple-500/30 dark:bg-white/20 rounded-full"
+                style={{
+                  top: `${star.top}%`,
+                  left: `${star.left}%`,
+                  animation: `twinkle ${star.duration}s ease-in-out infinite`,
+                  animationDelay: `${star.delay}s`,
+                  willChange: 'opacity',
+                }}
+              />
+            ))}
+          </div>
         </div>
 
         <div className="container mx-auto px-4 relative flex items-center" style={{ paddingTop: 'var(--profile-top-padding-safe)', paddingBottom: bottomPadding, minHeight: '100%', zIndex: 1 }}>

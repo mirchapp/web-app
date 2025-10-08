@@ -315,6 +315,24 @@
       transform: translateY(10px) translateX(-10px);
     }
   }
+
+  @keyframes twinkle {
+    0%, 100% {
+      opacity: 0.3;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes wave {
+    0%, 100% {
+      transform: translateX(0) translateZ(0);
+    }
+    50% {
+      transform: translateX(20px) translateZ(0);
+    }
+  }
   
   .animate-fade-in-scale {
     animation: fadeInScale 200ms ease-out;

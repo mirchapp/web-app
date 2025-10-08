@@ -72,6 +72,16 @@ export function RestaurantSelector({ onSelectRestaurant }: RestaurantSelectorPro
 
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
+  // Memoize star positions so they don't change on re-render (matching ProfileOverview)
+  const starPositions = React.useMemo(() => {
+    return Array.from({ length: 20 }, () => ({
+      top: Math.random() * 100,
+      left: Math.random() * 100,
+      duration: 2 + Math.random() * 3,
+      delay: Math.random() * 2,
+    }));
+  }, []);
+
   const calculateDistance = React.useCallback((from: { lat: number; lng: number }, to: PlaceLocation) => {
     const R = 6371; // Earth's radius in km
     const dLat = (to.latitude - from.lat) * Math.PI / 180;
@@ -361,20 +371,16 @@ export function RestaurantSelector({ onSelectRestaurant }: RestaurantSelectorPro
     <motion.button
       key={restaurant.id}
       onClick={() => handleSelectRestaurant(restaurant)}
-      className="w-full flex items-center gap-4 p-4 rounded-[14px] text-left touch-manipulation relative overflow-hidden bg-card/50 dark:bg-white/[0.02] border border-border/30 dark:border-white/5 shadow-sm dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] backdrop-blur-sm"
+      className="w-full flex items-center gap-4 p-4 rounded-[14px] text-left touch-manipulation relative overflow-hidden bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/5 shadow-sm dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] backdrop-blur-sm hover:border-purple-200 dark:hover:border-purple-500/20 transition-all duration-200"
       whileTap={{ scale: 0.98 }}
       whileHover={{
-        boxShadow: '0 4px 20px rgba(138, 66, 214, 0.2), 0 0 0 1px rgba(138, 66, 214, 0.15)',
+        boxShadow: '0 4px 20px rgba(138, 66, 214, 0.15), 0 0 0 1px rgba(138, 66, 214, 0.1)',
         y: -2,
-        backgroundColor: 'rgba(255, 255, 255, 0.03)'
       }}
       transition={{ duration: 0.2, ease: 'easeOut' }}
     >
-      {/* Subtle glow behind card */}
-      <div className="absolute inset-0 rounded-[14px] bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
       <motion.div
-        className="relative h-16 w-16 rounded-[12px] overflow-hidden flex-shrink-0 bg-muted ring-1 ring-black/5"
+        className="relative h-16 w-16 rounded-[12px] overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-muted ring-1 ring-gray-200 dark:ring-black/5"
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.3 }}
@@ -395,7 +401,7 @@ export function RestaurantSelector({ onSelectRestaurant }: RestaurantSelectorPro
       </motion.div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1.5">
-          <h3 className="text-sm font-semibold text-foreground truncate">
+          <h3 className="text-sm font-medium text-gray-900 dark:text-foreground truncate">
             {restaurant.name}
           </h3>
           {restaurant.rating && (
@@ -406,41 +412,55 @@ export function RestaurantSelector({ onSelectRestaurant }: RestaurantSelectorPro
               transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.1 }}
             >
               <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
-              <span className="text-xs font-medium text-foreground">{restaurant.rating}</span>
+              <span className="text-xs font-medium text-gray-900 dark:text-foreground">{restaurant.rating}</span>
             </motion.div>
           )}
         </div>
-        <p className="text-xs text-muted-foreground/70 truncate mb-1">
+        <p className="text-xs text-gray-500 dark:text-muted-foreground/70 truncate mb-1 font-light">
           {restaurant.address}
         </p>
         {showDistance && restaurant.distance && (
-          <p className="text-xs font-medium text-muted-foreground/60">
+          <p className="text-xs font-light text-gray-400 dark:text-muted-foreground/60">
             {restaurant.distance}
           </p>
         )}
       </div>
-      <ChevronRight className="h-5 w-5 text-muted-foreground/50 flex-shrink-0" />
+      <ChevronRight className="h-5 w-5 text-gray-400 dark:text-muted-foreground/50 flex-shrink-0" />
     </motion.button>
   );
 
   return (
-    <div className="fixed inset-0 z-50 bg-background">
-      {/* Animated floating glow background - matching login screen */}
+    <div className="fixed inset-0 z-50 bg-white dark:bg-[#0A0A0F]">
+      {/* Animated purple wave background - matching profile page */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* Purple wave gradient */}
         <div
-          className="absolute top-[10%] left-[20%] w-[500px] h-[500px] rounded-full opacity-10 dark:opacity-20 blur-[120px] animate-pulse"
+          className="absolute left-0 right-0 h-[400px] opacity-20 dark:opacity-30"
           style={{
-            background: 'radial-gradient(circle, rgba(138, 66, 214, 0.4), transparent 70%)',
-            animation: 'float 8s ease-in-out infinite'
+            top: '10%',
+            background: 'linear-gradient(90deg, rgba(138, 66, 214, 0.4) 0%, rgba(168, 85, 247, 0.3) 50%, rgba(138, 66, 214, 0.4) 100%)',
+            filter: 'blur(80px)',
+            transform: 'translateZ(0)',
+            animation: 'wave 8s ease-in-out infinite alternate'
           }}
         />
-        <div
-          className="absolute bottom-[15%] right-[15%] w-[400px] h-[400px] rounded-full opacity-8 dark:opacity-15 blur-[100px]"
-          style={{
-            background: 'radial-gradient(circle, rgba(192, 132, 252, 0.3), transparent 70%)',
-            animation: 'float 10s ease-in-out infinite reverse'
-          }}
-        />
+
+        {/* Subtle stars/particles */}
+        <div className="absolute inset-0 opacity-15 dark:opacity-30">
+          {starPositions.map((star, i) => (
+            <div
+              key={i}
+              className="absolute w-1 h-1 bg-purple-500/30 dark:bg-white/20 rounded-full"
+              style={{
+                top: `${star.top}%`,
+                left: `${star.left}%`,
+                animation: `twinkle ${star.duration}s ease-in-out infinite`,
+                animationDelay: `${star.delay}s`,
+                willChange: 'opacity',
+              }}
+            />
+          ))}
+        </div>
       </div>
 
       <motion.div
@@ -459,51 +479,52 @@ export function RestaurantSelector({ onSelectRestaurant }: RestaurantSelectorPro
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: 'easeOut' }}
-        className="px-4 pt-6 pb-6 relative z-10"
+        className="px-5 sm:px-6 pt-6 pb-6 relative z-10"
       >
-        <div className="flex flex-col mb-8 text-center">
-          <h1 className="text-4xl font-thin mb-3 bg-gradient-to-br from-foreground via-foreground to-foreground/70 bg-clip-text text-transparent">
+        <div className="flex flex-col mb-8 text-center max-w-lg mx-auto">
+          <h1 className="text-3xl sm:text-4xl font-light mb-3 bg-gradient-to-br from-foreground via-foreground to-foreground/70 bg-clip-text text-transparent tracking-tight">
             Start a Post
           </h1>
           <motion.p
             initial={{ opacity: 0, y: -5 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2, ease: 'easeOut' }}
-            className="text-sm text-muted-foreground/80 max-w-xs mx-auto leading-relaxed"
+            className="text-sm text-gray-600 dark:text-muted-foreground/80 font-light leading-relaxed"
           >
             Step 1 of 3 — Choose a restaurant
           </motion.p>
         </div>
 
-        {/* Search Bar - matching login input style */}
-        <div className="relative">
-          <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/60 pointer-events-none z-10" />
+        {/* Search Bar - matching profile page input style */}
+        <div className="relative max-w-lg mx-auto">
+          <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-muted-foreground/60 pointer-events-none z-10" />
           <input
             ref={searchInputRef}
             type="text"
             placeholder="Search restaurants..."
             value={searchQuery}
             onChange={handleSearchChange}
-            className="w-full h-14 pl-12 pr-5 rounded-[14px] border border-border/30 dark:border-white/5 bg-card/50 dark:bg-white/[0.02] text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/30 transition-all duration-200 shadow-sm dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)]"
+            className="w-full h-13 pl-12 pr-5 text-sm rounded-[13px] border border-gray-200 dark:border-white/5 bg-gray-50 dark:bg-white/[0.02] text-foreground placeholder:text-gray-400 dark:placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/30 transition-all duration-200 shadow-sm dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] font-light"
           />
         </div>
       </motion.div>
 
       {/* Content */}
       <div
-        className="flex-1 overflow-y-auto px-4 py-4 space-y-8 relative z-10"
+        className="flex-1 overflow-y-auto px-5 sm:px-6 py-4 space-y-8 relative z-10"
         style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain', touchAction: 'pan-y' }}
       >
+        <div className="max-w-lg mx-auto space-y-8">
         {/* Location CTA / Error - only show if no location and not currently requesting */}
         {!userLocation && !isRequestingLocation && hasRequestedPermission && (
-          <div className="flex items-center justify-between gap-3 p-4 rounded-[14px] bg-card/50 dark:bg-white/[0.02] border border-border/30 dark:border-white/5 shadow-sm dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)]">
-            <div className="text-xs text-muted-foreground/70">
+          <div className="flex items-center justify-between gap-3 p-4 rounded-[14px] bg-gray-50 dark:bg-white/[0.02] border border-gray-200 dark:border-white/5 shadow-sm dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)]">
+            <div className="text-xs text-gray-600 dark:text-muted-foreground/70 font-light">
               {locationError ? locationError : 'Enable location to see nearby restaurants by distance.'}
             </div>
             <Button
               size="sm"
               variant="outline"
-              className="h-8 rounded-lg flex-shrink-0 border-border/30 dark:border-white/5"
+              className="h-8 rounded-lg flex-shrink-0 border-gray-200 dark:border-white/5 font-light"
               onClick={() => requestUserLocation()}
             >
               Try again
@@ -512,14 +533,14 @@ export function RestaurantSelector({ onSelectRestaurant }: RestaurantSelectorPro
         )}
         {/* Initial location request prompt */}
         {!userLocation && !isRequestingLocation && !hasRequestedPermission && (
-          <div className="flex items-center justify-between gap-3 p-4 rounded-[14px] bg-card/50 dark:bg-white/[0.02] border border-border/30 dark:border-white/5 shadow-sm dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)]">
-            <div className="text-xs text-muted-foreground/70">
+          <div className="flex items-center justify-between gap-3 p-4 rounded-[14px] bg-gray-50 dark:bg-white/[0.02] border border-gray-200 dark:border-white/5 shadow-sm dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)]">
+            <div className="text-xs text-gray-600 dark:text-muted-foreground/70 font-light">
               Enable location to see nearby restaurants by distance.
             </div>
             <Button
               size="sm"
               variant="outline"
-              className="h-8 rounded-lg flex-shrink-0 border-border/30 dark:border-white/5"
+              className="h-8 rounded-lg flex-shrink-0 border-gray-200 dark:border-white/5 font-light"
               onClick={() => requestUserLocation()}
             >
               Enable location
@@ -535,7 +556,7 @@ export function RestaurantSelector({ onSelectRestaurant }: RestaurantSelectorPro
             transition={{ duration: 0.4, ease: 'easeOut' }}
           >
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-sm font-medium text-foreground/60">Search Results</h2>
+              <h2 className="text-sm font-light text-gray-500 dark:text-foreground/60 tracking-wide">Search Results</h2>
               {isLoading && (
                 <div className="h-4 w-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
               )}
@@ -545,9 +566,9 @@ export function RestaurantSelector({ onSelectRestaurant }: RestaurantSelectorPro
                 suggestions.map((restaurant) => renderRestaurantCard(restaurant))
               ) : !isLoading && (
                 <div className="py-12 text-center">
-                  <MapPin className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
-                  <p className="text-sm text-muted-foreground/70">No restaurants found</p>
-                  <p className="text-xs text-muted-foreground/50 mt-2">Try a different search term</p>
+                  <MapPin className="h-12 w-12 text-gray-300 dark:text-muted-foreground/30 mx-auto mb-4" />
+                  <p className="text-sm text-gray-600 dark:text-muted-foreground/70 font-light">No restaurants found</p>
+                  <p className="text-xs text-gray-500 dark:text-muted-foreground/50 mt-2 font-light">Try a different search term</p>
                 </div>
               )}
             </div>
@@ -562,8 +583,8 @@ export function RestaurantSelector({ onSelectRestaurant }: RestaurantSelectorPro
             transition={{ duration: 0.4, delay: 0.1, ease: 'easeOut' }}
           >
             <div className="flex items-center gap-2 mb-5">
-              <Clock className="h-4 w-4 text-muted-foreground/60" />
-              <h2 className="text-sm font-medium text-foreground/60">Recent</h2>
+              <Clock className="h-4 w-4 text-gray-400 dark:text-muted-foreground/60" />
+              <h2 className="text-sm font-light text-gray-500 dark:text-foreground/60 tracking-wide">Recent</h2>
             </div>
             <div className="space-y-3">
               {recentRestaurants.map((restaurant, index) => (
@@ -588,8 +609,8 @@ export function RestaurantSelector({ onSelectRestaurant }: RestaurantSelectorPro
             transition={{ duration: 0.4, delay: 0.2, ease: 'easeOut' }}
           >
             <div className="flex items-center gap-2 mb-5">
-              <MapPin className="h-4 w-4 text-muted-foreground/60" />
-              <h2 className="text-sm font-medium text-foreground/60">Nearby</h2>
+              <MapPin className="h-4 w-4 text-gray-400 dark:text-muted-foreground/60" />
+              <h2 className="text-sm font-light text-gray-500 dark:text-foreground/60 tracking-wide">Nearby</h2>
             </div>
             <div className="space-y-3">
               {nearbyRestaurants.map((restaurant, index) => (
@@ -610,15 +631,16 @@ export function RestaurantSelector({ onSelectRestaurant }: RestaurantSelectorPro
         {!searchQuery && recentRestaurants.length === 0 && nearbyRestaurants.length === 0 && !isLoading && (
           <div className="py-20 text-center">
             <div className="relative inline-block mb-6">
-              <MapPin className="h-16 w-16 text-muted-foreground/30 mx-auto" />
+              <MapPin className="h-16 w-16 text-gray-300 dark:text-muted-foreground/30 mx-auto" />
               <div className="absolute inset-0 blur-xl opacity-30 bg-primary/20 rounded-full -z-10" />
             </div>
-            <h3 className="text-base font-semibold text-foreground/80 mb-2">Find a restaurant</h3>
-            <p className="text-sm text-muted-foreground/60 max-w-xs mx-auto leading-relaxed">
+            <h3 className="text-base font-light text-gray-900 dark:text-foreground/80 mb-2">Find a restaurant</h3>
+            <p className="text-sm text-gray-600 dark:text-muted-foreground/60 max-w-xs mx-auto leading-relaxed font-light">
               Search for a restaurant to start creating your post
             </p>
           </div>
         )}
+        </div>
       </div>
       </motion.div>
     </div>
