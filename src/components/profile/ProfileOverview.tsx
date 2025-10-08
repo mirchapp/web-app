@@ -601,30 +601,30 @@ export function ProfileOverview() {
             {/* Stats with animated counters */}
             <div className="flex items-center gap-6 sm:gap-8 mb-5 sm:mb-6 px-4">
               <div className="flex flex-col items-center gap-1">
-                <span className="text-2xl sm:text-3xl font-extralight text-white">{friendsCount}</span>
-                <span className="text-[8px] sm:text-[9px] text-white/35 uppercase tracking-widest font-light">Friends</span>
+                <span className="text-2xl sm:text-3xl font-extralight text-white dark:text-white text-gray-900">{friendsCount}</span>
+                <span className="text-[9px] sm:text-[10px] text-white/35 dark:text-white/35 text-gray-400 uppercase tracking-widest font-light">Friends</span>
               </div>
-              <div className="h-8 sm:h-9 w-px bg-white/10" />
+              <div className="h-8 sm:h-9 w-px bg-white/10 dark:bg-white/10 bg-gray-200" />
               <div className="flex flex-col items-center gap-1">
-                <span className="text-2xl sm:text-3xl font-extralight text-white">{reviewsCount}</span>
-                <span className="text-[8px] sm:text-[9px] text-white/35 uppercase tracking-widest font-light">Reviews</span>
+                <span className="text-2xl sm:text-3xl font-extralight text-white dark:text-white text-gray-900">{reviewsCount}</span>
+                <span className="text-[9px] sm:text-[10px] text-white/35 dark:text-white/35 text-gray-400 uppercase tracking-widest font-light">Reviews</span>
               </div>
-              <div className="h-8 sm:h-9 w-px bg-white/10" />
+              <div className="h-8 sm:h-9 w-px bg-white/10 dark:bg-white/10 bg-gray-200" />
               <div className="flex flex-col items-center gap-1">
-                <span className="text-2xl sm:text-3xl font-extralight text-white">{postsCount}</span>
-                <span className="text-[8px] sm:text-[9px] text-white/35 uppercase tracking-widest font-light">Posts</span>
+                <span className="text-2xl sm:text-3xl font-extralight text-white dark:text-white text-gray-900">{postsCount}</span>
+                <span className="text-[9px] sm:text-[10px] text-white/35 dark:text-white/35 text-gray-400 uppercase tracking-widest font-light">Posts</span>
               </div>
             </div>
 
             {/* Bio with minimal typography */}
-            <p className="text-center text-xs sm:text-sm leading-loose text-white/50 mb-4 sm:mb-5 px-6 max-w-md font-light">
+            <p className="text-center text-sm sm:text-base leading-loose text-white/50 dark:text-white/50 text-gray-600 mb-4 sm:mb-5 px-6 max-w-md font-light">
               Food enthusiast and explorer. Always on the hunt for the perfect dish and hidden gems in the city.
             </p>
 
             {/* Joined Date */}
-            <div className="flex items-center gap-1 text-white/30 mb-6 sm:mb-8">
-              <Calendar className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
-              <span className="text-[9px] sm:text-[10px] font-light">Joined September 2024</span>
+            <div className="flex items-center gap-1.5 text-white/30 dark:text-white/30 text-gray-400 mb-6 sm:mb-8">
+              <Calendar className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+              <span className="text-[10px] sm:text-xs font-light">Joined September 2024</span>
             </div>
 
             {/* Flix & Reviews Tabs - Matching navbar style */}
