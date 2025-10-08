@@ -495,7 +495,7 @@ export function ProfileOverview() {
 
   // Logged in - show profile
   return (
-    <div className="relative h-full overflow-y-auto bg-[#0A0A0F]" style={{
+    <div className="relative h-full overflow-y-auto bg-white dark:bg-[#0A0A0F]" style={{
       paddingBottom: bottomPadding,
       fontFamily: "'Manrope', -apple-system, system-ui, sans-serif"
     }}>
@@ -503,7 +503,7 @@ export function ProfileOverview() {
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Purple wave gradient */}
         <div
-          className="absolute left-0 right-0 h-[400px] opacity-30"
+          className="absolute left-0 right-0 h-[400px] opacity-20 dark:opacity-30"
           style={{
             top: '10%',
             background: 'linear-gradient(90deg, rgba(138, 66, 214, 0.4) 0%, rgba(168, 85, 247, 0.3) 50%, rgba(138, 66, 214, 0.4) 100%)',
@@ -514,11 +514,11 @@ export function ProfileOverview() {
         />
 
         {/* Subtle stars/particles */}
-        <div className="absolute inset-0" style={{ opacity: 0.3 }}>
+        <div className="absolute inset-0 opacity-15 dark:opacity-30">
           {starPositions.map((star, i) => (
             <div
               key={i}
-              className="absolute w-1 h-1 bg-white/20 rounded-full"
+              className="absolute w-1 h-1 bg-purple-500/30 dark:bg-white/20 rounded-full"
               style={{
                 top: `${star.top}%`,
                 left: `${star.left}%`,
@@ -544,7 +544,7 @@ export function ProfileOverview() {
           >
             {/* Avatar with minimal styling */}
             <div className="relative mb-5 sm:mb-6">
-              <div className="relative h-24 w-24 sm:h-28 sm:w-28 rounded-full overflow-hidden ring-1 ring-white/10 shadow-lg">
+              <div className="relative h-24 w-24 sm:h-28 sm:w-28 rounded-full overflow-hidden ring-1 ring-gray-200 dark:ring-white/10 shadow-lg dark:shadow-lg shadow-purple-500/10">
                 {profile?.avatar_url ? (
                   <Image
                     src={profile.avatar_url}
@@ -556,8 +556,8 @@ export function ProfileOverview() {
                     unoptimized
                   />
                 ) : (
-                  <div className="w-full h-full bg-white/5 flex items-center justify-center">
-                    <svg className="w-12 h-12 sm:w-14 sm:h-14 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-full h-full bg-gray-50 dark:bg-white/5 flex items-center justify-center">
+                    <svg className="w-12 h-12 sm:w-14 sm:h-14 text-gray-300 dark:text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                   </div>
@@ -567,11 +567,11 @@ export function ProfileOverview() {
 
             {/* Name with hero-style typography */}
             <div className="mb-2 text-center px-4">
-              <h1 className="text-3xl sm:text-4xl font-light text-white tracking-tight">
+              <h1 className="text-3xl sm:text-4xl font-light text-gray-900 dark:text-white tracking-tight">
                 {profile?.display_name || 'User'}
               </h1>
               {profile?.username && (
-                <p className="text-sm sm:text-base font-light text-white/45 mt-1.5">
+                <p className="text-sm sm:text-base font-light text-gray-500 dark:text-white/45 mt-1.5">
                   @{profile.username}
                 </p>
               )}
@@ -579,7 +579,7 @@ export function ProfileOverview() {
 
             {/* Location */}
             {profile?.location && (
-              <div className="flex items-center gap-1.5 mb-5 text-white/50">
+              <div className="flex items-center gap-1.5 mb-5 text-gray-600 dark:text-white/50">
                 <MapPin className="h-3.5 w-3.5" />
                 <span className="text-xs sm:text-sm font-light">{profile.location}</span>
               </div>
@@ -588,7 +588,7 @@ export function ProfileOverview() {
             {/* Edit Profile Button - Minimal pill */}
             <div className="mb-5 sm:mb-6">
               <button
-                className="h-8 px-5 text-xs font-light rounded-full text-white/70 border border-white/15 bg-transparent hover:bg-white/5 hover:border-white/25 transition-all duration-200"
+                className="h-8 px-5 text-xs font-light rounded-full text-gray-700 dark:text-white/70 border border-gray-300 dark:border-white/15 bg-transparent hover:bg-gray-50 dark:hover:bg-white/5 hover:border-gray-400 dark:hover:border-white/25 transition-all duration-200"
                 onClick={() => {
                   // TODO: Navigate to edit profile
                   console.log('Edit profile clicked');
@@ -601,28 +601,28 @@ export function ProfileOverview() {
             {/* Stats with animated counters */}
             <div className="flex items-center gap-6 sm:gap-8 mb-5 sm:mb-6 px-4">
               <div className="flex flex-col items-center gap-1">
-                <span className="text-2xl sm:text-3xl font-extralight text-white dark:text-white text-gray-900">{friendsCount}</span>
-                <span className="text-[9px] sm:text-[10px] text-white/35 dark:text-white/35 text-gray-400 uppercase tracking-widest font-light">Friends</span>
+                <span className="text-2xl sm:text-3xl font-extralight text-gray-900 dark:text-white">{friendsCount}</span>
+                <span className="text-[9px] sm:text-[10px] text-gray-400 dark:text-white/35 uppercase tracking-widest font-light">Friends</span>
               </div>
-              <div className="h-8 sm:h-9 w-px bg-white/10 dark:bg-white/10 bg-gray-200" />
+              <div className="h-8 sm:h-9 w-px bg-gray-200 dark:bg-white/10" />
               <div className="flex flex-col items-center gap-1">
-                <span className="text-2xl sm:text-3xl font-extralight text-white dark:text-white text-gray-900">{reviewsCount}</span>
-                <span className="text-[9px] sm:text-[10px] text-white/35 dark:text-white/35 text-gray-400 uppercase tracking-widest font-light">Reviews</span>
+                <span className="text-2xl sm:text-3xl font-extralight text-gray-900 dark:text-white">{reviewsCount}</span>
+                <span className="text-[9px] sm:text-[10px] text-gray-400 dark:text-white/35 uppercase tracking-widest font-light">Reviews</span>
               </div>
-              <div className="h-8 sm:h-9 w-px bg-white/10 dark:bg-white/10 bg-gray-200" />
+              <div className="h-8 sm:h-9 w-px bg-gray-200 dark:bg-white/10" />
               <div className="flex flex-col items-center gap-1">
-                <span className="text-2xl sm:text-3xl font-extralight text-white dark:text-white text-gray-900">{postsCount}</span>
-                <span className="text-[9px] sm:text-[10px] text-white/35 dark:text-white/35 text-gray-400 uppercase tracking-widest font-light">Posts</span>
+                <span className="text-2xl sm:text-3xl font-extralight text-gray-900 dark:text-white">{postsCount}</span>
+                <span className="text-[9px] sm:text-[10px] text-gray-400 dark:text-white/35 uppercase tracking-widest font-light">Posts</span>
               </div>
             </div>
 
             {/* Bio with minimal typography */}
-            <p className="text-center text-sm sm:text-base leading-loose text-white/50 dark:text-white/50 text-gray-600 mb-4 sm:mb-5 px-6 max-w-md font-light">
+            <p className="text-center text-sm sm:text-base leading-loose text-gray-600 dark:text-white/50 mb-4 sm:mb-5 px-6 max-w-md font-light">
               Food enthusiast and explorer. Always on the hunt for the perfect dish and hidden gems in the city.
             </p>
 
             {/* Joined Date */}
-            <div className="flex items-center gap-1.5 text-white/30 dark:text-white/30 text-gray-400 mb-6 sm:mb-8">
+            <div className="flex items-center gap-1.5 text-gray-400 dark:text-white/30 mb-6 sm:mb-8">
               <Calendar className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
               <span className="text-[10px] sm:text-xs font-light">Joined September 2024</span>
             </div>
@@ -630,17 +630,22 @@ export function ProfileOverview() {
             {/* Flix & Reviews Tabs - Matching navbar style */}
             <Tabs defaultValue="flix" className="w-full px-2 sm:px-0">
               <TabsList
-                className="w-full grid grid-cols-2 h-11 sm:h-12 rounded-[1.625rem] p-1 relative overflow-visible"
+                className="w-full grid grid-cols-2 h-11 sm:h-12 rounded-[1.625rem] p-1 relative overflow-visible border border-gray-200 dark:border-white/15 bg-gray-100/80 dark:bg-[rgba(0,0,0,0.4)]"
                 style={{
-                  background: 'rgba(0, 0, 0, 0.4)',
                   backdropFilter: 'blur(3px) saturate(140%)',
                   WebkitBackdropFilter: 'blur(3px) saturate(140%)',
-                  border: '1px solid rgba(255, 255, 255, 0.15)',
                 }}
               >
-                {/* Top edge gradient */}
+                {/* Top edge gradient - light mode */}
                 <div
-                  className="absolute inset-0 rounded-[1.625rem] pointer-events-none"
+                  className="absolute inset-0 rounded-[1.625rem] pointer-events-none dark:hidden"
+                  style={{
+                    background: 'linear-gradient(180deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.1) 65%, transparent 100%)',
+                  }}
+                />
+                {/* Top edge gradient - dark mode */}
+                <div
+                  className="absolute inset-0 rounded-[1.625rem] pointer-events-none hidden dark:block"
                   style={{
                     background: 'linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.02) 65%, transparent 100%)',
                   }}
@@ -648,7 +653,7 @@ export function ProfileOverview() {
 
                 <TabsTrigger
                   value="flix"
-                  className="relative z-10 rounded-[1.125rem] !text-white/90 font-light text-xs sm:text-sm transition-all duration-200 flex items-center justify-center !bg-transparent !border-transparent !shadow-none data-[state=active]:!bg-[rgba(168,85,247,0.3)] data-[state=active]:!text-white data-[state=active]:!shadow-[0_4px_10px_rgba(168,85,247,0.5),inset_0_1px_0_rgba(255,255,255,0.15)] data-[state=active]:!border data-[state=active]:!border-[rgba(192,132,252,0.35)] data-[state=active]:backdrop-blur-xl"
+                  className="relative z-10 rounded-[1.125rem] !text-gray-600 dark:!text-white/90 font-light text-xs sm:text-sm transition-all duration-200 flex items-center justify-center !bg-transparent !border-transparent !shadow-none data-[state=active]:!bg-[rgba(168,85,247,0.15)] dark:data-[state=active]:!bg-[rgba(168,85,247,0.3)] data-[state=active]:!text-purple-700 dark:data-[state=active]:!text-white data-[state=active]:!shadow-[0_2px_8px_rgba(138,66,214,0.25),inset_0_1px_0_rgba(138,66,214,0.15)] dark:data-[state=active]:!shadow-[0_4px_10px_rgba(168,85,247,0.5),inset_0_1px_0_rgba(255,255,255,0.15)] data-[state=active]:!border data-[state=active]:!border-purple-300 dark:data-[state=active]:!border-[rgba(192,132,252,0.35)] data-[state=active]:backdrop-blur-xl"
                   style={{
                     backdropFilter: 'blur(12px)',
                     WebkitBackdropFilter: 'blur(12px)',
@@ -658,7 +663,7 @@ export function ProfileOverview() {
                 </TabsTrigger>
                 <TabsTrigger
                   value="reviews"
-                  className="relative z-10 rounded-[1.125rem] !text-white/90 font-light text-xs sm:text-sm transition-all duration-200 flex items-center justify-center !bg-transparent !border-transparent !shadow-none data-[state=active]:!bg-[rgba(168,85,247,0.3)] data-[state=active]:!text-white data-[state=active]:!shadow-[0_4px_10px_rgba(168,85,247,0.5),inset_0_1px_0_rgba(255,255,255,0.15)] data-[state=active]:!border data-[state=active]:!border-[rgba(192,132,252,0.35)] data-[state=active]:backdrop-blur-xl"
+                  className="relative z-10 rounded-[1.125rem] !text-gray-600 dark:!text-white/90 font-light text-xs sm:text-sm transition-all duration-200 flex items-center justify-center !bg-transparent !border-transparent !shadow-none data-[state=active]:!bg-[rgba(168,85,247,0.15)] dark:data-[state=active]:!bg-[rgba(168,85,247,0.3)] data-[state=active]:!text-purple-700 dark:data-[state=active]:!text-white data-[state=active]:!shadow-[0_2px_8px_rgba(138,66,214,0.25),inset_0_1px_0_rgba(138,66,214,0.15)] dark:data-[state=active]:!shadow-[0_4px_10px_rgba(168,85,247,0.5),inset_0_1px_0_rgba(255,255,255,0.15)] data-[state=active]:!border data-[state=active]:!border-purple-300 dark:data-[state=active]:!border-[rgba(192,132,252,0.35)] data-[state=active]:backdrop-blur-xl"
                   style={{
                     backdropFilter: 'blur(12px)',
                     WebkitBackdropFilter: 'blur(12px)',
@@ -685,7 +690,7 @@ export function ProfileOverview() {
                       key={i}
                       className="break-inside-avoid mb-2 sm:mb-2.5 group"
                     >
-                      <div className="relative rounded-lg sm:rounded-xl bg-white/5 overflow-hidden cursor-pointer ring-1 ring-white/10 hover:ring-white/20 transition-all duration-300 shadow-lg hover:shadow-xl">
+                      <div className="relative rounded-lg sm:rounded-xl bg-gray-100 dark:bg-white/5 overflow-hidden cursor-pointer ring-1 ring-gray-200 dark:ring-white/10 hover:ring-gray-300 dark:hover:ring-white/20 transition-all duration-300 shadow-lg hover:shadow-xl">
                         <Image
                           src={`https://images.unsplash.com/${item.id}?w=400&h=${item.height}&fit=crop`}
                           alt={`Food ${i + 1}`}
