@@ -204,15 +204,20 @@ export function AppLayout({ children, className }: AppLayoutProps) {
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               transition={{
                 duration: 0.2,
                 ease: "easeOut",
               }}
               className="h-full"
-              style={{ overflow: activeTab === 'profile' ? 'visible' : undefined }}
+              style={{
+                overflow: activeTab === 'profile' ? 'visible' : undefined,
+                willChange: 'opacity',
+                backfaceVisibility: 'hidden',
+                WebkitBackfaceVisibility: 'hidden'
+              }}
             >
               {children || renderActiveComponent()}
             </motion.div>

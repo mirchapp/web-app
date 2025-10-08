@@ -170,6 +170,12 @@
       --overlay-card-top-padding: 4.5rem;
       --post-screen-top-padding: 4rem;
     }
+
+    /* Ensure smooth rendering without layout shift */
+    main {
+      transform: translateZ(0);
+      -webkit-transform: translateZ(0);
+    }
   }
 
   body {
