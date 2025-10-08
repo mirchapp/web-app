@@ -126,7 +126,7 @@ export function ProfileOverview() {
 
   if (loading) {
     return (
-      <div className="relative bg-gradient-to-b from-background to-muted/20 h-full overflow-y-auto" style={{ paddingBottom: bottomPadding }}>
+      <div className="absolute inset-0 bg-gradient-to-b from-background to-muted/20 overflow-y-auto" style={{ paddingBottom: bottomPadding }}>
         <div className="container mx-auto px-4" style={{ paddingTop: 'var(--profile-top-padding-safe)' }}>
           <div className="max-w-md mx-auto">
             <div className="flex flex-col items-center space-y-8 animate-pulse">
@@ -284,9 +284,9 @@ export function ProfileOverview() {
     };
 
     return (
-      <div className="relative min-h-full bg-gradient-to-b from-background to-muted/20">
+      <div className="absolute inset-0 bg-gradient-to-b from-background to-muted/20 overflow-y-auto">
         {/* Animated floating glow background */}
-        <div className="fixed inset-0 overflow-hidden pointer-events-none" style={{ zIndex: 0 }}>
+        <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ zIndex: 0 }}>
           <div
             className="absolute top-[15%] left-[15%] w-[500px] h-[500px] rounded-full opacity-10 dark:opacity-20 blur-[120px] animate-pulse"
             style={{
@@ -303,7 +303,7 @@ export function ProfileOverview() {
           />
         </div>
 
-        <div className="container mx-auto px-4 relative flex items-center" style={{ paddingTop: isStandalone ? '6rem' : '2rem', paddingBottom: bottomPadding, minHeight: '100%', zIndex: 1 }}>
+        <div className="container mx-auto px-4 relative flex items-center" style={{ paddingTop: 'var(--profile-top-padding-safe)', paddingBottom: bottomPadding, minHeight: '100%', zIndex: 1 }}>
           <div className="max-w-md mx-auto w-full">
             <div
               className="flex flex-col items-center animate-fade-in"
@@ -495,7 +495,7 @@ export function ProfileOverview() {
 
   // Logged in - show profile
   return (
-    <div className="relative h-full overflow-y-auto bg-white dark:bg-[#0A0A0F]" style={{
+    <div className="absolute inset-0 overflow-y-auto bg-white dark:bg-[#0A0A0F]" style={{
       paddingBottom: bottomPadding,
       fontFamily: "'Manrope', -apple-system, system-ui, sans-serif"
     }}>
