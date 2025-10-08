@@ -431,18 +431,9 @@ export function RestaurantSelector({ onSelectRestaurant }: RestaurantSelectorPro
 
   return (
     <div
-      className="fixed bg-white dark:bg-[#0A0A0F]"
+      className="absolute inset-0 overflow-y-auto bg-white dark:bg-[#0A0A0F]"
       style={{
-        // Compensate for the safe area padding on html element (like VideoFeed)
-        top: `calc(-1 * env(safe-area-inset-top))`,
-        left: `calc(-1 * env(safe-area-inset-left))`,
-        right: `calc(-1 * env(safe-area-inset-right))`,
-        bottom: `calc(-1 * env(safe-area-inset-bottom))`,
-        paddingTop: `env(safe-area-inset-top)`,
-        paddingLeft: `env(safe-area-inset-left)`,
-        paddingRight: `env(safe-area-inset-right)`,
-        paddingBottom: `env(safe-area-inset-bottom)`,
-        zIndex: 50
+        paddingBottom: 'calc(env(safe-area-inset-bottom, 20px) + 88px)',
       }}
     >
       {/* Animated purple wave background - matching profile page */}
@@ -477,25 +468,22 @@ export function RestaurantSelector({ onSelectRestaurant }: RestaurantSelectorPro
         </div>
       </div>
 
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ type: 'tween', duration: 0.25, ease: 'easeOut' }}
-        className="h-full flex flex-col relative"
-        style={{
-          paddingTop: 'var(--post-screen-top-padding-safe)',
-          paddingBottom: `${Math.max(safeAreaInsets.bottom, 16)}px`,
-        }}
-      >
+      <div className="container mx-auto px-5 sm:px-6 relative z-10" style={{ paddingTop: 'var(--post-screen-top-padding-safe)' }}>
+        <div className="max-w-lg mx-auto">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ type: 'tween', duration: 0.25, ease: 'easeOut' }}
+          >
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: 'easeOut' }}
-        className="px-5 sm:px-6 pt-6 pb-6 relative z-10"
+        className="pt-6 pb-6"
       >
-        <div className="flex flex-col mb-8 text-center max-w-lg mx-auto">
+        <div className="flex flex-col mb-8 text-center">
           <h1 className="text-3xl sm:text-4xl font-light mb-3 bg-gradient-to-br from-foreground via-foreground to-foreground/70 bg-clip-text text-transparent tracking-tight">
             Start a Post
           </h1>
@@ -510,7 +498,7 @@ export function RestaurantSelector({ onSelectRestaurant }: RestaurantSelectorPro
         </div>
 
         {/* Search Bar - matching profile page input style */}
-        <div className="relative max-w-lg mx-auto">
+        <div className="relative">
           <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-muted-foreground/60 pointer-events-none z-10" />
           <input
             ref={searchInputRef}
@@ -524,11 +512,7 @@ export function RestaurantSelector({ onSelectRestaurant }: RestaurantSelectorPro
       </motion.div>
 
       {/* Content */}
-      <div
-        className="flex-1 overflow-y-auto px-5 sm:px-6 py-4 space-y-8 relative z-10"
-        style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain', touchAction: 'pan-y' }}
-      >
-        <div className="max-w-lg mx-auto space-y-8">
+      <div className="py-4 space-y-8">
         {/* Location CTA / Error - only show if no location and not currently requesting */}
         {!userLocation && !isRequestingLocation && hasRequestedPermission && (
           <div className="flex items-center justify-between gap-3 p-4 rounded-[14px] bg-gray-50 dark:bg-white/[0.02] border border-gray-200 dark:border-white/5 shadow-sm dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)]">
@@ -654,9 +638,10 @@ export function RestaurantSelector({ onSelectRestaurant }: RestaurantSelectorPro
             </p>
           </div>
         )}
-        </div>
       </div>
       </motion.div>
+        </div>
+      </div>
     </div>
   );
 }
