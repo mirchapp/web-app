@@ -589,7 +589,7 @@ export function ProfileOverview() {
           >
             {/* Avatar with minimal styling */}
             <div className="relative mb-5 sm:mb-6">
-              <div className="relative h-24 w-24 sm:h-28 sm:w-28 rounded-full overflow-hidden ring-1 ring-gray-200 dark:ring-white/10 shadow-lg dark:shadow-lg shadow-purple-500/10">
+              <div className="relative h-32 w-32 sm:h-36 sm:w-36 rounded-full overflow-hidden ring-1 ring-gray-200 dark:ring-white/10 shadow-lg dark:shadow-lg shadow-purple-500/10">
                 {profile?.avatar_url ? (
                   <Image
                     src={profile.avatar_url}
@@ -597,12 +597,12 @@ export function ProfileOverview() {
                     fill
                     className="object-cover"
                     priority
-                    sizes="(max-width: 640px) 96px, 112px"
+                    sizes="(max-width: 640px) 128px, 144px"
                     unoptimized
                   />
                 ) : (
                   <div className="w-full h-full bg-gray-50 dark:bg-white/5 flex items-center justify-center">
-                    <svg className="w-12 h-12 sm:w-14 sm:h-14 text-gray-300 dark:text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-16 h-16 sm:w-18 sm:h-18 text-gray-300 dark:text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                   </div>
