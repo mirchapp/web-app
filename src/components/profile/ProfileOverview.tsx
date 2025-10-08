@@ -654,20 +654,12 @@ export function ProfileOverview() {
                 <TabsTrigger
                   value="flix"
                   className="relative z-10 rounded-[1.125rem] !text-gray-600 dark:!text-white/90 font-light text-xs sm:text-sm transition-all duration-200 flex items-center justify-center !bg-transparent !border-transparent !shadow-none data-[state=active]:!bg-[rgba(168,85,247,0.15)] dark:data-[state=active]:!bg-[rgba(168,85,247,0.3)] data-[state=active]:!text-purple-700 dark:data-[state=active]:!text-white data-[state=active]:!shadow-[0_2px_8px_rgba(138,66,214,0.25),inset_0_1px_0_rgba(138,66,214,0.15)] dark:data-[state=active]:!shadow-[0_4px_10px_rgba(168,85,247,0.5),inset_0_1px_0_rgba(255,255,255,0.15)] data-[state=active]:!border data-[state=active]:!border-purple-300 dark:data-[state=active]:!border-[rgba(192,132,252,0.35)] data-[state=active]:backdrop-blur-xl"
-                  style={{
-                    backdropFilter: 'blur(12px)',
-                    WebkitBackdropFilter: 'blur(12px)',
-                  }}
                 >
                   Flix
                 </TabsTrigger>
                 <TabsTrigger
                   value="reviews"
                   className="relative z-10 rounded-[1.125rem] !text-gray-600 dark:!text-white/90 font-light text-xs sm:text-sm transition-all duration-200 flex items-center justify-center !bg-transparent !border-transparent !shadow-none data-[state=active]:!bg-[rgba(168,85,247,0.15)] dark:data-[state=active]:!bg-[rgba(168,85,247,0.3)] data-[state=active]:!text-purple-700 dark:data-[state=active]:!text-white data-[state=active]:!shadow-[0_2px_8px_rgba(138,66,214,0.25),inset_0_1px_0_rgba(138,66,214,0.15)] dark:data-[state=active]:!shadow-[0_4px_10px_rgba(168,85,247,0.5),inset_0_1px_0_rgba(255,255,255,0.15)] data-[state=active]:!border data-[state=active]:!border-purple-300 dark:data-[state=active]:!border-[rgba(192,132,252,0.35)] data-[state=active]:backdrop-blur-xl"
-                  style={{
-                    backdropFilter: 'blur(12px)',
-                    WebkitBackdropFilter: 'blur(12px)',
-                  }}
                 >
                   Reviews
                 </TabsTrigger>
