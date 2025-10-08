@@ -566,12 +566,12 @@ export function ProfileOverview() {
             </div>
 
             {/* Name with hero-style typography */}
-            <div className="mb-1 text-center px-4">
-              <h1 className="text-2xl sm:text-3xl font-light text-white tracking-tight">
+            <div className="mb-2 text-center px-4">
+              <h1 className="text-3xl sm:text-4xl font-light text-white tracking-tight">
                 {profile?.display_name || 'User'}
               </h1>
               {profile?.username && (
-                <p className="text-xs sm:text-sm font-light text-white/40 mt-1">
+                <p className="text-sm sm:text-base font-light text-white/45 mt-1.5">
                   @{profile.username}
                 </p>
               )}
@@ -579,9 +579,9 @@ export function ProfileOverview() {
 
             {/* Location */}
             {profile?.location && (
-              <div className="flex items-center gap-1 mb-4 text-white/50">
-                <MapPin className="h-3 w-3" />
-                <span className="text-xs font-light">{profile.location}</span>
+              <div className="flex items-center gap-1.5 mb-5 text-white/50">
+                <MapPin className="h-3.5 w-3.5" />
+                <span className="text-xs sm:text-sm font-light">{profile.location}</span>
               </div>
             )}
 
@@ -600,24 +600,24 @@ export function ProfileOverview() {
 
             {/* Stats with animated counters */}
             <div className="flex items-center gap-6 sm:gap-8 mb-5 sm:mb-6 px-4">
-              <div className="flex flex-col items-center gap-0.5">
-                <span className="text-lg sm:text-xl font-light text-white">{friendsCount}</span>
-                <span className="text-[9px] sm:text-[10px] text-white/40 uppercase tracking-wider font-light">Friends</span>
+              <div className="flex flex-col items-center gap-1">
+                <span className="text-2xl sm:text-3xl font-extralight text-white">{friendsCount}</span>
+                <span className="text-[8px] sm:text-[9px] text-white/35 uppercase tracking-widest font-light">Friends</span>
               </div>
-              <div className="h-7 sm:h-8 w-px bg-white/10" />
-              <div className="flex flex-col items-center gap-0.5">
-                <span className="text-lg sm:text-xl font-light text-white">{reviewsCount}</span>
-                <span className="text-[9px] sm:text-[10px] text-white/40 uppercase tracking-wider font-light">Reviews</span>
+              <div className="h-8 sm:h-9 w-px bg-white/10" />
+              <div className="flex flex-col items-center gap-1">
+                <span className="text-2xl sm:text-3xl font-extralight text-white">{reviewsCount}</span>
+                <span className="text-[8px] sm:text-[9px] text-white/35 uppercase tracking-widest font-light">Reviews</span>
               </div>
-              <div className="h-7 sm:h-8 w-px bg-white/10" />
-              <div className="flex flex-col items-center gap-0.5">
-                <span className="text-lg sm:text-xl font-light text-white">{postsCount}</span>
-                <span className="text-[9px] sm:text-[10px] text-white/40 uppercase tracking-wider font-light">Posts</span>
+              <div className="h-8 sm:h-9 w-px bg-white/10" />
+              <div className="flex flex-col items-center gap-1">
+                <span className="text-2xl sm:text-3xl font-extralight text-white">{postsCount}</span>
+                <span className="text-[8px] sm:text-[9px] text-white/35 uppercase tracking-widest font-light">Posts</span>
               </div>
             </div>
 
             {/* Bio with minimal typography */}
-            <p className="text-center text-[11px] sm:text-xs leading-relaxed text-white/50 mb-3 sm:mb-4 px-6 max-w-sm font-light">
+            <p className="text-center text-xs sm:text-sm leading-loose text-white/50 mb-4 sm:mb-5 px-6 max-w-md font-light">
               Food enthusiast and explorer. Always on the hunt for the perfect dish and hidden gems in the city.
             </p>
 
@@ -648,7 +648,7 @@ export function ProfileOverview() {
 
                 <TabsTrigger
                   value="flix"
-                  className="relative z-10 rounded-[1.125rem] !text-white/90 font-light text-[11px] sm:text-xs transition-all duration-200 flex items-center justify-center data-[state=active]:!bg-[rgba(168,85,247,0.3)] data-[state=active]:!text-white data-[state=active]:!shadow-[0_4px_10px_rgba(168,85,247,0.5),inset_0_1px_0_rgba(255,255,255,0.15)] data-[state=active]:!border data-[state=active]:!border-[rgba(192,132,252,0.35)] data-[state=active]:backdrop-blur-xl"
+                  className="relative z-10 rounded-[1.125rem] !text-white/90 font-light text-xs sm:text-sm transition-all duration-200 flex items-center justify-center !bg-transparent !border-transparent !shadow-none data-[state=active]:!bg-[rgba(168,85,247,0.3)] data-[state=active]:!text-white data-[state=active]:!shadow-[0_4px_10px_rgba(168,85,247,0.5),inset_0_1px_0_rgba(255,255,255,0.15)] data-[state=active]:!border data-[state=active]:!border-[rgba(192,132,252,0.35)] data-[state=active]:backdrop-blur-xl"
                   style={{
                     backdropFilter: 'blur(12px)',
                     WebkitBackdropFilter: 'blur(12px)',
@@ -658,7 +658,7 @@ export function ProfileOverview() {
                 </TabsTrigger>
                 <TabsTrigger
                   value="reviews"
-                  className="relative z-10 rounded-[1.125rem] !text-white/90 font-light text-[11px] sm:text-xs transition-all duration-200 flex items-center justify-center data-[state=active]:!bg-[rgba(168,85,247,0.3)] data-[state=active]:!text-white data-[state=active]:!shadow-[0_4px_10px_rgba(168,85,247,0.5),inset_0_1px_0_rgba(255,255,255,0.15)] data-[state=active]:!border data-[state=active]:!border-[rgba(192,132,252,0.35)] data-[state=active]:backdrop-blur-xl"
+                  className="relative z-10 rounded-[1.125rem] !text-white/90 font-light text-xs sm:text-sm transition-all duration-200 flex items-center justify-center !bg-transparent !border-transparent !shadow-none data-[state=active]:!bg-[rgba(168,85,247,0.3)] data-[state=active]:!text-white data-[state=active]:!shadow-[0_4px_10px_rgba(168,85,247,0.5),inset_0_1px_0_rgba(255,255,255,0.15)] data-[state=active]:!border data-[state=active]:!border-[rgba(192,132,252,0.35)] data-[state=active]:backdrop-blur-xl"
                   style={{
                     backdropFilter: 'blur(12px)',
                     WebkitBackdropFilter: 'blur(12px)',
