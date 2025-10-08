@@ -166,7 +166,7 @@
   /* PWA-specific padding adjustments */
   @media (display-mode: standalone) {
     html {
-      --profile-top-padding: 3rem;
+      --profile-top-padding: 2rem;
       --overlay-card-top-padding: 4.5rem;
       --post-screen-top-padding: 1rem;
     }
