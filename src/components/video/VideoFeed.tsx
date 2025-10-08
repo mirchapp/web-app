@@ -307,7 +307,7 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
               {/* Profile Card Content */}
               <div
                 ref={profileScrollRef}
-                className="h-full overflow-y-auto relative bg-gradient-to-b from-background to-muted/20"
+                className="h-full overflow-y-auto relative bg-white dark:bg-[#0A0A0F]"
                 onTouchStart={handleTouchStart}
                 onTouchMove={handleTouchMove}
                 onTouchEnd={handleTouchEnd}
@@ -317,22 +317,42 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
                   touchAction: isHorizontalDrag ? 'none' : 'pan-y'
                 }}
               >
-                {/* Animated floating glow background - enhanced for light mode */}
+                {/* Animated purple wave background - matching profile page */}
                 <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                  {/* Purple wave gradient */}
                   <div
-                    className="absolute top-[10%] left-[20%] w-[500px] h-[500px] rounded-full opacity-[0.15] dark:opacity-20 blur-[120px] animate-pulse"
+                    className="absolute left-0 right-0 h-[400px] opacity-20 dark:opacity-30"
                     style={{
-                      background: 'radial-gradient(circle, rgba(138, 66, 214, 0.5), transparent 70%)',
-                      animation: 'float 8s ease-in-out infinite'
+                      top: '10%',
+                      background: 'linear-gradient(90deg, rgba(138, 66, 214, 0.4) 0%, rgba(168, 85, 247, 0.3) 50%, rgba(138, 66, 214, 0.4) 100%)',
+                      filter: 'blur(80px)',
+                      transform: 'translateZ(0)',
+                      animation: 'wave 8s ease-in-out infinite alternate'
                     }}
                   />
-                  <div
-                    className="absolute bottom-[15%] right-[15%] w-[400px] h-[400px] rounded-full opacity-[0.12] dark:opacity-15 blur-[100px]"
-                    style={{
-                      background: 'radial-gradient(circle, rgba(192, 132, 252, 0.4), transparent 70%)',
-                      animation: 'float 10s ease-in-out infinite reverse'
-                    }}
-                  />
+
+                  {/* Subtle stars/particles */}
+                  <div className="absolute inset-0 opacity-15 dark:opacity-30">
+                    {Array.from({ length: 20 }).map((_, i) => {
+                      const top = Math.random() * 100;
+                      const left = Math.random() * 100;
+                      const duration = 2 + Math.random() * 3;
+                      const delay = Math.random() * 2;
+                      return (
+                        <div
+                          key={i}
+                          className="absolute w-1 h-1 bg-purple-500/30 dark:bg-white/20 rounded-full"
+                          style={{
+                            top: `${top}%`,
+                            left: `${left}%`,
+                            animation: `twinkle ${duration}s ease-in-out infinite`,
+                            animationDelay: `${delay}s`,
+                            willChange: 'opacity',
+                          }}
+                        />
+                      );
+                    })}
+                  </div>
                 </div>
 
                 {/* Back Button - Absolute Positioning */}
@@ -356,9 +376,9 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
                         animation: 'fadeIn 0.6s ease-out'
                       }}
                     >
-                      {/* Avatar with enhanced glow effect */}
-                      <div className="relative mb-8">
-                        <div className="relative h-32 w-32 sm:h-40 sm:w-40 rounded-full overflow-hidden ring-2 ring-primary/30 dark:ring-primary/30 shadow-[0_8px_30px_rgba(138,66,214,0.25)] dark:shadow-[0_0_30px_rgba(138,66,214,0.2)]">
+                      {/* Avatar with minimal styling */}
+                      <div className="relative mb-5 sm:mb-6">
+                        <div className="relative h-32 w-32 sm:h-36 sm:w-36 rounded-full overflow-hidden ring-1 ring-gray-200 dark:ring-white/10 shadow-lg dark:shadow-lg shadow-purple-500/10">
                           <Image
                             src={videos[currentVideoIndex]?.user.avatar || ''}
                             alt={videos[currentVideoIndex]?.user.username || ''}
@@ -367,65 +387,64 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
                             unoptimized
                           />
                         </div>
-                        <div className="absolute inset-0 blur-3xl opacity-25 dark:opacity-20 bg-primary/50 dark:bg-primary/40 rounded-full -z-10" />
                       </div>
 
-                      {/* Name with elegant typography */}
-                      <div className="mb-2 text-center">
-                        <h1 className="text-4xl font-thin mb-2 bg-gradient-to-br from-foreground via-foreground to-foreground/60 bg-clip-text text-transparent">
+                      {/* Name with hero-style typography */}
+                      <div className="mb-2 text-center px-4">
+                        <h1 className="text-3xl sm:text-4xl font-light text-gray-900 dark:text-white tracking-tight">
                           {videos[currentVideoIndex]?.user.username}
                         </h1>
                       </div>
 
                       {/* Location */}
-                      <div className="flex items-center gap-1.5 mb-8 text-muted-foreground/80">
-                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="flex items-center gap-1.5 mb-5 text-gray-600 dark:text-white/50">
+                        <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
-                        <span className="text-sm">Waterloo, ON</span>
+                        <span className="text-xs sm:text-sm font-light">Waterloo, ON</span>
                       </div>
 
-                      {/* Stats with refined styling */}
-                      <div className="flex items-center gap-10 mb-8 px-4">
+                      {/* Stats with animated counters */}
+                      <div className="flex items-center gap-6 sm:gap-8 mb-5 sm:mb-6 px-4">
                         <div className="flex flex-col items-center gap-1">
-                          <span className="text-2xl font-semibold text-foreground">12.5K</span>
-                          <span className="text-xs text-muted-foreground/70">Followers</span>
+                          <span className="text-2xl sm:text-3xl font-extralight text-gray-900 dark:text-white">127</span>
+                          <span className="text-[9px] sm:text-[10px] text-gray-400 dark:text-white/35 uppercase tracking-widest font-light">Friends</span>
                         </div>
-                        <div className="h-12 w-px bg-gradient-to-b from-transparent via-border/50 to-transparent dark:via-white/[0.08]" />
+                        <div className="h-8 sm:h-9 w-px bg-gray-200 dark:bg-white/10" />
                         <div className="flex flex-col items-center gap-1">
-                          <span className="text-2xl font-semibold text-foreground">890</span>
-                          <span className="text-xs text-muted-foreground/70">Following</span>
+                          <span className="text-2xl sm:text-3xl font-extralight text-gray-900 dark:text-white">43</span>
+                          <span className="text-[9px] sm:text-[10px] text-gray-400 dark:text-white/35 uppercase tracking-widest font-light">Reviews</span>
                         </div>
-                        <div className="h-12 w-px bg-gradient-to-b from-transparent via-border/50 to-transparent dark:via-white/[0.08]" />
+                        <div className="h-8 sm:h-9 w-px bg-gray-200 dark:bg-white/10" />
                         <div className="flex flex-col items-center gap-1">
-                          <span className="text-2xl font-semibold text-foreground">234</span>
-                          <span className="text-xs text-muted-foreground/70">Posts</span>
+                          <span className="text-2xl sm:text-3xl font-extralight text-gray-900 dark:text-white">89</span>
+                          <span className="text-[9px] sm:text-[10px] text-gray-400 dark:text-white/35 uppercase tracking-widest font-light">Posts</span>
                         </div>
                       </div>
 
-                      {/* Bio with refined typography */}
-                      <p className="text-center text-sm leading-relaxed text-muted-foreground/90 dark:text-muted-foreground/80 mb-6 px-4 max-w-xs">
+                      {/* Bio with minimal typography */}
+                      <p className="text-center text-sm sm:text-base leading-loose text-gray-600 dark:text-white/50 mb-4 sm:mb-5 px-6 max-w-md font-light">
                         Food enthusiast sharing my culinary adventures. Always on the hunt for the perfect dish and hidden gems in the city.
                       </p>
 
                       {/* Joined Date */}
-                      <div className="flex items-center gap-1.5 text-muted-foreground/80 dark:text-muted-foreground/70 mb-8">
-                        <Calendar className="h-4 w-4" />
-                        <span className="text-xs">Joined September 2024</span>
+                      <div className="flex items-center gap-1.5 text-gray-400 dark:text-white/30 mb-6 sm:mb-8">
+                        <Calendar className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                        <span className="text-[10px] sm:text-xs font-light">Joined September 2024</span>
                       </div>
 
-                      {/* Action Buttons - enhanced for light mode */}
+                      {/* Action Buttons */}
                       <div className="flex gap-3 w-full max-w-xs mb-10">
                         <Button
-                          className="flex-1 h-11 rounded-[14px] font-medium shadow-[0_4px_20px_rgba(138,66,214,0.35)] hover:shadow-[0_6px_24px_rgba(138,66,214,0.45)] transition-all duration-200"
+                          className="flex-1 h-11 rounded-[14px] font-light shadow-[0_4px_20px_rgba(138,66,214,0.35)] hover:shadow-[0_6px_24px_rgba(138,66,214,0.45)] transition-all duration-200"
                           variant="default"
                         >
                           <UserPlus className="h-4 w-4 mr-2" />
                           Follow
                         </Button>
                         <Button
-                          className="flex-1 h-11 rounded-[14px] font-medium border-primary/20 dark:border-white/5 bg-white/70 dark:bg-white/[0.02] hover:bg-primary/5 dark:hover:bg-white/[0.05] hover:border-primary/30 transition-all duration-200 shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)]"
+                          className="flex-1 h-11 rounded-[14px] font-light border-gray-200 dark:border-white/5 bg-white dark:bg-white/[0.02] hover:bg-gray-50 dark:hover:bg-white/[0.05] hover:border-gray-300 dark:hover:border-white/10 transition-all duration-200"
                           variant="outline"
                         >
                           <MessageCircle className="h-4 w-4 mr-2" />
@@ -435,7 +454,7 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
 
                       {/* Recent Posts Section */}
                       <div className="w-full">
-                        <h2 className="text-base font-medium text-foreground/60 mb-5 text-center">Recent Posts</h2>
+                        <h2 className="text-sm font-light text-gray-500 dark:text-foreground/60 mb-5 text-center tracking-wide">Recent Posts</h2>
                         <div className="columns-2 gap-2 space-y-2">
                           {[
                             { id: 'photo-1546069901-ba9599a7e63c', height: 200 }, // burger
@@ -449,7 +468,7 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
                               key={i}
                               className="break-inside-avoid mb-2"
                             >
-                              <div className="relative rounded-2xl bg-muted overflow-hidden hover:scale-[1.02] hover:shadow-lg transition-all duration-200 ease-out cursor-pointer ring-1 ring-black/5 dark:ring-white/10">
+                              <div className="relative rounded-lg sm:rounded-xl bg-gray-100 dark:bg-white/5 overflow-hidden cursor-pointer ring-1 ring-gray-200 dark:ring-white/10 hover:ring-gray-300 dark:hover:ring-white/20 transition-all duration-300 shadow-lg hover:shadow-xl">
                                 <Image
                                   src={`https://images.unsplash.com/${item.id}?w=400&h=${item.height}&fit=crop`}
                                   alt={`Food ${i + 1}`}
