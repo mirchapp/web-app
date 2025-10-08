@@ -167,7 +167,7 @@
   @media (display-mode: standalone) {
     html {
       --profile-top-padding: 1rem;
-      --overlay-card-top-padding: 4.5rem;
+      --overlay-card-top-padding: 6rem;
       --post-screen-top-padding: 1rem;
     }
 
