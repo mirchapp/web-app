@@ -9,15 +9,29 @@ import { useTheme } from 'next-themes';
 
 export function Step1Welcome() {
   const { nextStep } = useOnboarding();
-  const { theme, systemTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
+  const [isDark, setIsDark] = React.useState(false);
 
   React.useEffect(() => {
     setMounted(true);
-  }, []);
 
-  const currentTheme = theme === 'system' ? systemTheme : theme;
-  const isDark = currentTheme === 'dark';
+    // Check if dark mode is active by looking at the html element
+    const checkDarkMode = () => {
+      const htmlElement = document.documentElement;
+      setIsDark(htmlElement.classList.contains('dark'));
+    };
+
+    checkDarkMode();
+
+    // Watch for theme changes
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <div className="space-y-8">
