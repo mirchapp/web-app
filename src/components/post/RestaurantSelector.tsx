@@ -480,15 +480,14 @@ export function RestaurantSelector({ onSelectRestaurant, onMediaSelected }: Rest
     let focusTimeout: NodeJS.Timeout;
     const handleWindowFocus = () => {
       // When window regains focus after file picker, check if file was selected
-      // Use shorter timeout for faster response
+      // Immediate check for faster response
       focusTimeout = setTimeout(() => {
         const hasFiles = fileInput.files && fileInput.files.length > 0;
         if (selectedRestaurant && !hasFiles) {
           // No file selected, user cancelled
-          console.log('Focus detected - clearing selection');
           clearSelection();
         }
-      }, 100);
+      }, 50);
     };
 
     // Listen for the cancel event (fires when user dismisses picker without selecting)
@@ -538,11 +537,7 @@ export function RestaurantSelector({ onSelectRestaurant, onMediaSelected }: Rest
       transition={{ duration: 0.2, ease: 'easeOut' }}
     >
       <motion.div
-        className={`relative h-16 w-16 rounded-[12px] overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-muted transition-all duration-200 ${
-          isSelected
-            ? 'ring-2 ring-purple-400 dark:ring-purple-500/50'
-            : 'ring-1 ring-gray-200 dark:ring-black/5'
-        }`}
+        className="relative h-16 w-16 rounded-[12px] overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-muted ring-1 ring-gray-200 dark:ring-black/5"
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.3 }}
