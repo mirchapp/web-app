@@ -15,13 +15,9 @@ interface CameraCaptureProps {
 
 export function CameraCapture({ restaurantName, onCapture, onBack }: CameraCaptureProps) {
   const safeAreaInsets = useSafeArea();
-  const videoRef = React.useRef<HTMLVideoElement>(null);
-  const canvasRef = React.useRef<HTMLCanvasElement>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [capturedImage, setCapturedImage] = React.useState<string | null>(null);
   const [isVideo, setIsVideo] = React.useState(false);
-  const [facingMode] = React.useState<'user' | 'environment'>('environment');
-  const [useFileInput, setUseFileInput] = React.useState(false);
 
   // Crop an image dataURL to 9:16 aspect, center-cropped, output JPEG
   const cropToReelsAspect = React.useCallback(async (dataUrl: string): Promise<string> => {
@@ -63,13 +59,6 @@ export function CameraCapture({ restaurantName, onCapture, onBack }: CameraCaptu
     });
   }, []);
 
-  // Detect if we're in iOS PWA standalone mode
-  const isIOSPWA = React.useMemo(() => {
-    if (typeof window === 'undefined') return false;
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    const isStandalone = ('standalone' in window.navigator) && (window.navigator as unknown as { standalone?: boolean }).standalone;
-    return isIOS && isStandalone;
-  }, []);
 
   // Handle file input for iOS PWA and fallback
   const handleFileInput = React.useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -113,11 +102,10 @@ export function CameraCapture({ restaurantName, onCapture, onBack }: CameraCaptu
 
   // Auto-trigger file input when component mounts
   React.useEffect(() => {
-    setUseFileInput(true);
-    // Trigger immediately to maintain user gesture context
+    // Trigger file input immediately to maintain user gesture context
     const timer = setTimeout(() => {
       triggerFileInput();
-    }, 50); // Small delay to ensure input is mounted
+    }, 100); // Small delay to ensure input is mounted
 
     return () => clearTimeout(timer);
   }, []);
@@ -352,9 +340,6 @@ export function CameraCapture({ restaurantName, onCapture, onBack }: CameraCaptu
         </motion.div>
       ) : null}
 
-      {/* Hidden canvas for capture (if ever needed for getUserMedia fallback) */}
-      <canvas ref={canvasRef} className="hidden" />
-      <video ref={videoRef} className="hidden" />
     </>
   );
 }
