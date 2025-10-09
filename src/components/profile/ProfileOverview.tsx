@@ -59,9 +59,30 @@ interface ProfileData {
 }
 
 export function ProfileOverview() {
-  const [user, setUser] = React.useState<{ id: string; email?: string } | null>(null);
-  const [profile, setProfile] = React.useState<ProfileData | null>(null);
-  const [loading, setLoading] = React.useState(true);
+  // Load cached profile data immediately to avoid skeleton loader
+  const getCachedProfile = () => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const cached = localStorage.getItem('cached_profile');
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const getCachedUser = () => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const cached = localStorage.getItem('cached_user');
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const [user, setUser] = React.useState<{ id: string; email?: string } | null>(getCachedUser);
+  const [profile, setProfile] = React.useState<ProfileData | null>(getCachedProfile);
+  const [loading, setLoading] = React.useState(!getCachedUser()); // Only show loader if no cache
   const [isSignUp, setIsSignUp] = React.useState(false);
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
@@ -90,15 +111,29 @@ export function ProfileOverview() {
   React.useEffect(() => {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
+
+      // Cache user data
+      if (user) {
+        localStorage.setItem('cached_user', JSON.stringify(user));
+      } else {
+        localStorage.removeItem('cached_user');
+        localStorage.removeItem('cached_profile');
+      }
+
       setUser(user);
 
       if (user) {
-        // Fetch profile data
+        // Fetch fresh profile data in background
         const { data: profileData } = await supabase
           .from('Profile')
           .select('display_name, username, avatar_url, location')
           .eq('user_id', user.id)
           .single();
+
+        // Cache profile data
+        if (profileData) {
+          localStorage.setItem('cached_profile', JSON.stringify(profileData));
+        }
 
         setProfile(profileData);
       }
