@@ -62,7 +62,7 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
               restDelta: 0.001,
               restSpeed: 0.001
             }}
-            className="absolute bottom-0 left-0 right-0 h-full w-full bg-background shadow-2xl"
+            className="absolute bottom-0 left-0 right-0 h-full w-full bg-white dark:bg-[#0A0A0F] shadow-2xl"
             onClick={(e) => e.stopPropagation()}
             style={{
               willChange: 'transform',
@@ -88,28 +88,48 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
             {/* Restaurant Page Content */}
             <div
               ref={scrollRef}
-              className="h-full overflow-y-auto relative bg-gradient-to-b from-background to-muted/20"
+              className="h-full overflow-y-auto relative bg-white dark:bg-[#0A0A0F]"
               style={{
                 WebkitOverflowScrolling: 'touch',
                 overscrollBehavior: 'contain'
               }}
             >
-              {/* Animated floating glow background - enhanced for light mode */}
+              {/* Animated purple wave background - matching profile page */}
               <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                {/* Purple wave gradient */}
                 <div
-                  className="absolute top-[10%] left-[20%] w-[500px] h-[500px] rounded-full opacity-[0.15] dark:opacity-20 blur-[120px] animate-pulse"
+                  className="absolute left-0 right-0 h-[400px] opacity-20 dark:opacity-30"
                   style={{
-                    background: 'radial-gradient(circle, rgba(138, 66, 214, 0.5), transparent 70%)',
-                    animation: 'float 8s ease-in-out infinite'
+                    top: '10%',
+                    background: 'linear-gradient(90deg, rgba(138, 66, 214, 0.4) 0%, rgba(168, 85, 247, 0.3) 50%, rgba(138, 66, 214, 0.4) 100%)',
+                    filter: 'blur(80px)',
+                    transform: 'translateZ(0)',
+                    animation: 'wave 8s ease-in-out infinite alternate'
                   }}
                 />
-                <div
-                  className="absolute bottom-[15%] right-[15%] w-[400px] h-[400px] rounded-full opacity-[0.12] dark:opacity-15 blur-[100px]"
-                  style={{
-                    background: 'radial-gradient(circle, rgba(192, 132, 252, 0.4), transparent 70%)',
-                    animation: 'float 10s ease-in-out infinite reverse'
-                  }}
-                />
+
+                {/* Subtle stars/particles */}
+                <div className="absolute inset-0 opacity-15 dark:opacity-30">
+                  {Array.from({ length: 20 }).map((_, i) => {
+                    const top = Math.random() * 100;
+                    const left = Math.random() * 100;
+                    const duration = 2 + Math.random() * 3;
+                    const delay = Math.random() * 2;
+                    return (
+                      <div
+                        key={i}
+                        className="absolute w-1 h-1 bg-purple-500/30 dark:bg-white/20 rounded-full"
+                        style={{
+                          top: `${top}%`,
+                          left: `${left}%`,
+                          animation: `twinkle ${duration}s ease-in-out infinite`,
+                          animationDelay: `${delay}s`,
+                          willChange: 'opacity',
+                        }}
+                      />
+                    );
+                  })}
+                </div>
               </div>
 
               <div className="container mx-auto px-4 pb-32 relative z-10" style={{ paddingTop: 'var(--overlay-card-top-padding-safe)' }}>
@@ -122,7 +142,7 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
                   >
                     {/* Restaurant Logo with enhanced glow effect */}
                     <div className="relative mb-8">
-                      <div className="relative h-32 w-32 sm:h-40 sm:w-40 rounded-2xl overflow-hidden ring-2 ring-primary/30 dark:ring-primary/30 shadow-[0_8px_30px_rgba(138,66,214,0.25)] dark:shadow-[0_0_30px_rgba(138,66,214,0.2)]">
+                      <div className="relative h-32 w-32 sm:h-40 sm:w-40 rounded-2xl overflow-hidden ring-1 ring-gray-200 dark:ring-white/10 shadow-lg dark:shadow-lg shadow-purple-500/10">
                         <Image
                           src={restaurant.logo}
                           alt={restaurant.name}
@@ -131,13 +151,12 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
                           unoptimized
                         />
                       </div>
-                      <div className="absolute inset-0 blur-3xl opacity-25 dark:opacity-20 bg-primary/50 dark:bg-primary/40 rounded-full -z-10" />
                     </div>
 
                     {/* Restaurant Name with elegant typography */}
                     <div className="mb-2 text-center">
                       <div className="flex items-center justify-center gap-2">
-                        <h1 className="text-4xl font-thin bg-gradient-to-br from-foreground via-foreground to-foreground/60 bg-clip-text text-transparent">
+                        <h1 className="text-4xl font-light text-gray-900 dark:text-white tracking-tight">
                           {restaurant.name}
                         </h1>
                         {restaurant.verified && (
@@ -153,27 +172,27 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
                     </div>
 
                     {/* Restaurant Bio with refined typography */}
-                    <p className="text-center text-sm leading-relaxed text-muted-foreground/90 dark:text-muted-foreground/80 mb-6 px-4 max-w-sm">
+                    <p className="text-center text-sm sm:text-base leading-loose text-gray-600 dark:text-white/50 mb-6 px-4 max-w-sm font-light">
                       Experience authentic cuisine with a modern twist. Our award-winning chefs prepare the finest dishes using locally-sourced ingredients in a warm and welcoming atmosphere.
                     </p>
 
                     {/* Rating */}
                     <div className="flex items-center gap-1.5 mb-4">
                       <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-                      <span className="text-lg font-semibold text-foreground">{restaurant.rating}</span>
-                      <span className="text-sm text-muted-foreground/80 dark:text-muted-foreground/70">• Restaurant</span>
+                      <span className="text-lg font-light text-gray-900 dark:text-white">{restaurant.rating}</span>
+                      <span className="text-sm text-gray-600 dark:text-white/50 font-light">• Restaurant</span>
                     </div>
 
                     {/* Distance & Location */}
-                    <div className="flex items-center gap-1.5 mb-8 text-muted-foreground/90 dark:text-muted-foreground/80">
+                    <div className="flex items-center gap-1.5 mb-8 text-gray-600 dark:text-white/50">
                       <MapPin className="h-4 w-4" />
-                      <span className="text-sm">{restaurant.distance} • {restaurant.address}</span>
+                      <span className="text-sm font-light">{restaurant.distance} • {restaurant.address}</span>
                     </div>
 
                     {/* Action Buttons - enhanced for light mode */}
                     <div className="flex gap-3 w-full max-w-xs mb-10">
                       <Button
-                        className="flex-1 h-11 rounded-[14px] font-medium shadow-[0_4px_20px_rgba(138,66,214,0.35)] hover:shadow-[0_6px_24px_rgba(138,66,214,0.45)] transition-all duration-200"
+                        className="flex-1 h-11 rounded-[14px] font-light shadow-[0_4px_20px_rgba(138,66,214,0.35)] hover:shadow-[0_6px_24px_rgba(138,66,214,0.45)] transition-all duration-200"
                         onClick={() => {
                           console.log('Open in map');
                         }}
@@ -183,7 +202,7 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
                       </Button>
                       <Button
                         variant="outline"
-                        className="flex-1 h-11 rounded-[14px] font-medium border-primary/20 dark:border-white/5 bg-white/70 dark:bg-white/[0.02] hover:bg-primary/5 dark:hover:bg-white/[0.05] hover:border-primary/30 transition-all duration-200 shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)]"
+                        className="flex-1 h-11 rounded-[14px] font-light border-gray-200 dark:border-white/5 bg-white dark:bg-white/[0.02] hover:bg-gray-50 dark:hover:bg-white/[0.05] hover:border-gray-300 dark:hover:border-white/10 transition-all duration-200"
                         onClick={() => {
                           window.open(`tel:${restaurant.phone}`);
                         }}
@@ -196,8 +215,8 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
                     {/* About Section */}
                     {restaurant.about && (
                       <div className="w-full mb-8">
-                        <h3 className="text-base font-medium text-foreground/60 mb-4">About</h3>
-                        <p className="text-sm text-muted-foreground/90 dark:text-muted-foreground/80 leading-relaxed">
+                        <h3 className="text-base font-light text-gray-500 dark:text-foreground/60 mb-4 tracking-wide">About</h3>
+                        <p className="text-sm text-gray-600 dark:text-white/50 leading-loose font-light">
                           {restaurant.about}
                         </p>
                       </div>
@@ -206,15 +225,15 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
                     {/* Hours Section */}
                     {restaurant.hours && (
                       <div className="w-full mb-8">
-                        <h3 className="text-base font-medium text-foreground/60 mb-4">Hours</h3>
+                        <h3 className="text-base font-light text-gray-500 dark:text-foreground/60 mb-4 tracking-wide">Hours</h3>
                         <div className="space-y-2 text-sm">
                           <div className="flex justify-between">
-                            <span className="text-muted-foreground/80 dark:text-muted-foreground/70">Monday - Friday</span>
-                            <span className="text-foreground font-medium">{restaurant.hours.weekday}</span>
+                            <span className="text-gray-600 dark:text-white/50 font-light">Monday - Friday</span>
+                            <span className="text-gray-900 dark:text-white font-light">{restaurant.hours.weekday}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-muted-foreground/80 dark:text-muted-foreground/70">Saturday - Sunday</span>
-                            <span className="text-foreground font-medium">{restaurant.hours.weekend}</span>
+                            <span className="text-gray-600 dark:text-white/50 font-light">Saturday - Sunday</span>
+                            <span className="text-gray-900 dark:text-white font-light">{restaurant.hours.weekend}</span>
                           </div>
                         </div>
                       </div>
@@ -223,11 +242,11 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
                     {/* Popular Dishes */}
                     {restaurant.popularDishes && restaurant.popularDishes.length > 0 && (
                       <div className="w-full">
-                        <h3 className="text-base font-medium text-foreground/60 mb-5">Popular Dishes</h3>
+                        <h3 className="text-base font-light text-gray-500 dark:text-foreground/60 mb-5 tracking-wide">Popular Dishes</h3>
                         <div className="space-y-3">
                           {restaurant.popularDishes.map((dish, index) => (
-                            <div key={index} className="flex gap-3 p-4 rounded-[14px] bg-white/70 dark:bg-white/[0.02] border border-primary/10 dark:border-white/5 hover:bg-primary/5 dark:hover:bg-white/[0.05] hover:border-primary/20 transition-all duration-200 shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] hover:shadow-[0_4px_12px_rgba(138,66,214,0.15)]">
-                              <div className="h-20 w-20 rounded-[12px] overflow-hidden flex-shrink-0 bg-muted ring-1 ring-black/[0.08] dark:ring-white/10">
+                            <div key={index} className="flex gap-3 p-4 rounded-lg sm:rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/[0.05] hover:border-gray-300 dark:hover:border-white/20 transition-all duration-300 shadow-lg hover:shadow-xl">
+                              <div className="h-20 w-20 rounded-[12px] overflow-hidden flex-shrink-0 bg-muted ring-1 ring-gray-200 dark:ring-white/10">
                                 <Image
                                   src={dish.image}
                                   alt={dish.name}
@@ -239,13 +258,13 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
                               </div>
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-start justify-between mb-1">
-                                  <p className="font-medium text-base text-foreground">{dish.name}</p>
+                                  <p className="font-light text-base text-gray-900 dark:text-white">{dish.name}</p>
                                   <div className="flex items-center gap-1 ml-2">
                                     <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                                    <span className="text-xs text-muted-foreground/70">4.{(7 + index * 2)}</span>
+                                    <span className="text-xs text-gray-600 dark:text-white/50 font-light">4.{(7 + index * 2)}</span>
                                   </div>
                                 </div>
-                                <p className="text-sm text-muted-foreground/80 mb-2 line-clamp-2">{dish.description}</p>
+                                <p className="text-sm text-gray-600 dark:text-white/50 mb-2 line-clamp-2 font-light">{dish.description}</p>
                                 
                                 {/* Dish Labels */}
                                 <div className="flex flex-wrap gap-1 mb-2">
@@ -265,8 +284,8 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
                                 </div>
 
                                 <div className="flex items-center justify-between">
-                                  <p className="text-base font-semibold text-foreground">${dish.price.toFixed(2)}</p>
-                                  <span className="text-xs text-muted-foreground/60">{(23 + index * 5)} reviews</span>
+                                  <p className="text-base font-light text-gray-900 dark:text-white">${dish.price.toFixed(2)}</p>
+                                  <span className="text-xs text-gray-400 dark:text-white/35 font-light">{(23 + index * 5)} reviews</span>
                                 </div>
                               </div>
                             </div>
@@ -277,11 +296,11 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
 
                     {/* Full Menu Section */}
                     <div className="w-full mt-6">
-                      <h3 className="text-base font-medium text-foreground/60 mb-6">Full Menu</h3>
-                      
+                      <h3 className="text-base font-light text-gray-500 dark:text-foreground/60 mb-6 tracking-wide">Full Menu</h3>
+
                       {/* Appetizers */}
                       <div className="mb-8">
-                        <h4 className="text-base font-medium text-foreground mb-4 flex items-center gap-2">
+                        <h4 className="text-base font-light text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                           <span className="h-1 w-8 bg-primary rounded-full"></span>
                           Appetizers
                         </h4>
@@ -291,8 +310,8 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
                             { name: "Chicken Satay", description: "Grilled chicken skewers with coconut curry sauce", price: 12.99, rating: 4.8, reviews: 67, labels: ["Popular", "Grilled"], image: "https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?w=200&h=200&fit=crop" },
                             { name: "Tom Yum Soup", description: "Spicy and sour soup with shrimp and mushrooms", price: 10.99, rating: 4.5, reviews: 89, labels: ["Spicy", "Soup"], image: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=200&h=200&fit=crop" }
                           ].map((dish, index) => (
-                            <div key={index} className="flex gap-3 p-4 rounded-[14px] bg-white/70 dark:bg-white/[0.02] border border-primary/10 dark:border-white/5 hover:bg-primary/5 dark:hover:bg-white/[0.05] hover:border-primary/20 transition-all duration-200 shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] hover:shadow-[0_4px_12px_rgba(138,66,214,0.15)]">
-                              <div className="h-20 w-20 rounded-[12px] overflow-hidden flex-shrink-0 bg-muted ring-1 ring-black/[0.08] dark:ring-white/10">
+                            <div key={index} className="flex gap-3 p-4 rounded-lg sm:rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/[0.05] hover:border-gray-300 dark:hover:border-white/20 transition-all duration-300 shadow-lg hover:shadow-xl">
+                              <div className="h-20 w-20 rounded-[12px] overflow-hidden flex-shrink-0 bg-muted ring-1 ring-gray-200 dark:ring-white/10">
                                 <Image
                                   src={dish.image}
                                   alt={dish.name}
@@ -304,13 +323,13 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
                               </div>
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-start justify-between mb-1">
-                                  <p className="font-medium text-base text-foreground">{dish.name}</p>
+                                  <p className="font-light text-base text-gray-900 dark:text-white">{dish.name}</p>
                                   <div className="flex items-center gap-1 ml-2">
                                     <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                                    <span className="text-xs text-muted-foreground/70">{dish.rating}</span>
+                                    <span className="text-xs text-gray-600 dark:text-white/50 font-light">{dish.rating}</span>
                                   </div>
                                 </div>
-                                <p className="text-sm text-muted-foreground/80 mb-2 line-clamp-2">{dish.description}</p>
+                                <p className="text-sm text-gray-600 dark:text-white/50 mb-2 line-clamp-2 font-light">{dish.description}</p>
                                 
                                 {/* Dish Labels */}
                                 <div className="flex flex-wrap gap-1 mb-2">
@@ -327,8 +346,8 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
                                 </div>
 
                                 <div className="flex items-center justify-between">
-                                  <p className="text-base font-semibold text-foreground">${dish.price.toFixed(2)}</p>
-                                  <span className="text-xs text-muted-foreground/60">{dish.reviews} reviews</span>
+                                  <p className="text-base font-light text-gray-900 dark:text-white">${dish.price.toFixed(2)}</p>
+                                  <span className="text-xs text-gray-400 dark:text-white/35 font-light">{dish.reviews} reviews</span>
                                 </div>
                               </div>
                             </div>
@@ -338,7 +357,7 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
 
                       {/* Main Courses */}
                       <div className="mb-8">
-                        <h4 className="text-base font-medium text-foreground mb-4 flex items-center gap-2">
+                        <h4 className="text-base font-light text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                           <span className="h-1 w-8 bg-primary rounded-full"></span>
                           Main Courses
                         </h4>
@@ -349,8 +368,8 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
                             { name: "Pad See Ew", description: "Wide rice noodles stir-fried with Chinese broccoli and soy sauce", price: 15.99, rating: 4.3, reviews: 73, labels: ["Vegetarian", "Noodles"], image: "https://images.unsplash.com/photo-1552611052-33e04de081de?w=200&h=200&fit=crop" },
                             { name: "Crispy Duck", description: "Half duck with crispy skin served with plum sauce", price: 24.99, rating: 4.9, reviews: 45, labels: ["Premium", "Specialty"], image: "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=200&h=200&fit=crop" }
                           ].map((dish, index) => (
-                            <div key={index} className="flex gap-3 p-4 rounded-[14px] bg-white/70 dark:bg-white/[0.02] border border-primary/10 dark:border-white/5 hover:bg-primary/5 dark:hover:bg-white/[0.05] hover:border-primary/20 transition-all duration-200 shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] hover:shadow-[0_4px_12px_rgba(138,66,214,0.15)]">
-                              <div className="h-20 w-20 rounded-[12px] overflow-hidden flex-shrink-0 bg-muted ring-1 ring-black/[0.08] dark:ring-white/10">
+                            <div key={index} className="flex gap-3 p-4 rounded-lg sm:rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/[0.05] hover:border-gray-300 dark:hover:border-white/20 transition-all duration-300 shadow-lg hover:shadow-xl">
+                              <div className="h-20 w-20 rounded-[12px] overflow-hidden flex-shrink-0 bg-muted ring-1 ring-gray-200 dark:ring-white/10">
                                 <Image
                                   src={dish.image}
                                   alt={dish.name}
@@ -362,13 +381,13 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
                               </div>
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-start justify-between mb-1">
-                                  <p className="font-medium text-base text-foreground">{dish.name}</p>
+                                  <p className="font-light text-base text-gray-900 dark:text-white">{dish.name}</p>
                                   <div className="flex items-center gap-1 ml-2">
                                     <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                                    <span className="text-xs text-muted-foreground/70">{dish.rating}</span>
+                                    <span className="text-xs text-gray-600 dark:text-white/50 font-light">{dish.rating}</span>
                                   </div>
                                 </div>
-                                <p className="text-sm text-muted-foreground/80 mb-2 line-clamp-2">{dish.description}</p>
+                                <p className="text-sm text-gray-600 dark:text-white/50 mb-2 line-clamp-2 font-light">{dish.description}</p>
                                 
                                 {/* Dish Labels */}
                                 <div className="flex flex-wrap gap-1 mb-2">
@@ -387,8 +406,8 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
                                 </div>
 
                                 <div className="flex items-center justify-between">
-                                  <p className="text-base font-semibold text-foreground">${dish.price.toFixed(2)}</p>
-                                  <span className="text-xs text-muted-foreground/60">{dish.reviews} reviews</span>
+                                  <p className="text-base font-light text-gray-900 dark:text-white">${dish.price.toFixed(2)}</p>
+                                  <span className="text-xs text-gray-400 dark:text-white/35 font-light">{dish.reviews} reviews</span>
                                 </div>
                               </div>
                             </div>
@@ -398,7 +417,7 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
 
                       {/* Desserts */}
                       <div className="mb-8">
-                        <h4 className="text-base font-medium text-foreground mb-4 flex items-center gap-2">
+                        <h4 className="text-base font-light text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                           <span className="h-1 w-8 bg-primary rounded-full"></span>
                           Desserts
                         </h4>
@@ -408,8 +427,8 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
                             { name: "Thai Tea Ice Cream", description: "Creamy ice cream flavored with authentic Thai tea", price: 6.99, rating: 4.5, reviews: 87, labels: ["Cold", "Popular"], image: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=200&h=200&fit=crop" },
                             { name: "Fried Banana", description: "Crispy fried banana with honey and sesame seeds", price: 7.99, rating: 4.2, reviews: 56, labels: ["Fried", "Traditional"], image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=200&h=200&fit=crop" }
                           ].map((dish, index) => (
-                            <div key={index} className="flex gap-3 p-4 rounded-[14px] bg-white/70 dark:bg-white/[0.02] border border-primary/10 dark:border-white/5 hover:bg-primary/5 dark:hover:bg-white/[0.05] hover:border-primary/20 transition-all duration-200 shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] hover:shadow-[0_4px_12px_rgba(138,66,214,0.15)]">
-                              <div className="h-20 w-20 rounded-[12px] overflow-hidden flex-shrink-0 bg-muted ring-1 ring-black/[0.08] dark:ring-white/10">
+                            <div key={index} className="flex gap-3 p-4 rounded-lg sm:rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/[0.05] hover:border-gray-300 dark:hover:border-white/20 transition-all duration-300 shadow-lg hover:shadow-xl">
+                              <div className="h-20 w-20 rounded-[12px] overflow-hidden flex-shrink-0 bg-muted ring-1 ring-gray-200 dark:ring-white/10">
                                 <Image
                                   src={dish.image}
                                   alt={dish.name}
@@ -421,13 +440,13 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
                               </div>
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-start justify-between mb-1">
-                                  <p className="font-medium text-base text-foreground">{dish.name}</p>
+                                  <p className="font-light text-base text-gray-900 dark:text-white">{dish.name}</p>
                                   <div className="flex items-center gap-1 ml-2">
                                     <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                                    <span className="text-xs text-muted-foreground/70">{dish.rating}</span>
+                                    <span className="text-xs text-gray-600 dark:text-white/50 font-light">{dish.rating}</span>
                                   </div>
                                 </div>
-                                <p className="text-sm text-muted-foreground/80 mb-2 line-clamp-2">{dish.description}</p>
+                                <p className="text-sm text-gray-600 dark:text-white/50 mb-2 line-clamp-2 font-light">{dish.description}</p>
                                 
                                 {/* Dish Labels */}
                                 <div className="flex flex-wrap gap-1 mb-2">
@@ -446,8 +465,8 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
                                 </div>
 
                                 <div className="flex items-center justify-between">
-                                  <p className="text-base font-semibold text-foreground">${dish.price.toFixed(2)}</p>
-                                  <span className="text-xs text-muted-foreground/60">{dish.reviews} reviews</span>
+                                  <p className="text-base font-light text-gray-900 dark:text-white">${dish.price.toFixed(2)}</p>
+                                  <span className="text-xs text-gray-400 dark:text-white/35 font-light">{dish.reviews} reviews</span>
                                 </div>
                               </div>
                             </div>
@@ -457,7 +476,7 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
 
                       {/* Beverages */}
                       <div className="mb-8">
-                        <h4 className="text-base font-medium text-foreground mb-4 flex items-center gap-2">
+                        <h4 className="text-base font-light text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                           <span className="h-1 w-8 bg-primary rounded-full"></span>
                           Beverages
                         </h4>
@@ -467,8 +486,8 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
                             { name: "Fresh Coconut Water", description: "Refreshing natural coconut water", price: 5.99, rating: 4.4, reviews: 78, labels: ["Fresh", "Healthy"], image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=200&h=200&fit=crop" },
                             { name: "Lemongrass Ginger Tea", description: "Hot herbal tea with fresh lemongrass and ginger", price: 3.99, rating: 4.7, reviews: 45, labels: ["Hot", "Herbal"], image: "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=200&h=200&fit=crop" }
                           ].map((dish, index) => (
-                            <div key={index} className="flex gap-3 p-4 rounded-[14px] bg-white/70 dark:bg-white/[0.02] border border-primary/10 dark:border-white/5 hover:bg-primary/5 dark:hover:bg-white/[0.05] hover:border-primary/20 transition-all duration-200 shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] hover:shadow-[0_4px_12px_rgba(138,66,214,0.15)]">
-                              <div className="h-20 w-20 rounded-[12px] overflow-hidden flex-shrink-0 bg-muted ring-1 ring-black/[0.08] dark:ring-white/10">
+                            <div key={index} className="flex gap-3 p-4 rounded-lg sm:rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/[0.05] hover:border-gray-300 dark:hover:border-white/20 transition-all duration-300 shadow-lg hover:shadow-xl">
+                              <div className="h-20 w-20 rounded-[12px] overflow-hidden flex-shrink-0 bg-muted ring-1 ring-gray-200 dark:ring-white/10">
                                 <Image
                                   src={dish.image}
                                   alt={dish.name}
@@ -480,13 +499,13 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
                               </div>
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-start justify-between mb-1">
-                                  <p className="font-medium text-base text-foreground">{dish.name}</p>
+                                  <p className="font-light text-base text-gray-900 dark:text-white">{dish.name}</p>
                                   <div className="flex items-center gap-1 ml-2">
                                     <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                                    <span className="text-xs text-muted-foreground/70">{dish.rating}</span>
+                                    <span className="text-xs text-gray-600 dark:text-white/50 font-light">{dish.rating}</span>
                                   </div>
                                 </div>
-                                <p className="text-sm text-muted-foreground/80 mb-2 line-clamp-2">{dish.description}</p>
+                                <p className="text-sm text-gray-600 dark:text-white/50 mb-2 line-clamp-2 font-light">{dish.description}</p>
                                 
                                 {/* Dish Labels */}
                                 <div className="flex flex-wrap gap-1 mb-2">
@@ -506,8 +525,8 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
                                 </div>
 
                                 <div className="flex items-center justify-between">
-                                  <p className="text-base font-semibold text-foreground">${dish.price.toFixed(2)}</p>
-                                  <span className="text-xs text-muted-foreground/60">{dish.reviews} reviews</span>
+                                  <p className="text-base font-light text-gray-900 dark:text-white">${dish.price.toFixed(2)}</p>
+                                  <span className="text-xs text-gray-400 dark:text-white/35 font-light">{dish.reviews} reviews</span>
                                 </div>
                               </div>
                             </div>
