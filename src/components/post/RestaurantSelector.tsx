@@ -53,9 +53,10 @@ interface Restaurant {
 
 interface RestaurantSelectorProps {
   onSelectRestaurant: (restaurant: Restaurant) => void;
+  onMediaSelected: (mediaData: string, isVideo: boolean) => void;
 }
 
-export function RestaurantSelector({ onSelectRestaurant }: RestaurantSelectorProps) {
+export function RestaurantSelector({ onSelectRestaurant, onMediaSelected }: RestaurantSelectorProps) {
   const safeAreaInsets = useSafeArea();
   const [searchQuery, setSearchQuery] = React.useState('');
   const [suggestions, setSuggestions] = React.useState<Restaurant[]>([]);
@@ -66,8 +67,10 @@ export function RestaurantSelector({ onSelectRestaurant }: RestaurantSelectorPro
   const [isRequestingLocation, setIsRequestingLocation] = React.useState(false);
   const [locationError, setLocationError] = React.useState<string | null>(null);
   const [hasRequestedPermission, setHasRequestedPermission] = React.useState(false);
+  const [selectedRestaurant, setSelectedRestaurant] = React.useState<Restaurant | null>(null);
   const searchInputRef = React.useRef<HTMLInputElement>(null);
   const debounceTimerRef = React.useRef<NodeJS.Timeout | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
   // Note: Background scroll is locked by AppLayout when post tab is active
 
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
@@ -357,14 +360,96 @@ export function RestaurantSelector({ onSelectRestaurant }: RestaurantSelectorPro
     }, 300);
   };
 
+  // Crop an image dataURL to 9:16 aspect, center-cropped, output JPEG
+  const cropToReelsAspect = React.useCallback(async (dataUrl: string): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new window.Image();
+      img.onload = () => {
+        const sourceWidth = img.width;
+        const sourceHeight = img.height;
+        const targetAspect = 9 / 16; // portrait 9:16
+
+        // Compute crop rectangle for object-fit: cover behavior
+        let cropWidth = sourceWidth;
+        let cropHeight = Math.round(sourceWidth / targetAspect);
+        if (cropHeight > sourceHeight) {
+          cropHeight = sourceHeight;
+          cropWidth = Math.round(sourceHeight * targetAspect);
+        }
+
+        const sx = Math.max(0, Math.floor((sourceWidth - cropWidth) / 2));
+        const sy = Math.max(0, Math.floor((sourceHeight - cropHeight) / 2));
+
+        // Output at 1080x1920 for quality (keeps file sizes reasonable)
+        const outWidth = 1080;
+        const outHeight = 1920;
+
+        const canvas = document.createElement('canvas');
+        canvas.width = outWidth;
+        canvas.height = outHeight;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(dataUrl);
+          return;
+        }
+        ctx.drawImage(img, sx, sy, cropWidth, cropHeight, 0, 0, outWidth, outHeight);
+        resolve(canvas.toDataURL('image/jpeg', 0.9));
+      };
+      img.onerror = () => resolve(dataUrl);
+      img.src = dataUrl;
+    });
+  }, []);
+
+  const handleFileInput = React.useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+
+    // Reset the input value to allow re-selecting the same file
+    if (e.target) {
+      e.target.value = '';
+    }
+
+    if (!file || !selectedRestaurant) {
+      // User cancelled - clear selected restaurant
+      setSelectedRestaurant(null);
+      return;
+    }
+
+    // Check if it's a video
+    const isVideoFile = file.type.startsWith('video/');
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const mediaData = event.target?.result as string;
+      if (!mediaData) {
+        setSelectedRestaurant(null);
+        return;
+      }
+
+      if (isVideoFile) {
+        onSelectRestaurant(selectedRestaurant);
+        onMediaSelected(mediaData, true);
+      } else {
+        const cropped = await cropToReelsAspect(mediaData);
+        onSelectRestaurant(selectedRestaurant);
+        onMediaSelected(cropped, false);
+      }
+    };
+    reader.readAsDataURL(file);
+  }, [selectedRestaurant, onSelectRestaurant, onMediaSelected, cropToReelsAspect]);
+
   const handleSelectRestaurant = (restaurant: Restaurant) => {
     // Save to recent restaurants
     const recent = [restaurant, ...recentRestaurants.filter(r => r.id !== restaurant.id)].slice(0, 5);
     localStorage.setItem('recentRestaurants', JSON.stringify(recent));
     setRecentRestaurants(recent);
 
-    // Immediately trigger camera/photo selection
-    onSelectRestaurant(restaurant);
+    // Store selected restaurant and trigger file input
+    setSelectedRestaurant(restaurant);
+
+    // Trigger file input after a small delay
+    setTimeout(() => {
+      fileInputRef.current?.click();
+    }, 100);
   };
 
   const renderRestaurantCard = (restaurant: Restaurant, showDistance = false) => (
@@ -436,6 +521,15 @@ export function RestaurantSelector({ onSelectRestaurant }: RestaurantSelectorPro
         paddingBottom: 'calc(env(safe-area-inset-bottom, 20px) + 88px)',
       }}
     >
+      {/* Hidden file input - native media picker */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/jpg,image/png,video/mp4,video/*"
+        onChange={handleFileInput}
+        className="hidden"
+      />
+
       {/* Animated purple wave background - matching profile page */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Purple wave gradient */}

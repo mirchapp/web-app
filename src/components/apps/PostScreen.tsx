@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import { RestaurantSelector } from '@/components/post/RestaurantSelector';
-import { CameraCapture } from '@/components/post/CameraCapture';
 import { PostEditor } from '@/components/post/PostEditor';
 
 interface Restaurant {
@@ -15,7 +14,7 @@ interface Restaurant {
   placeId: string;
 }
 
-type PostStep = 'select-restaurant' | 'camera' | 'edit-post';
+type PostStep = 'select-restaurant' | 'edit-post';
 
 // Context to share post editor state with AppLayout
 export const PostEditorContext = React.createContext<{
@@ -37,23 +36,18 @@ export function PostScreen() {
 
   const handleSelectRestaurant = (restaurant: Restaurant) => {
     setSelectedRestaurant(restaurant);
-    setCurrentStep('camera');
   };
 
-  const handleCapture = (mediaData: string, isVideoFile?: boolean) => {
+  const handleMediaSelected = (mediaData: string, isVideoFile: boolean) => {
     setCapturedMedia(mediaData);
-    setIsVideo(isVideoFile || false);
+    setIsVideo(isVideoFile);
     setCurrentStep('edit-post');
     setIsInEditor(true);
   };
 
-  const handleBackFromCamera = () => {
+  const handleBackFromEditor = () => {
     setCurrentStep('select-restaurant');
     setSelectedRestaurant(null);
-  };
-
-  const handleBackFromEditor = () => {
-    setCurrentStep('camera');
     setCapturedMedia(null);
     setIsInEditor(false);
   };
@@ -81,19 +75,10 @@ export function PostScreen() {
     );
   }
 
-  if (currentStep === 'camera' && selectedRestaurant) {
-    return (
-      <CameraCapture
-        restaurantName={selectedRestaurant.name}
-        onCapture={handleCapture}
-        onBack={handleBackFromCamera}
-      />
-    );
-  }
-
   return (
     <RestaurantSelector
       onSelectRestaurant={handleSelectRestaurant}
+      onMediaSelected={handleMediaSelected}
     />
   );
 }
