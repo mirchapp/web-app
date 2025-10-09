@@ -110,100 +110,12 @@ export function CameraCapture({ restaurantName, onCapture, onBack }: CameraCaptu
     return () => clearTimeout(timer);
   }, []);
 
-  // Start camera (will try getUserMedia first, fallback to file input on iOS PWA issues)
-  React.useEffect(() => {
-    // Skip camera initialization if using file input
-    if (useFileInput) return;
-
-    let currentStream: MediaStream | null = null;
-
-    const startCamera = async () => {
-      try {
-        // Check if mediaDevices is supported
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-          console.log('getUserMedia not supported, using file input');
-          setUseFileInput(true);
-          return;
-        }
-
-        // Request camera access with fallback constraints
-        let constraints: MediaStreamConstraints = {
-          video: {
-            facingMode: facingMode,
-            width: { ideal: 1920 },
-            height: { ideal: 1080 },
-          },
-          audio: false,
-        };
-
-        try {
-          const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
-          currentStream = mediaStream;
-
-          if (videoRef.current) {
-            videoRef.current.srcObject = mediaStream;
-          }
-        } catch (err: unknown) {
-          // Try simpler constraints if facingMode fails
-          console.warn('Specific constraints failed, trying basic video:', err);
-
-          constraints = {
-            video: true,
-            audio: false,
-          };
-
-          const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
-          currentStream = mediaStream;
-
-          if (videoRef.current) {
-            videoRef.current.srcObject = mediaStream;
-          }
-        }
-      } catch (err: unknown) {
-        console.error('Error accessing camera:', err);
-
-        // On iOS PWA or any error, switch to file input and auto-trigger
-        setUseFileInput(true);
-        setTimeout(() => {
-          triggerFileInput();
-        }, 100);
-      }
-    };
-
-    startCamera();
-
-    return () => {
-      if (currentStream) {
-        currentStream.getTracks().forEach(track => track.stop());
-      }
-    };
-  }, [facingMode, useFileInput, isIOSPWA]);
-
-  // Unused: keeping for potential future use with getUserMedia
-  // const handleCapture = () => {
-  //   if (!videoRef.current || !canvasRef.current) return;
-
-  //   const video = videoRef.current;
-  //   const canvas = canvasRef.current;
-  //   const context = canvas.getContext('2d');
-
-  //   if (!context) return;
-
-  //   // Set canvas dimensions to match video
-  //   canvas.width = video.videoWidth;
-  //   canvas.height = video.videoHeight;
-
-  //   // Draw the video frame to canvas
-  //   context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-  //   // Get image data as base64
-  //   const imageData = canvas.toDataURL('image/jpeg', 0.9);
-  //   setCapturedImage(imageData);
-  // };
-
   const handleRetake = () => {
     setCapturedImage(null);
-    // Camera will restart via useEffect
+    // Re-trigger file input to select another image
+    setTimeout(() => {
+      triggerFileInput();
+    }, 100);
   };
 
   const handleConfirm = async () => {
@@ -216,12 +128,6 @@ export function CameraCapture({ restaurantName, onCapture, onBack }: CameraCaptu
       }
     }
   };
-
-  // Unused: keeping for potential future use with getUserMedia
-  // const handleFlipCamera = () => {
-  //   setFacingMode(prev => prev === 'user' ? 'environment' : 'user');
-  //   setCapturedImage(null);
-  // };
 
   // Handle file input cancel detection using native event listener
   React.useEffect(() => {
