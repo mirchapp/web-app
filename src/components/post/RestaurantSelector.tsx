@@ -68,6 +68,7 @@ export function RestaurantSelector({ onSelectRestaurant, onMediaSelected }: Rest
   const [locationError, setLocationError] = React.useState<string | null>(null);
   const [hasRequestedPermission, setHasRequestedPermission] = React.useState(false);
   const [selectedRestaurant, setSelectedRestaurant] = React.useState<Restaurant | null>(null);
+  const [selectedCardKey, setSelectedCardKey] = React.useState<string | null>(null);
   const searchInputRef = React.useRef<HTMLInputElement>(null);
   const debounceTimerRef = React.useRef<NodeJS.Timeout | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -466,6 +467,7 @@ export function RestaurantSelector({ onSelectRestaurant, onMediaSelected }: Rest
         setRecentRestaurants(recent);
         // Clear highlight immediately
         setSelectedRestaurant(null);
+        setSelectedCardKey(null);
       }
     };
 
@@ -502,10 +504,11 @@ export function RestaurantSelector({ onSelectRestaurant, onMediaSelected }: Rest
     };
   }, [selectedRestaurant, recentRestaurants]);
 
-  const handleSelectRestaurant = (restaurant: Restaurant) => {
-    // Store selected restaurant and trigger file input
+  const handleSelectRestaurant = (restaurant: Restaurant, cardKey: string) => {
+    // Store selected restaurant and the specific card key (to identify which card was clicked)
     // DON'T save to recent yet - wait until user selects media
     setSelectedRestaurant(restaurant);
+    setSelectedCardKey(cardKey);
 
     // Trigger file input after a small delay
     setTimeout(() => {
@@ -513,41 +516,32 @@ export function RestaurantSelector({ onSelectRestaurant, onMediaSelected }: Rest
     }, 100);
   };
 
-  const renderRestaurantCard = (restaurant: Restaurant, showDistance = false) => {
-    const isSelected = selectedRestaurant?.id === restaurant.id;
+  const renderRestaurantCard = (restaurant: Restaurant, showDistance = false, section = 'nearby') => {
+    // Create unique card key combining restaurant ID and section
+    const cardKey = `${section}-${restaurant.id}`;
+    const isSelected = selectedCardKey === cardKey;
 
     return (
     <motion.button
-      key={restaurant.id}
-      onClick={() => handleSelectRestaurant(restaurant)}
-      className={`w-full flex items-center gap-4 p-4 rounded-[14px] text-left touch-manipulation relative overflow-hidden transition-all duration-300 ${
+      key={cardKey}
+      onClick={() => handleSelectRestaurant(restaurant, cardKey)}
+      className={`w-full flex items-center gap-4 p-4 rounded-[14px] text-left touch-manipulation relative overflow-hidden transition-all duration-200 ${
         isSelected
-          ? 'bg-purple-50 dark:bg-purple-500/10 border-2 border-purple-400 dark:border-purple-500/50 shadow-[0_4px_24px_rgba(138,66,214,0.25)] scale-[1.02] ring-2 ring-purple-400/20 dark:ring-purple-500/30'
+          ? 'bg-purple-50 dark:bg-purple-500/10 border-2 border-purple-400 dark:border-purple-500/50 shadow-lg'
           : 'bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/5 shadow-sm dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] backdrop-blur-sm hover:border-purple-200 dark:hover:border-purple-500/20'
       }`}
-      whileTap={{ scale: isSelected ? 1.02 : 0.98 }}
+      whileTap={{ scale: isSelected ? 1.0 : 0.98 }}
       whileHover={isSelected ? {} : {
         boxShadow: '0 4px 20px rgba(138, 66, 214, 0.15), 0 0 0 1px rgba(138, 66, 214, 0.1)',
         y: -2,
       }}
       transition={{ duration: 0.2, ease: 'easeOut' }}
-      animate={isSelected ? {
-        scale: [1.02, 1.025, 1.02],
-        boxShadow: [
-          '0 4px 24px rgba(138, 66, 214, 0.25), 0 0 0 2px rgba(138, 66, 214, 0.3)',
-          '0 6px 28px rgba(138, 66, 214, 0.35), 0 0 0 2px rgba(138, 66, 214, 0.4)',
-          '0 4px 24px rgba(138, 66, 214, 0.25), 0 0 0 2px rgba(138, 66, 214, 0.3)',
-        ],
-      } : {}}
-      style={isSelected ? {
-        transition: 'all 0.3s ease-out',
-      } : {}}
     >
       <motion.div
-        className={`relative h-16 w-16 rounded-[12px] overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-muted ring-1 transition-all duration-300 ${
+        className={`relative h-16 w-16 rounded-[12px] overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-muted transition-all duration-200 ${
           isSelected
-            ? 'ring-purple-400 dark:ring-purple-500/50 ring-2'
-            : 'ring-gray-200 dark:ring-black/5'
+            ? 'ring-2 ring-purple-400 dark:ring-purple-500/50'
+            : 'ring-1 ring-gray-200 dark:ring-black/5'
         }`}
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -739,9 +733,7 @@ export function RestaurantSelector({ onSelectRestaurant, onMediaSelected }: Rest
             </div>
             <div className="space-y-3">
               {suggestions.length > 0 ? (
-                suggestions
-                  .filter(restaurant => !recentRestaurants.some(recent => recent.id === restaurant.id))
-                  .map((restaurant) => renderRestaurantCard(restaurant))
+                suggestions.map((restaurant) => renderRestaurantCard(restaurant, false, 'search'))
               ) : !isLoading && (
                 <div className="py-12 text-center">
                   <MapPin className="h-12 w-12 text-gray-300 dark:text-muted-foreground/30 mx-auto mb-4" />
@@ -767,12 +759,12 @@ export function RestaurantSelector({ onSelectRestaurant, onMediaSelected }: Rest
             <div className="space-y-3">
               {recentRestaurants.map((restaurant, index) => (
                 <motion.div
-                  key={restaurant.id}
+                  key={`recent-${restaurant.id}`}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: index * 0.05, ease: 'easeOut' }}
                 >
-                  {renderRestaurantCard(restaurant)}
+                  {renderRestaurantCard(restaurant, false, 'recent')}
                 </motion.div>
               ))}
             </div>
@@ -791,16 +783,14 @@ export function RestaurantSelector({ onSelectRestaurant, onMediaSelected }: Rest
               <h2 className="text-sm font-light text-gray-500 dark:text-foreground/60 tracking-wide">Nearby</h2>
             </div>
             <div className="space-y-3">
-              {nearbyRestaurants
-                .filter(restaurant => !recentRestaurants.some(recent => recent.id === restaurant.id))
-                .map((restaurant, index) => (
+              {nearbyRestaurants.map((restaurant, index) => (
                 <motion.div
-                  key={restaurant.id}
+                  key={`nearby-${restaurant.id}`}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: index * 0.05, ease: 'easeOut' }}
                 >
-                  {renderRestaurantCard(restaurant, true)}
+                  {renderRestaurantCard(restaurant, true, 'nearby')}
                 </motion.div>
               ))}
             </div>
