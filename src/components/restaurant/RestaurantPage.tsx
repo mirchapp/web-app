@@ -245,8 +245,8 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
                         <h3 className="text-base font-light text-gray-500 dark:text-foreground/60 mb-5 tracking-wide">Popular Dishes</h3>
                         <div className="space-y-3">
                           {restaurant.popularDishes.map((dish, index) => (
-                            <div key={index} className="flex gap-3 p-4 rounded-lg sm:rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/[0.05] hover:border-gray-300 dark:hover:border-white/20 transition-all duration-300 shadow-lg hover:shadow-xl">
-                              <div className="h-20 w-20 rounded-[12px] overflow-hidden flex-shrink-0 bg-muted ring-1 ring-gray-200 dark:ring-white/10">
+                            <div key={index} className="flex gap-3 p-4 rounded-[14px] bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/5 shadow-sm dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] hover:border-purple-200 dark:hover:border-purple-500/20 transition-all duration-200 hover:shadow-[0_4px_20px_rgba(138,66,214,0.15),0_0_0_1px_rgba(138,66,214,0.1)] hover:-translate-y-0.5">
+                              <div className="h-20 w-20 rounded-[12px] overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-muted ring-1 ring-gray-200 dark:ring-black/5">
                                 <Image
                                   src={dish.image}
                                   alt={dish.name}
@@ -310,8 +310,8 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
                             { name: "Chicken Satay", description: "Grilled chicken skewers with coconut curry sauce", price: 12.99, rating: 4.8, reviews: 67, labels: ["Popular", "Grilled"], image: "https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?w=200&h=200&fit=crop" },
                             { name: "Tom Yum Soup", description: "Spicy and sour soup with shrimp and mushrooms", price: 10.99, rating: 4.5, reviews: 89, labels: ["Spicy", "Soup"], image: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=200&h=200&fit=crop" }
                           ].map((dish, index) => (
-                            <div key={index} className="flex gap-3 p-4 rounded-lg sm:rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/[0.05] hover:border-gray-300 dark:hover:border-white/20 transition-all duration-300 shadow-lg hover:shadow-xl">
-                              <div className="h-20 w-20 rounded-[12px] overflow-hidden flex-shrink-0 bg-muted ring-1 ring-gray-200 dark:ring-white/10">
+                            <div key={index} className="flex gap-3 p-4 rounded-[14px] bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/5 shadow-sm dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] hover:border-purple-200 dark:hover:border-purple-500/20 transition-all duration-200 hover:shadow-[0_4px_20px_rgba(138,66,214,0.15),0_0_0_1px_rgba(138,66,214,0.1)] hover:-translate-y-0.5">
+                              <div className="h-20 w-20 rounded-[12px] overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-muted ring-1 ring-gray-200 dark:ring-black/5">
                                 <Image
                                   src={dish.image}
                                   alt={dish.name}
@@ -368,8 +368,8 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
                             { name: "Pad See Ew", description: "Wide rice noodles stir-fried with Chinese broccoli and soy sauce", price: 15.99, rating: 4.3, reviews: 73, labels: ["Vegetarian", "Noodles"], image: "https://images.unsplash.com/photo-1552611052-33e04de081de?w=200&h=200&fit=crop" },
                             { name: "Crispy Duck", description: "Half duck with crispy skin served with plum sauce", price: 24.99, rating: 4.9, reviews: 45, labels: ["Premium", "Specialty"], image: "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=200&h=200&fit=crop" }
                           ].map((dish, index) => (
-                            <div key={index} className="flex gap-3 p-4 rounded-lg sm:rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/[0.05] hover:border-gray-300 dark:hover:border-white/20 transition-all duration-300 shadow-lg hover:shadow-xl">
-                              <div className="h-20 w-20 rounded-[12px] overflow-hidden flex-shrink-0 bg-muted ring-1 ring-gray-200 dark:ring-white/10">
+                            <div key={index} className="flex gap-3 p-4 rounded-[14px] bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/5 shadow-sm dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] hover:border-purple-200 dark:hover:border-purple-500/20 transition-all duration-200 hover:shadow-[0_4px_20px_rgba(138,66,214,0.15),0_0_0_1px_rgba(138,66,214,0.1)] hover:-translate-y-0.5">
+                              <div className="h-20 w-20 rounded-[12px] overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-muted ring-1 ring-gray-200 dark:ring-black/5">
                                 <Image
                                   src={dish.image}
                                   alt={dish.name}
@@ -427,8 +427,8 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
                             { name: "Thai Tea Ice Cream", description: "Creamy ice cream flavored with authentic Thai tea", price: 6.99, rating: 4.5, reviews: 87, labels: ["Cold", "Popular"], image: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=200&h=200&fit=crop" },
                             { name: "Fried Banana", description: "Crispy fried banana with honey and sesame seeds", price: 7.99, rating: 4.2, reviews: 56, labels: ["Fried", "Traditional"], image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=200&h=200&fit=crop" }
                           ].map((dish, index) => (
-                            <div key={index} className="flex gap-3 p-4 rounded-lg sm:rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/[0.05] hover:border-gray-300 dark:hover:border-white/20 transition-all duration-300 shadow-lg hover:shadow-xl">
-                              <div className="h-20 w-20 rounded-[12px] overflow-hidden flex-shrink-0 bg-muted ring-1 ring-gray-200 dark:ring-white/10">
+                            <div key={index} className="flex gap-3 p-4 rounded-[14px] bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/5 shadow-sm dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] hover:border-purple-200 dark:hover:border-purple-500/20 transition-all duration-200 hover:shadow-[0_4px_20px_rgba(138,66,214,0.15),0_0_0_1px_rgba(138,66,214,0.1)] hover:-translate-y-0.5">
+                              <div className="h-20 w-20 rounded-[12px] overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-muted ring-1 ring-gray-200 dark:ring-black/5">
                                 <Image
                                   src={dish.image}
                                   alt={dish.name}
@@ -486,8 +486,8 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
                             { name: "Fresh Coconut Water", description: "Refreshing natural coconut water", price: 5.99, rating: 4.4, reviews: 78, labels: ["Fresh", "Healthy"], image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=200&h=200&fit=crop" },
                             { name: "Lemongrass Ginger Tea", description: "Hot herbal tea with fresh lemongrass and ginger", price: 3.99, rating: 4.7, reviews: 45, labels: ["Hot", "Herbal"], image: "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=200&h=200&fit=crop" }
                           ].map((dish, index) => (
-                            <div key={index} className="flex gap-3 p-4 rounded-lg sm:rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/[0.05] hover:border-gray-300 dark:hover:border-white/20 transition-all duration-300 shadow-lg hover:shadow-xl">
-                              <div className="h-20 w-20 rounded-[12px] overflow-hidden flex-shrink-0 bg-muted ring-1 ring-gray-200 dark:ring-white/10">
+                            <div key={index} className="flex gap-3 p-4 rounded-[14px] bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/5 shadow-sm dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] hover:border-purple-200 dark:hover:border-purple-500/20 transition-all duration-200 hover:shadow-[0_4px_20px_rgba(138,66,214,0.15),0_0_0_1px_rgba(138,66,214,0.1)] hover:-translate-y-0.5">
+                              <div className="h-20 w-20 rounded-[12px] overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-muted ring-1 ring-gray-200 dark:ring-black/5">
                                 <Image
                                   src={dish.image}
                                   alt={dish.name}
