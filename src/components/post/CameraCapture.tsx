@@ -111,7 +111,7 @@ export function CameraCapture({ restaurantName, onCapture, onBack }: CameraCaptu
     fileInputRef.current?.click();
   };
 
-  // Auto-trigger file input when component mounts (for all platforms)
+  // Auto-trigger file input when component mounts
   React.useEffect(() => {
     setUseFileInput(true);
     // Trigger immediately to maintain user gesture context
@@ -120,7 +120,7 @@ export function CameraCapture({ restaurantName, onCapture, onBack }: CameraCaptu
     }, 50); // Small delay to ensure input is mounted
 
     return () => clearTimeout(timer);
-  }, [cropToReelsAspect]);
+  }, []);
 
   // Start camera (will try getUserMedia first, fallback to file input on iOS PWA issues)
   React.useEffect(() => {
@@ -255,13 +255,13 @@ export function CameraCapture({ restaurantName, onCapture, onBack }: CameraCaptu
 
   return (
     <>
-      {/* Hidden file input - camera for photo and video */}
+      {/* Hidden file input - native media picker */}
       {/* Accept JPEG/PNG explicitly to avoid HEIC issues on iOS */}
+      {/* No capture attribute - lets OS show native picker with camera + library options */}
       <input
         ref={fileInputRef}
         type="file"
         accept="image/jpeg,image/jpg,image/png,video/mp4,video/*"
-        capture="environment"
         onChange={handleFileInput}
         className="hidden"
       />

@@ -63,7 +63,7 @@ export function PostScreen() {
     console.log('Publishing post...', data);
   };
 
-  
+
 
   if (currentStep === 'edit-post' && selectedRestaurant && capturedMedia) {
     return (
