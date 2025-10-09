@@ -403,15 +403,26 @@ export function RestaurantSelector({ onSelectRestaurant, onMediaSelected }: Rest
   const handleFileInput = React.useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
 
+    if (!file || !selectedRestaurant) {
+      // User cancelled or no file selected
+      if (selectedRestaurant) {
+        // Save to recents and clear highlight
+        const recent = [selectedRestaurant, ...recentRestaurants.filter(r => r.id !== selectedRestaurant.id)].slice(0, 5);
+        localStorage.setItem('recentRestaurants', JSON.stringify(recent));
+        setRecentRestaurants(recent);
+        setSelectedRestaurant(null);
+      }
+
+      // Reset the input value
+      if (e.target) {
+        e.target.value = '';
+      }
+      return;
+    }
+
     // Reset the input value to allow re-selecting the same file
     if (e.target) {
       e.target.value = '';
-    }
-
-    if (!file || !selectedRestaurant) {
-      // User cancelled or no file selected - clear selected restaurant and remove highlight
-      setSelectedRestaurant(null);
-      return;
     }
 
     // Save to recent restaurants AFTER user has selected media
@@ -447,28 +458,35 @@ export function RestaurantSelector({ onSelectRestaurant, onMediaSelected }: Rest
     const fileInput = fileInputRef.current;
     if (!fileInput) return;
 
-    const handleCancel = () => {
-      // User cancelled the picker - save to recents and clear highlight
+    const clearSelection = () => {
       if (selectedRestaurant) {
+        // Save to recents
         const recent = [selectedRestaurant, ...recentRestaurants.filter(r => r.id !== selectedRestaurant.id)].slice(0, 5);
         localStorage.setItem('recentRestaurants', JSON.stringify(recent));
         setRecentRestaurants(recent);
+        // Clear highlight immediately
         setSelectedRestaurant(null);
       }
+    };
+
+    const handleCancel = (e: Event) => {
+      e.preventDefault();
+      // User cancelled the picker
+      clearSelection();
     };
 
     let focusTimeout: NodeJS.Timeout;
     const handleWindowFocus = () => {
       // When window regains focus after file picker, check if file was selected
+      // Use shorter timeout for faster response
       focusTimeout = setTimeout(() => {
-        if (selectedRestaurant && (!fileInput.files || fileInput.files.length === 0)) {
-          // No file selected, user cancelled - save to recents and clear highlight
-          const recent = [selectedRestaurant, ...recentRestaurants.filter(r => r.id !== selectedRestaurant.id)].slice(0, 5);
-          localStorage.setItem('recentRestaurants', JSON.stringify(recent));
-          setRecentRestaurants(recent);
-          setSelectedRestaurant(null);
+        const hasFiles = fileInput.files && fileInput.files.length > 0;
+        if (selectedRestaurant && !hasFiles) {
+          // No file selected, user cancelled
+          console.log('Focus detected - clearing selection');
+          clearSelection();
         }
-      }, 300);
+      }, 100);
     };
 
     // Listen for the cancel event (fires when user dismisses picker without selecting)
@@ -525,19 +543,6 @@ export function RestaurantSelector({ onSelectRestaurant, onMediaSelected }: Rest
         transition: 'all 0.3s ease-out',
       } : {}}
     >
-      {/* Subtle animated gradient overlay when selected */}
-      {isSelected && (
-        <motion.div
-          className="absolute inset-0 bg-gradient-to-r from-purple-400/10 via-purple-300/5 to-transparent dark:from-purple-500/20 dark:via-purple-400/10 dark:to-transparent"
-          initial={{ x: '-100%' }}
-          animate={{ x: '100%' }}
-          transition={{
-            repeat: Infinity,
-            duration: 2,
-            ease: 'linear',
-          }}
-        />
-      )}
       <motion.div
         className={`relative h-16 w-16 rounded-[12px] overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-muted ring-1 transition-all duration-300 ${
           isSelected
@@ -734,7 +739,9 @@ export function RestaurantSelector({ onSelectRestaurant, onMediaSelected }: Rest
             </div>
             <div className="space-y-3">
               {suggestions.length > 0 ? (
-                suggestions.map((restaurant) => renderRestaurantCard(restaurant))
+                suggestions
+                  .filter(restaurant => !recentRestaurants.some(recent => recent.id === restaurant.id))
+                  .map((restaurant) => renderRestaurantCard(restaurant))
               ) : !isLoading && (
                 <div className="py-12 text-center">
                   <MapPin className="h-12 w-12 text-gray-300 dark:text-muted-foreground/30 mx-auto mb-4" />
@@ -784,7 +791,9 @@ export function RestaurantSelector({ onSelectRestaurant, onMediaSelected }: Rest
               <h2 className="text-sm font-light text-gray-500 dark:text-foreground/60 tracking-wide">Nearby</h2>
             </div>
             <div className="space-y-3">
-              {nearbyRestaurants.map((restaurant, index) => (
+              {nearbyRestaurants
+                .filter(restaurant => !recentRestaurants.some(recent => recent.id === restaurant.id))
+                .map((restaurant, index) => (
                 <motion.div
                   key={restaurant.id}
                   initial={{ opacity: 0, y: 10 }}
