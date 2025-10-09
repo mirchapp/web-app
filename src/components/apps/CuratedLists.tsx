@@ -5,13 +5,14 @@ import Image from "next/image";
 import { ChevronRight, MapPin } from "lucide-react";
 
 interface CuratedList {
-  id: number;
+  id: string;
+  slug: string;
   title: string;
   shortTitle?: string;
-  description: string;
+  description?: string;
   imageUrl: string;
-  category: string;
-  count: number;
+  category?: string;
+  count?: number;
 }
 
 interface CuratedListsProps {
@@ -118,6 +119,22 @@ export function CuratedLists({
               </div>
               <div
                 style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  fontSize: "13px",
+                  color: isDark ? "rgba(255,255,255,0.7)" : "#555555",
+                }}
+              >
+                {list.category && (
+                  <span style={{ fontWeight: 600 }}>{list.category}</span>
+                )}
+                {typeof list.count === "number" && (
+                  <span>{list.count} places</span>
+                )}
+              </div>
+              <div
+                style={{
                   fontSize: "14px",
                   lineHeight: "1.4",
                   color: isDark ? "#a0a0a0" : "#666666",
@@ -129,7 +146,8 @@ export function CuratedLists({
                   wordBreak: "break-word",
                 }}
               >
-                {list.description}
+                {list.description ??
+                  `Member-loved picks for ${list.category ?? "food lovers"}`}
               </div>
             </div>
 

@@ -6,12 +6,13 @@ import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface FeaturedList {
-  id: number;
+  id: string;
+  slug: string;
   title: string;
-  subtitle: string;
+  subtitle?: string;
   imageUrl: string;
-  progress: number;
-  total: number;
+  progress?: number;
+  total?: number;
 }
 
 interface FeaturedListsProps {
@@ -84,15 +85,17 @@ export function FeaturedLists({
                   >
                     {list.title}
                   </h3>
-                  <p
-                    className="text-sm font-semibold text-white/95"
-                    style={{
-                      textShadow: "0 1px 4px rgba(0,0,0,0.8)",
-                      WebkitTextStroke: "0.3px rgba(0,0,0,0.1)",
-                    }}
-                  >
-                    {list.subtitle}
-                  </p>
+                  {list.subtitle && (
+                    <p
+                      className="text-sm font-semibold text-white/95"
+                      style={{
+                        textShadow: "0 1px 4px rgba(0,0,0,0.8)",
+                        WebkitTextStroke: "0.3px rgba(0,0,0,0.1)",
+                      }}
+                    >
+                      {list.subtitle}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>

@@ -6,73 +6,37 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { FeaturedLists } from "./FeaturedLists";
 import { CuratedLists } from "./CuratedLists";
+import { getListSummaries } from "@/data/mock/list-articles";
+import { useRouter } from "next/navigation";
 
-// Mock data for curated lists
-const curatedListsData = [
-  {
-    id: 1,
-    title: "The top 15 NYC Vietnamese restaurants, as ranked by  members",
-    shortTitle: "Top 15 NYC Vietnamese",
-    description: "The top 15 NYC Vietnamese restaurants",
-    imageUrl:
-      "https://images.unsplash.com/photo-1559314809-0d155014e29e?w=400&h=400&fit=crop&auto=format",
-    category: "Vietnamese",
-    count: 15,
-  },
-  {
-    id: 2,
-    title: "Top 10 NYC Filipino",
-    description: "The top 10 NYC Filipino restaurants, as ranked by  members",
-    imageUrl:
-      "https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?w=400&h=400&fit=crop&auto=format",
-    category: "Filipino",
-    count: 10,
-  },
-  {
-    id: 3,
-    title: "Top 15 NYC Sushi",
-    description: "The top 15 sushi restaurants in NYC, as ranked by  members",
-    imageUrl:
-      "https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=400&h=400&fit=crop&auto=format",
-    category: "Sushi",
-    count: 15,
-  },
-  {
-    id: 4,
-    title: "Top 10 NYC Spanish",
-    description: "The top 10 Spanish restaurants in NYC, as ranked by  members",
-    imageUrl:
-      "https://images.unsplash.com/photo-1534080564583-6be75777b70a?w=400&h=400&fit=crop&auto=format",
-    category: "Spanish",
-    count: 10,
-  },
-];
+const featuredSummaries = getListSummaries("featured");
+const curatedSummaries = getListSummaries("curated");
 
-// Mock data for featured lists (larger cards)
-const featuredListsData = [
-  {
-    id: 1,
-    title: "North America's 50 Best Restaurants",
-    subtitle: "You've been to 0 of 50",
-    imageUrl:
-      "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=600&fit=crop&auto=format",
-    progress: 0,
-    total: 50,
-  },
-  {
-    id: 2,
-    title: "Top 20 Toronto Cocktail Bars",
-    subtitle: "You've been to 0 of 20",
-    imageUrl:
-      "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=800&h=600&fit=crop&auto=format",
-    progress: 0,
-    total: 20,
-  },
-];
+const featuredListsData = featuredSummaries.map((article) => ({
+  id: article.slug,
+  slug: article.slug,
+  title: article.title,
+  subtitle: article.summary.subtitle ?? undefined,
+  imageUrl: article.summary.imageUrl,
+  progress: article.summary.visited ?? 0,
+  total: article.summary.total ?? article.summary.count ?? article.entries.length,
+}));
+
+const curatedListsData = curatedSummaries.map((article) => ({
+  id: article.slug,
+  slug: article.slug,
+  title: article.title,
+  shortTitle: article.summary.shortTitle ?? article.title,
+  description: article.summary.description ?? article.intro,
+  imageUrl: article.summary.imageUrl,
+  category: article.summary.categoryLabel ?? "Curated Picks",
+  count: article.summary.count ?? article.summary.total ?? article.entries.length,
+}));
 
 export function FindHome() {
   const [searchQuery, setSearchQuery] = React.useState("");
   const [greeting, setGreeting] = React.useState("");
+  const router = useRouter();
 
   React.useEffect(() => {
     const hour = new Date().getHours();
@@ -136,14 +100,14 @@ export function FindHome() {
       <FeaturedLists
         lists={featuredListsData}
         onSeeAll={() => console.log("See all featured lists")}
-        onListClick={(list) => console.log("Clicked featured list:", list)}
+        onListClick={(list) => router.push(`/diners/lists/${list.slug}`)}
       />
 
       {/* Curated Lists Section */}
       <CuratedLists
         lists={curatedListsData}
         location="New York, NY"
-        onListClick={(list) => console.log("Clicked curated list:", list)}
+        onListClick={(list) => router.push(`/diners/lists/${list.slug}`)}
       />
     </div>
   );
