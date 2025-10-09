@@ -74,6 +74,9 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
   const isDraggingHorizontally = React.useRef<boolean | null>(null);
   const [dragOffset, setDragOffset] = React.useState<number>(0);
   const [isHorizontalDrag, setIsHorizontalDrag] = React.useState<boolean>(false);
+  const dragVelocityX = React.useRef<number>(0);
+  const lastDragTime = React.useRef<number>(0);
+  const lastDragX = React.useRef<number>(0);
 
   // Finalize snap position and cancel momentum so taps register immediately
   const finalizeSnapAndCancelMomentum = React.useCallback(() => {
@@ -153,11 +156,15 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
     touchCurrentY.current = e.touches[0].clientY;
     isDraggingHorizontally.current = null; // Reset direction detection
     setIsHorizontalDrag(false); // Reset state
+    dragVelocityX.current = 0;
+    lastDragTime.current = Date.now();
+    lastDragX.current = e.touches[0].clientX;
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     const currentX = e.touches[0].clientX;
     const currentY = e.touches[0].clientY;
+    const now = Date.now();
 
     const diffX = currentX - touchStartX.current;
     const diffY = currentY - touchStartY.current;
@@ -179,9 +186,21 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
       e.preventDefault();
       e.stopPropagation();
 
-      if (diffX > 0) {
-        setDragOffset(diffX);
+      // Calculate velocity for momentum-based dismissal
+      const timeDelta = now - lastDragTime.current;
+      if (timeDelta > 0) {
+        const xDelta = currentX - lastDragX.current;
+        dragVelocityX.current = xDelta / timeDelta;
       }
+
+      if (diffX > 0) {
+        // Apply a rubber band effect for smoother drag feel
+        const rubberBand = Math.min(diffX, diffX * (1 - diffX / (window.innerWidth * 1.5)));
+        setDragOffset(rubberBand);
+      }
+
+      lastDragTime.current = now;
+      lastDragX.current = currentX;
     } else if (isDraggingHorizontally.current === false) {
       // Allow normal scrolling - don't interfere
       setDragOffset(0);
@@ -195,13 +214,23 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
     e.stopPropagation();
 
     const swipeDistance = touchCurrentX.current - touchStartX.current;
+    const velocity = dragVelocityX.current;
 
-    // Only close if it was a horizontal drag to the right (swipe right to close)
-    if (isDraggingHorizontally.current === true && swipeDistance > 100) {
+    // Dismiss if:
+    // 1. Dragged more than 40% of screen width, OR
+    // 2. Dragged more than 80px with velocity > 0.3 (fast swipe), OR
+    // 3. Dragged more than 120px (definite dismissal)
+    const shouldDismiss = isDraggingHorizontally.current === true && (
+      swipeDistance > window.innerWidth * 0.4 ||
+      (swipeDistance > 80 && velocity > 0.3) ||
+      swipeDistance > 120
+    );
+
+    if (shouldDismiss) {
       // Controlled close to immediately allow touches to pass through backdrop
       handleProfileClose();
     } else {
-      // Snap back to position with animation
+      // Snap back to position with smooth spring animation
       setDragOffset(0);
     }
 
@@ -212,15 +241,17 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
     touchCurrentY.current = 0;
     isDraggingHorizontally.current = null;
     setIsHorizontalDrag(false);
+    dragVelocityX.current = 0;
   };
 
   const handleProfileClose = () => {
     setIsProfileClosing(true);
     // Wait for slide-out before unmounting to free pointer events immediately
+    // Slightly faster timeout for more responsive feel
     setTimeout(() => {
       setIsProfileClosing(false);
       setShowProfileCard(false);
-    }, 300);
+    }, 250);
   };
 
   const handleDoubleTap = React.useCallback(() => {
@@ -266,15 +297,15 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ type: 'tween', duration: 0.25, ease: 'easeOut' }}
+            transition={{ type: 'tween', duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
             className="fixed z-50 bg-transparent touch-manipulation"
-            style={{ 
+            style={{
               top: `calc(-1 * env(safe-area-inset-top))`,
               left: `calc(-1 * env(safe-area-inset-left))`,
               right: `calc(-1 * env(safe-area-inset-right))`,
               bottom: `calc(-1 * env(safe-area-inset-bottom))`,
-              willChange: 'opacity', 
-              pointerEvents: isProfileClosing ? 'none' : 'auto' 
+              willChange: 'opacity',
+              pointerEvents: isProfileClosing ? 'none' : 'auto'
             }}
             onClick={handleProfileClose}
           >
@@ -285,11 +316,11 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
                 x: isProfileClosing ? '100%' : (dragOffset > 0 ? dragOffset : 0),
                 transition: dragOffset > 0
                   ? { type: 'tween', duration: 0, ease: 'linear' }
-                  : { type: 'spring', stiffness: isProfileClosing ? 500 : 400, damping: isProfileClosing ? 45 : 40, mass: isProfileClosing ? 0.7 : 0.8, restDelta: 0.001, restSpeed: 0.001 }
+                  : { type: 'spring', stiffness: 300, damping: 30, mass: 0.8, velocity: 0 }
               }}
               exit={{
                 x: '100%',
-                transition: { type: 'spring', stiffness: 500, damping: 45, mass: 0.7 }
+                transition: { type: 'spring', stiffness: 400, damping: 35, mass: 0.7 }
               }}
               className="absolute right-0 top-0 h-full w-full max-w-md mx-auto bg-background shadow-2xl"
               onClick={(e) => e.stopPropagation()}
