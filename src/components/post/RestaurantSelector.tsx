@@ -409,10 +409,15 @@ export function RestaurantSelector({ onSelectRestaurant, onMediaSelected }: Rest
     }
 
     if (!file || !selectedRestaurant) {
-      // User cancelled - clear selected restaurant
+      // User cancelled or no file selected - clear selected restaurant and remove highlight
       setSelectedRestaurant(null);
       return;
     }
+
+    // Save to recent restaurants AFTER user has selected media
+    const recent = [selectedRestaurant, ...recentRestaurants.filter(r => r.id !== selectedRestaurant.id)].slice(0, 5);
+    localStorage.setItem('recentRestaurants', JSON.stringify(recent));
+    setRecentRestaurants(recent);
 
     // Check if it's a video
     const isVideoFile = file.type.startsWith('video/');
@@ -435,15 +440,53 @@ export function RestaurantSelector({ onSelectRestaurant, onMediaSelected }: Rest
       }
     };
     reader.readAsDataURL(file);
-  }, [selectedRestaurant, onSelectRestaurant, onMediaSelected, cropToReelsAspect]);
+  }, [selectedRestaurant, recentRestaurants, onSelectRestaurant, onMediaSelected, cropToReelsAspect]);
+
+  // Handle file input cancel event with multiple detection methods
+  React.useEffect(() => {
+    const fileInput = fileInputRef.current;
+    if (!fileInput) return;
+
+    const handleCancel = () => {
+      // User cancelled the picker - save to recents and clear highlight
+      if (selectedRestaurant) {
+        const recent = [selectedRestaurant, ...recentRestaurants.filter(r => r.id !== selectedRestaurant.id)].slice(0, 5);
+        localStorage.setItem('recentRestaurants', JSON.stringify(recent));
+        setRecentRestaurants(recent);
+        setSelectedRestaurant(null);
+      }
+    };
+
+    let focusTimeout: NodeJS.Timeout;
+    const handleWindowFocus = () => {
+      // When window regains focus after file picker, check if file was selected
+      focusTimeout = setTimeout(() => {
+        if (selectedRestaurant && (!fileInput.files || fileInput.files.length === 0)) {
+          // No file selected, user cancelled - save to recents and clear highlight
+          const recent = [selectedRestaurant, ...recentRestaurants.filter(r => r.id !== selectedRestaurant.id)].slice(0, 5);
+          localStorage.setItem('recentRestaurants', JSON.stringify(recent));
+          setRecentRestaurants(recent);
+          setSelectedRestaurant(null);
+        }
+      }, 300);
+    };
+
+    // Listen for the cancel event (fires when user dismisses picker without selecting)
+    fileInput.addEventListener('cancel', handleCancel);
+
+    // Fallback: listen for window focus (for browsers that don't support cancel event)
+    window.addEventListener('focus', handleWindowFocus);
+
+    return () => {
+      fileInput.removeEventListener('cancel', handleCancel);
+      window.removeEventListener('focus', handleWindowFocus);
+      if (focusTimeout) clearTimeout(focusTimeout);
+    };
+  }, [selectedRestaurant, recentRestaurants]);
 
   const handleSelectRestaurant = (restaurant: Restaurant) => {
-    // Save to recent restaurants
-    const recent = [restaurant, ...recentRestaurants.filter(r => r.id !== restaurant.id)].slice(0, 5);
-    localStorage.setItem('recentRestaurants', JSON.stringify(recent));
-    setRecentRestaurants(recent);
-
     // Store selected restaurant and trigger file input
+    // DON'T save to recent yet - wait until user selects media
     setSelectedRestaurant(restaurant);
 
     // Trigger file input after a small delay
@@ -452,20 +495,55 @@ export function RestaurantSelector({ onSelectRestaurant, onMediaSelected }: Rest
     }, 100);
   };
 
-  const renderRestaurantCard = (restaurant: Restaurant, showDistance = false) => (
+  const renderRestaurantCard = (restaurant: Restaurant, showDistance = false) => {
+    const isSelected = selectedRestaurant?.id === restaurant.id;
+
+    return (
     <motion.button
       key={restaurant.id}
       onClick={() => handleSelectRestaurant(restaurant)}
-      className="w-full flex items-center gap-4 p-4 rounded-[14px] text-left touch-manipulation relative overflow-hidden bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/5 shadow-sm dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] backdrop-blur-sm hover:border-purple-200 dark:hover:border-purple-500/20 transition-all duration-200"
-      whileTap={{ scale: 0.98 }}
-      whileHover={{
+      className={`w-full flex items-center gap-4 p-4 rounded-[14px] text-left touch-manipulation relative overflow-hidden transition-all duration-300 ${
+        isSelected
+          ? 'bg-purple-50 dark:bg-purple-500/10 border-2 border-purple-400 dark:border-purple-500/50 shadow-[0_4px_24px_rgba(138,66,214,0.25)] scale-[1.02] ring-2 ring-purple-400/20 dark:ring-purple-500/30'
+          : 'bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/5 shadow-sm dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] backdrop-blur-sm hover:border-purple-200 dark:hover:border-purple-500/20'
+      }`}
+      whileTap={{ scale: isSelected ? 1.02 : 0.98 }}
+      whileHover={isSelected ? {} : {
         boxShadow: '0 4px 20px rgba(138, 66, 214, 0.15), 0 0 0 1px rgba(138, 66, 214, 0.1)',
         y: -2,
       }}
       transition={{ duration: 0.2, ease: 'easeOut' }}
+      animate={isSelected ? {
+        scale: [1.02, 1.025, 1.02],
+        boxShadow: [
+          '0 4px 24px rgba(138, 66, 214, 0.25), 0 0 0 2px rgba(138, 66, 214, 0.3)',
+          '0 6px 28px rgba(138, 66, 214, 0.35), 0 0 0 2px rgba(138, 66, 214, 0.4)',
+          '0 4px 24px rgba(138, 66, 214, 0.25), 0 0 0 2px rgba(138, 66, 214, 0.3)',
+        ],
+      } : {}}
+      style={isSelected ? {
+        transition: 'all 0.3s ease-out',
+      } : {}}
     >
+      {/* Subtle animated gradient overlay when selected */}
+      {isSelected && (
+        <motion.div
+          className="absolute inset-0 bg-gradient-to-r from-purple-400/10 via-purple-300/5 to-transparent dark:from-purple-500/20 dark:via-purple-400/10 dark:to-transparent"
+          initial={{ x: '-100%' }}
+          animate={{ x: '100%' }}
+          transition={{
+            repeat: Infinity,
+            duration: 2,
+            ease: 'linear',
+          }}
+        />
+      )}
       <motion.div
-        className="relative h-16 w-16 rounded-[12px] overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-muted ring-1 ring-gray-200 dark:ring-black/5"
+        className={`relative h-16 w-16 rounded-[12px] overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-muted ring-1 transition-all duration-300 ${
+          isSelected
+            ? 'ring-purple-400 dark:ring-purple-500/50 ring-2'
+            : 'ring-gray-200 dark:ring-black/5'
+        }`}
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.3 }}
@@ -512,7 +590,8 @@ export function RestaurantSelector({ onSelectRestaurant, onMediaSelected }: Rest
       </div>
       <ChevronRight className="h-5 w-5 text-gray-400 dark:text-muted-foreground/50 flex-shrink-0" />
     </motion.button>
-  );
+    );
+  };
 
   return (
     <div
