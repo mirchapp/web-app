@@ -91,5 +91,160 @@
         "image": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=200&h=200&fit=crop"
       }
     ]
+  },
+  {
+    "id": "4",
+    "name": "Saigon Social",
+    "logo": "https://images.unsplash.com/photo-1543353071-10c8ba85a904?w=100&h=100&fit=crop",
+    "verified": true,
+    "rating": 4.7,
+    "distance": "2.1 km",
+    "address": "37 Orchard St, New York, NY",
+    "phone": "+1 (212) 555-0184",
+    "cuisine": "Vietnamese",
+    "priceRange": "$$",
+    "hours": {
+      "weekday": "11:30 AM - 10:30 PM",
+      "weekend": "11:00 AM - 11:30 PM"
+    },
+    "about": "Chef-driven Vietnamese comfort food with a modern New York edge. Expect broths that simmer for 24 hours and herbs harvested from our rooftop garden.",
+    "popularDishes": [
+      {
+        "name": "Pho Tai",
+        "description": "Slow-simmered broth with rare wagyu eye of round",
+        "price": 19.5,
+        "image": "https://images.unsplash.com/photo-1612874470087-70aa23627758?w=200&h=200&fit=crop"
+      },
+      {
+        "name": "Saigon Crispy Rolls",
+        "description": "Rice paper rolls with crab, shiitake, and nuoc cham",
+        "price": 14.0,
+        "image": "https://images.unsplash.com/photo-1604908177555-937c7de93c04?w=200&h=200&fit=crop"
+      }
+    ]
+  },
+  {
+    "id": "5",
+    "name": "Baryo Fiesta",
+    "logo": "https://images.unsplash.com/photo-1543353071-873f17a7a088?w=100&h=100&fit=crop",
+    "verified": false,
+    "rating": 4.6,
+    "distance": "3.4 km",
+    "address": "212 W 32nd St, New York, NY",
+    "phone": "+1 (917) 555-0117",
+    "cuisine": "Filipino",
+    "priceRange": "$$",
+    "hours": {
+      "weekday": "12:00 PM - 11:00 PM",
+      "weekend": "12:00 PM - 12:00 AM"
+    },
+    "about": "A fiesta of bold Filipino flavors with kamayan feasts, charcoal-grilled skewers, and halo-halo to close the night.",
+    "popularDishes": [
+      {
+        "name": "Chicken Inasal",
+        "description": "Charcoal-grilled chicken with calamansi butter and garlic rice",
+        "price": 21.0,
+        "image": "https://images.unsplash.com/photo-1599351431202-1e0f0137899d?w=200&h=200&fit=crop"
+      },
+      {
+        "name": "Pancit Malabon",
+        "description": "Shrimp and squid noodle stir-fry with annatto sauce",
+        "price": 18.0,
+        "image": "https://images.unsplash.com/photo-1589308078055-3279308450c5?w=200&h=200&fit=crop"
+      }
+    ]
+  },
+  {
+    "id": "6",
+    "name": "Tokyo Tide Sushi",
+    "logo": "https://images.unsplash.com/photo-1553621042-f6e147245754?w=100&h=100&fit=crop",
+    "verified": true,
+    "rating": 4.9,
+    "distance": "1.6 km",
+    "address": "456 Hudson St, New York, NY",
+    "phone": "+1 (646) 555-0192",
+    "cuisine": "Sushi",
+    "priceRange": "$$$",
+    "hours": {
+      "weekday": "5:00 PM - 11:00 PM",
+      "weekend": "4:00 PM - 12:00 AM"
+    },
+    "about": "An omakase bar with a 16-seat counter, flown-in Toyosu market fish, and a soundtrack curated by Tokyo jazz DJs.",
+    "popularDishes": [
+      {
+        "name": "Toro Omakase Flight",
+        "description": "Bluefin toro prepared three ways with micro shiso",
+        "price": 48.0,
+        "image": "https://images.unsplash.com/photo-1546069901-eacef0df6022?w=200&h=200&fit=crop"
+      },
+      {
+        "name": "Hokkaido Uni Spoon",
+        "description": "Sea urchin with quail egg and squid ink rice",
+        "price": 32.0,
+        "image": "https://images.unsplash.com/photo-1542736667-069246bdbc84?w=200&h=200&fit=crop"
+      }
+    ]
+  },
+  {
+    "id": "7",
+    "name": "Casa Flamenca",
+    "logo": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=100&h=100&fit=crop",
+    "verified": true,
+    "rating": 4.8,
+    "distance": "2.9 km",
+    "address": "98 Christopher St, New York, NY",
+    "phone": "+1 (646) 555-0142",
+    "cuisine": "Spanish",
+    "priceRange": "$$$",
+    "hours": {
+      "weekday": "4:30 PM - 11:30 PM",
+      "weekend": "4:00 PM - 12:30 AM"
+    },
+    "about": "Live flamenco, Josper-grilled meats, and a sherry program that rotates weekly.",
+    "popularDishes": [
+      {
+        "name": "Iberico Presa",
+        "description": "Seared acorn-fed pork shoulder with smoked pimentón",
+        "price": 36.0,
+        "image": "https://images.unsplash.com/photo-1525755662778-989d0524087e?w=200&h=200&fit=crop"
+      },
+      {
+        "name": "Seafood Paella",
+        "description": "Bomba rice with saffron, prawns, and mussels",
+        "price": 34.0,
+        "image": "https://images.unsplash.com/photo-1543353071-873f17a7a088?w=200&h=200&fit=crop"
+      }
+    ]
+  },
+  {
+    "id": "8",
+    "name": "Skyline Spirits",
+    "logo": "https://images.unsplash.com/photo-1556740749-887f6717d7e4?w=100&h=100&fit=crop",
+    "verified": true,
+    "rating": 4.7,
+    "distance": "0.9 km",
+    "address": "200 King St W, Toronto, ON",
+    "phone": "+1 (416) 555-0177",
+    "cuisine": "Cocktail Bar",
+    "priceRange": "$$$",
+    "hours": {
+      "weekday": "4:00 PM - 1:00 AM",
+      "weekend": "4:00 PM - 2:00 AM"
+    },
+    "about": "Toronto's panorama bar with barrel-aged cocktails, raw bar pairings, and a DJ set that ramps up after 9.",
+    "popularDishes": [
+      {
+        "name": "Smoked Maple Old Fashioned",
+        "description": "Canadian rye, maple syrup, and cedar smoke",
+        "price": 18.0,
+        "image": "https://images.unsplash.com/photo-1558640472-9d2a7deb7f62?w=200&h=200&fit=crop"
+      },
+      {
+        "name": "Sturgeon Caviar Toast",
+        "description": "Brioche with creme fraiche and Osetra caviar",
+        "price": 24.0,
+        "image": "https://images.unsplash.com/photo-1544145945-f90425340c7e?w=200&h=200&fit=crop"
+      }
+    ]
   }
 ]
