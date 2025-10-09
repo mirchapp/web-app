@@ -1,29 +1,61 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { Search, Sparkles } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { cn } from '@/lib/utils';
+import * as React from "react";
+import { Search, Sparkles } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+import { FeaturedLists } from "./FeaturedLists";
+import { CuratedLists } from "./CuratedLists";
+import { getListSummaries } from "@/data/mock/list-articles";
+import { useRouter } from "next/navigation";
+
+const featuredSummaries = getListSummaries("featured");
+const curatedSummaries = getListSummaries("curated");
+
+const featuredListsData = featuredSummaries.map((article) => ({
+  id: article.slug,
+  slug: article.slug,
+  title: article.title,
+  subtitle: article.summary.subtitle ?? undefined,
+  imageUrl: article.summary.imageUrl,
+  progress: article.summary.visited ?? 0,
+  total: article.summary.total ?? article.summary.count ?? article.entries.length,
+}));
+
+const curatedListsData = curatedSummaries.map((article) => ({
+  id: article.slug,
+  slug: article.slug,
+  title: article.title,
+  shortTitle: article.summary.shortTitle ?? article.title,
+  description: article.summary.description ?? article.intro,
+  imageUrl: article.summary.imageUrl,
+  category: article.summary.categoryLabel ?? "Curated Picks",
+  count: article.summary.count ?? article.summary.total ?? article.entries.length,
+}));
 
 export function FindHome() {
-  const [searchQuery, setSearchQuery] = React.useState('');
-  const [greeting, setGreeting] = React.useState('');
+  const [searchQuery, setSearchQuery] = React.useState("");
+  const [greeting, setGreeting] = React.useState("");
+  const router = useRouter();
 
   React.useEffect(() => {
     const hour = new Date().getHours();
     if (hour < 12) {
-      setGreeting('Good morning');
+      setGreeting("Good morning");
     } else if (hour < 18) {
-      setGreeting('Good afternoon');
+      setGreeting("Good afternoon");
     } else {
-      setGreeting('Good evening');
+      setGreeting("Good evening");
     }
   }, []);
 
   return (
     <div className="h-full overflow-y-auto pb-24">
       {/* Header Section */}
-      <div className="px-4 pb-6" style={{ paddingTop: 'var(--header-top-padding-safe)' }}>
+      <div
+        className="px-4 pb-6"
+        style={{ paddingTop: "var(--header-top-padding-safe)" }}
+      >
         {/* Greeting */}
         <div className="mb-6">
           <h1 className="text-3xl font-semibold text-foreground mb-1">
@@ -59,18 +91,24 @@ export function FindHome() {
 
         {/* AI Hint */}
         <p className="mt-3 text-xs text-center text-muted-foreground/80">
-          Try: &ldquo;Find me the best sushi nearby&rdquo; or &ldquo;Romantic dinner spots&rdquo;
+          Try: &ldquo;Find me the best sushi nearby&rdquo; or &ldquo;Romantic
+          dinner spots&rdquo;
         </p>
       </div>
 
-      {/* Content will go here */}
-      <div className="px-4">
-        {/* Placeholder for now */}
-        <div className="text-center py-12 text-muted-foreground">
-          <p className="text-sm">Content coming soon...</p>
-        </div>
-      </div>
+      {/* Featured Lists Section */}
+      <FeaturedLists
+        lists={featuredListsData}
+        onSeeAll={() => console.log("See all featured lists")}
+        onListClick={(list) => router.push(`/diners/lists/${list.slug}`)}
+      />
+
+      {/* Curated Lists Section */}
+      <CuratedLists
+        lists={curatedListsData}
+        location="New York, NY"
+        onListClick={(list) => router.push(`/diners/lists/${list.slug}`)}
+      />
     </div>
   );
 }
-
