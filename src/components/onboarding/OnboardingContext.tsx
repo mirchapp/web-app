@@ -158,6 +158,9 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
         throw error;
       }
 
+      // Cache onboarding completion in localStorage
+      localStorage.setItem('onboarding_completed', 'true');
+
       console.log('Onboarding completed successfully');
     } catch (error) {
       console.error('Error in completeOnboarding:', error);

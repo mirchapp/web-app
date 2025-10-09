@@ -37,6 +37,13 @@ export function AppLayout({ children, className }: AppLayoutProps) {
   React.useEffect(() => {
     const checkOnboarding = async () => {
       try {
+        // Check localStorage cache first
+        const cachedCompletion = localStorage.getItem('onboarding_completed');
+        if (cachedCompletion === 'true') {
+          setIsCheckingOnboarding(false);
+          return;
+        }
+
         const { data: { user } } = await supabase.auth.getUser();
 
         if (user) {
@@ -94,6 +101,11 @@ export function AppLayout({ children, className }: AppLayoutProps) {
 
             window.location.href = dinersUrl;
             return;
+          }
+
+          // Cache the completion status if onboarding is completed
+          if (profile && profile.signup_completed) {
+            localStorage.setItem('onboarding_completed', 'true');
           }
         }
       } catch (error) {
