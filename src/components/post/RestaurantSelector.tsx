@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { motion } from 'framer-motion';
-import { Search, MapPin, Clock, ChevronRight, Star } from 'lucide-react';
+import { Search, MapPin, ChevronRight, Star } from 'lucide-react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { useSafeArea } from '@/hooks/useSafeArea';
@@ -60,7 +60,6 @@ export function RestaurantSelector({ onSelectRestaurant, onMediaSelected }: Rest
   const safeAreaInsets = useSafeArea();
   const [searchQuery, setSearchQuery] = React.useState('');
   const [suggestions, setSuggestions] = React.useState<Restaurant[]>([]);
-  const [recentRestaurants, setRecentRestaurants] = React.useState<Restaurant[]>([]);
   const [nearbyRestaurants, setNearbyRestaurants] = React.useState<Restaurant[]>([]);
   const [isLoading, setIsLoading] = React.useState(false);
   const [userLocation, setUserLocation] = React.useState<{ lat: number; lng: number } | null>(null);
@@ -237,17 +236,6 @@ export function RestaurantSelector({ onSelectRestaurant, onMediaSelected }: Rest
     }
   }, [requestUserLocation]);
 
-  // Load recent restaurants from localStorage
-  React.useEffect(() => {
-    const recent = localStorage.getItem('recentRestaurants');
-    if (recent) {
-      try {
-        setRecentRestaurants(JSON.parse(recent));
-      } catch (error) {
-        console.error('Error parsing recent restaurants:', error);
-      }
-    }
-  }, []);
 
   // Fetch nearby restaurants when location is available
   React.useEffect(() => {
@@ -407,10 +395,7 @@ export function RestaurantSelector({ onSelectRestaurant, onMediaSelected }: Rest
     if (!file || !selectedRestaurant) {
       // User cancelled or no file selected
       if (selectedRestaurant) {
-        // Save to recents and clear highlight
-        const recent = [selectedRestaurant, ...recentRestaurants.filter(r => r.id !== selectedRestaurant.id)].slice(0, 5);
-        localStorage.setItem('recentRestaurants', JSON.stringify(recent));
-        setRecentRestaurants(recent);
+        // Clear highlight
         setSelectedRestaurant(null);
       }
 
@@ -425,11 +410,6 @@ export function RestaurantSelector({ onSelectRestaurant, onMediaSelected }: Rest
     if (e.target) {
       e.target.value = '';
     }
-
-    // Save to recent restaurants AFTER user has selected media
-    const recent = [selectedRestaurant, ...recentRestaurants.filter(r => r.id !== selectedRestaurant.id)].slice(0, 5);
-    localStorage.setItem('recentRestaurants', JSON.stringify(recent));
-    setRecentRestaurants(recent);
 
     // Check if it's a video
     const isVideoFile = file.type.startsWith('video/');
@@ -452,7 +432,7 @@ export function RestaurantSelector({ onSelectRestaurant, onMediaSelected }: Rest
       }
     };
     reader.readAsDataURL(file);
-  }, [selectedRestaurant, recentRestaurants, onSelectRestaurant, onMediaSelected, cropToReelsAspect]);
+  }, [selectedRestaurant, onSelectRestaurant, onMediaSelected, cropToReelsAspect]);
 
   // Handle file input cancel event with multiple detection methods
   React.useEffect(() => {
@@ -461,10 +441,6 @@ export function RestaurantSelector({ onSelectRestaurant, onMediaSelected }: Rest
 
     const clearSelection = () => {
       if (selectedRestaurant) {
-        // Save to recents
-        const recent = [selectedRestaurant, ...recentRestaurants.filter(r => r.id !== selectedRestaurant.id)].slice(0, 5);
-        localStorage.setItem('recentRestaurants', JSON.stringify(recent));
-        setRecentRestaurants(recent);
         // Clear highlight immediately
         setSelectedRestaurant(null);
         setSelectedCardKey(null);
@@ -501,7 +477,7 @@ export function RestaurantSelector({ onSelectRestaurant, onMediaSelected }: Rest
       window.removeEventListener('focus', handleWindowFocus);
       if (focusTimeout) clearTimeout(focusTimeout);
     };
-  }, [selectedRestaurant, recentRestaurants]);
+  }, [selectedRestaurant]);
 
   const handleSelectRestaurant = (restaurant: Restaurant, cardKey: string) => {
     // Store selected restaurant and the specific card key (to identify which card was clicked)
@@ -740,32 +716,6 @@ export function RestaurantSelector({ onSelectRestaurant, onMediaSelected }: Rest
           </motion.div>
         )}
 
-        {/* Recent Restaurants */}
-        {!searchQuery && recentRestaurants.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.1, ease: 'easeOut' }}
-          >
-            <div className="flex items-center gap-2 mb-5">
-              <Clock className="h-4 w-4 text-gray-400 dark:text-muted-foreground/60" />
-              <h2 className="text-sm font-light text-gray-500 dark:text-foreground/60 tracking-wide">Recent</h2>
-            </div>
-            <div className="space-y-3">
-              {recentRestaurants.map((restaurant, index) => (
-                <motion.div
-                  key={`recent-${restaurant.id}`}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: index * 0.05, ease: 'easeOut' }}
-                >
-                  {renderRestaurantCard(restaurant, false, 'recent')}
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-        )}
-
         {/* Nearby Restaurants */}
         {!searchQuery && nearbyRestaurants.length > 0 && (
           <motion.div
@@ -793,7 +743,7 @@ export function RestaurantSelector({ onSelectRestaurant, onMediaSelected }: Rest
         )}
 
         {/* Empty State */}
-        {!searchQuery && recentRestaurants.length === 0 && nearbyRestaurants.length === 0 && !isLoading && (
+        {!searchQuery && nearbyRestaurants.length === 0 && !isLoading && (
           <div className="py-20 text-center">
             <div className="relative inline-block mb-6">
               <MapPin className="h-16 w-16 text-gray-300 dark:text-muted-foreground/30 mx-auto" />
