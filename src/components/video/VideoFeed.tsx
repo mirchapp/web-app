@@ -201,7 +201,7 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
       // Controlled close to immediately allow touches to pass through backdrop
       handleProfileClose();
     } else {
-      // Snap back to position with animation
+      // Snap back to position - framer-motion spring will handle smooth animation
       setDragOffset(0);
     }
 
@@ -215,12 +215,13 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
   };
 
   const handleProfileClose = () => {
+    setDragOffset(0); // Reset drag offset first
     setIsProfileClosing(true);
     // Wait for slide-out before unmounting to free pointer events immediately
     setTimeout(() => {
       setIsProfileClosing(false);
       setShowProfileCard(false);
-    }, 300);
+    }, 600);
   };
 
   const handleDoubleTap = React.useCallback(() => {
@@ -280,16 +281,21 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
           >
             <motion.div
               ref={profileCardRef}
-              initial={{ x: '100%' }}
+              initial={{ x: '100%', y: 0 }}
               animate={{
                 x: isProfileClosing ? '100%' : (dragOffset > 0 ? dragOffset : 0),
-                transition: dragOffset > 0
-                  ? { type: 'tween', duration: 0, ease: 'linear' }
-                  : { type: 'spring', stiffness: isProfileClosing ? 500 : 400, damping: isProfileClosing ? 45 : 40, mass: isProfileClosing ? 0.7 : 0.8, restDelta: 0.001, restSpeed: 0.001 }
+                y: 0,
+                transition: {
+                  type: 'tween',
+                  duration: dragOffset > 0 ? 0 : (isProfileClosing ? 0.6 : 0.5),
+                  ease: dragOffset > 0 ? 'linear' : [0.16, 1, 0.3, 1],
+                  delay: 0
+                }
               }}
               exit={{
                 x: '100%',
-                transition: { type: 'spring', stiffness: 500, damping: 45, mass: 0.7 }
+                y: 0,
+                transition: { type: 'tween', duration: 0.6, ease: [0.16, 1, 0.3, 1] }
               }}
               className="absolute right-0 top-0 h-full w-full max-w-md mx-auto bg-background shadow-2xl"
               onClick={(e) => e.stopPropagation()}
@@ -297,10 +303,10 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
               dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
               dragElastic={0}
               style={{
-                willChange: dragOffset !== 0 ? 'transform' : 'auto',
+                willChange: 'transform',
                 backfaceVisibility: 'hidden',
                 WebkitBackfaceVisibility: 'hidden',
-                y: 0,
+                transform: 'translateZ(0)',
                 touchAction: 'none' // Disable all default touch behaviors on the card
               }}
             >
@@ -314,7 +320,8 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
                 style={{
                   WebkitOverflowScrolling: 'touch',
                   overscrollBehavior: 'contain',
-                  touchAction: isHorizontalDrag ? 'none' : 'pan-y'
+                  touchAction: isHorizontalDrag ? 'none' : 'pan-y',
+                  overflowY: isHorizontalDrag ? 'hidden' : 'auto'
                 }}
               >
                 {/* Animated purple wave background - matching profile page */}
