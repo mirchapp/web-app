@@ -317,7 +317,7 @@ export function SideDrawer({
           {/* Scrollable Content */}
           <div
             ref={scrollRef}
-            className="h-full overflow-y-auto relative"
+            className="h-full overflow-y-auto relative hide-scrollbar"
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
@@ -336,7 +336,7 @@ export function SideDrawer({
               onClick={handleClose}
               className="absolute z-20 h-8 w-8 rounded-full hover:bg-muted/50 bg-background/80 backdrop-blur-sm"
               style={{
-                top: headerTopPadding ? `calc(${headerTopPadding} + 0.5rem)` : "calc(env(safe-area-inset-top, 0px) + 1rem)",
+                top: headerTopPadding ? `calc(${headerTopPadding} + 0.5rem)` : "calc(var(--post-screen-top-padding-safe) + 0.5rem)",
                 left: "1rem",
               }}
             >
@@ -360,10 +360,10 @@ export function SideDrawer({
           {title && (
             <div
               className="container mx-auto px-4 relative z-10"
-              style={{ paddingTop: headerTopPadding ?? "calc(env(safe-area-inset-top, 0px) + 3.5rem)" }}
+              style={{ paddingTop: headerTopPadding ?? "var(--post-screen-top-padding-safe)" }}
             >
               <div className="max-w-md mx-auto">
-                <div className="text-center mb-0.5">
+                <div className="text-center mb-6">
                   <h1 className="text-2xl font-light text-gray-900 dark:text-white tracking-tight">
                     {title}
                   </h1>
