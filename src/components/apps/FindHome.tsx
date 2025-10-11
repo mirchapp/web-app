@@ -127,44 +127,12 @@ export function FindHome() {
 
   return (
     <div
-      className="absolute inset-0 overflow-y-auto bg-white dark:bg-[#0A0A0F]"
+      className="h-full overflow-y-auto bg-white dark:bg-[#0A0A0F]"
       style={{
         paddingBottom: bottomPadding,
         WebkitOverflowScrolling: 'touch',
       }}
     >
-      {/* Animated purple wave background - matching profile page */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {/* Purple wave gradient */}
-        <div
-          className="absolute left-0 right-0 h-[400px] opacity-20 dark:opacity-30"
-          style={{
-            top: '10%',
-            background: 'linear-gradient(90deg, rgba(138, 66, 214, 0.4) 0%, rgba(168, 85, 247, 0.3) 50%, rgba(138, 66, 214, 0.4) 100%)',
-            filter: 'blur(80px)',
-            transform: 'translateZ(0)',
-            animation: 'wave 8s ease-in-out infinite alternate'
-          }}
-        />
-
-        {/* Subtle stars/particles */}
-        <div className="absolute inset-0 opacity-15 dark:opacity-30">
-          {starPositions.map((star, i) => (
-            <div
-              key={i}
-              className="absolute w-1 h-1 bg-purple-500/30 dark:bg-white/20 rounded-full"
-              style={{
-                top: `${star.top}%`,
-                left: `${star.left}%`,
-                animation: `twinkle ${star.duration}s ease-in-out infinite`,
-                animationDelay: `${star.delay}s`,
-                willChange: 'opacity',
-              }}
-            />
-          ))}
-        </div>
-      </div>
-
       {/* Header Section */}
       <div
         className="px-4 pb-6 relative z-10"

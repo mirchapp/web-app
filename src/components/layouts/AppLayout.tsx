@@ -223,7 +223,10 @@ export function AppLayout({ children, className }: AppLayoutProps) {
                 duration: 0.2,
                 ease: "easeOut",
               }}
-              className="h-full"
+              className={cn(
+                "h-full",
+                (activeTab === 'profile' || activeTab === 'find') && "relative"
+              )}
               style={{
                 overflow: activeTab === 'profile' || activeTab === 'find' ? 'visible' : undefined,
                 willChange: 'opacity',
