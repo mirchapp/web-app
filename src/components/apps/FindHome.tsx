@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { FeaturedLists } from "./FeaturedLists";
 import { CuratedLists } from "./CuratedLists";
 import { SuggestedProfiles } from "./SuggestedProfiles";
+import { ConnectWithFriends } from "./ConnectWithFriends";
 import { getListSummaries } from "@/data/mock/list-articles";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
@@ -38,21 +39,10 @@ const curatedListsData = curatedSummaries.map((article) => ({
 }));
 
 export function FindHome() {
-  const [greeting, setGreeting] = React.useState("");
   const [userId, setUserId] = React.useState<string>("");
+  const [showConnectDrawer, setShowConnectDrawer] = React.useState(false);
   const router = useRouter();
   const supabase = createClient();
-
-  React.useEffect(() => {
-    const hour = new Date().getHours();
-    if (hour < 12) {
-      setGreeting("Good morning");
-    } else if (hour < 18) {
-      setGreeting("Good afternoon");
-    } else {
-      setGreeting("Good evening");
-    }
-  }, []);
 
   React.useEffect(() => {
     const getUser = async () => {
@@ -121,13 +111,29 @@ export function FindHome() {
     router.push(`/profile/${profileUserId}`);
   };
 
+  // Memoize star positions so they don't change on re-render
+  const starPositions = React.useMemo(() => {
+    return Array.from({ length: 20 }, () => ({
+      top: Math.random() * 100,
+      left: Math.random() * 100,
+      duration: 2 + Math.random() * 3,
+      delay: Math.random() * 2,
+    }));
+  }, []);
+
   // In standalone PWA, bottom nav is still present, so use consistent padding
   const bottomPadding = 'calc(env(safe-area-inset-bottom, 20px) + 88px)';
 
   return (
-    <div className="absolute inset-0 overflow-y-auto bg-white dark:bg-[#0A0A0F]" style={{ paddingBottom: bottomPadding }}>
+    <div
+      className="h-full overflow-y-auto bg-white dark:bg-[#0A0A0F] relative"
+      style={{
+        paddingBottom: bottomPadding,
+        WebkitOverflowScrolling: 'touch',
+      }}
+    >
       {/* Animated purple wave background - matching profile page */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div className="fixed inset-0 overflow-hidden pointer-events-none" style={{ zIndex: 0 }}>
         {/* Purple wave gradient */}
         <div
           className="absolute left-0 right-0 h-[400px] opacity-20 dark:opacity-30"
@@ -142,15 +148,15 @@ export function FindHome() {
 
         {/* Subtle stars/particles */}
         <div className="absolute inset-0 opacity-15 dark:opacity-30">
-          {Array.from({ length: 20 }).map((_, i) => (
+          {starPositions.map((star, i) => (
             <div
               key={i}
               className="absolute w-1 h-1 bg-purple-500/30 dark:bg-white/20 rounded-full"
               style={{
-                top: `${Math.random() * 100}%`,
-                left: `${Math.random() * 100}%`,
-                animation: `twinkle ${2 + Math.random() * 3}s ease-in-out infinite`,
-                animationDelay: `${Math.random() * 2}s`,
+                top: `${star.top}%`,
+                left: `${star.left}%`,
+                animation: `twinkle ${star.duration}s ease-in-out infinite`,
+                animationDelay: `${star.delay}s`,
                 willChange: 'opacity',
               }}
             />
@@ -160,14 +166,31 @@ export function FindHome() {
 
       {/* Header Section */}
       <div
-        className="px-4 pb-6 relative z-10"
-        style={{ paddingTop: "var(--header-top-padding-safe)" }}
+        className="px-5 sm:px-6 pb-6 relative z-10"
+        style={{ paddingTop: "calc(var(--header-top-padding-safe) - 20px)" }}
       >
-        {/* Greeting */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-light text-gray-900 dark:text-white mb-1 tracking-tight">
-            {greeting}, Faizaan
-          </h1>
+        {/* Logo */}
+        <div className="mb-4 -mt-2">
+          <div className="relative w-40 h-16 mb-1">
+            {/* Light mode logo */}
+            <Image
+              src="/mirch-logo-transparent-dark.png"
+              alt="Mirch"
+              width={160}
+              height={64}
+              className="object-contain object-left dark:hidden"
+              priority
+            />
+            {/* Dark mode logo */}
+            <Image
+              src="/mirch-logo-transparent.png"
+              alt="Mirch"
+              width={160}
+              height={64}
+              className="object-contain object-left hidden dark:block"
+              priority
+            />
+          </div>
           <p className="text-sm text-gray-600 dark:text-white/50 font-light">
             Discover people and places
           </p>
@@ -205,7 +228,7 @@ export function FindHome() {
 
       {/* Search Results */}
       {showResults && (
-        <div className="px-4 mb-6 relative z-10">
+        <div className="px-5 sm:px-6 mb-6 relative z-10">
           {/* Error State */}
           {error && (
             <div className="px-4 py-3 text-sm text-destructive mb-4">
@@ -255,7 +278,7 @@ export function FindHome() {
             <SuggestedProfiles
               profiles={suggestions}
               onProfileClick={handleProfileClick}
-              onSeeAll={() => console.log("See all suggestions")}
+              onSeeAll={() => setShowConnectDrawer(true)}
             />
           )}
 
@@ -267,6 +290,14 @@ export function FindHome() {
           />
         </div>
       )}
+
+      {/* Connect with Friends Drawer */}
+      <ConnectWithFriends
+        isOpen={showConnectDrawer}
+        profiles={suggestions}
+        onClose={() => setShowConnectDrawer(false)}
+        onProfileClick={handleProfileClick}
+      />
     </div>
   );
 }

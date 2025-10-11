@@ -27,8 +27,14 @@ export function FeaturedLists({
   onListClick,
 }: FeaturedListsProps) {
   return (
-    <div className="mb-6">
-      <div className="px-4 mb-4 flex items-center justify-between">
+    <div
+      className="mb-6 opacity-0"
+      style={{
+        animation: 'fadeIn 0.6s ease-out forwards',
+        animationDelay: '0.1s'
+      }}
+    >
+      <div className="px-5 sm:px-6 mb-4 flex items-center justify-between">
         <h2 className="text-xl font-light text-gray-900 dark:text-white tracking-tight">
           Featured Lists
         </h2>
@@ -36,7 +42,7 @@ export function FeaturedLists({
           <Button
             variant="ghost"
             size="sm"
-            className="text-primary hover:text-primary/80 -mr-2 font-light"
+            className="text-primary hover:text-primary/90 -mr-2 font-medium"
             onClick={onSeeAll}
           >
             See all
@@ -47,13 +53,15 @@ export function FeaturedLists({
 
       {/* Horizontal scrolling featured cards */}
       <div className="overflow-x-auto scrollbar-hide">
-        <div className="flex gap-4 px-4 pb-2">
-          {lists.map((list) => (
+        <div className="flex gap-4 px-5 sm:px-6 pb-2">
+          {lists.map((list, index) => (
             <div
               key={list.id}
-              className="flex-none w-[300px] sm:w-[340px] overflow-hidden rounded-2xl border border-gray-200 dark:border-white/10 hover:shadow-[0_8px_30px_rgba(138,66,214,0.15)] dark:hover:shadow-[0_8px_30px_rgba(138,66,214,0.25)] transition-all duration-300 cursor-pointer group h-48"
+              className="flex-none w-[300px] sm:w-[340px] overflow-hidden rounded-2xl border border-gray-200 dark:border-white/10 hover:shadow-[0_8px_30px_rgba(138,66,214,0.15)] dark:hover:shadow-[0_8px_30px_rgba(138,66,214,0.25)] transition-all duration-300 cursor-pointer group h-48 opacity-0"
               style={{
                 boxShadow: "0 2px 8px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.1)",
+                animation: 'fadeIn 0.5s ease-out forwards',
+                animationDelay: `${0.15 + index * 0.1}s`
               }}
               onClick={() => onListClick?.(list)}
             >

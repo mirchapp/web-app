@@ -90,7 +90,7 @@ export function ProfileOverview() {
   const [error, setError] = React.useState<string | null>(null);
   const [message, setMessage] = React.useState<string | null>(null);
   const [showForgotPassword, setShowForgotPassword] = React.useState(false);
-  const [isStandalone, setIsStandalone] = React.useState(false);
+  const [_isStandalone, setIsStandalone] = React.useState(false);
 
   const supabase = createClient();
   const parallaxOffset = useParallax(0.3);

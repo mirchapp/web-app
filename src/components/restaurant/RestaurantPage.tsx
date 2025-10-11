@@ -17,7 +17,7 @@ interface RestaurantPageProps {
 export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPageProps) {
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const [isClosing, setIsClosing] = React.useState(false);
-  const safeAreaInsets = useSafeArea();
+  const _safeAreaInsets = useSafeArea();
 
   const handleClose = () => {
     setIsClosing(true);

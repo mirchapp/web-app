@@ -26,8 +26,14 @@ export function SuggestedProfiles({
   onSeeAll,
 }: SuggestedProfilesProps) {
   return (
-    <div className="mb-6">
-      <div className="px-4 mb-4 flex items-center justify-between">
+    <div
+      className="mb-6 opacity-0"
+      style={{
+        animation: 'fadeIn 0.6s ease-out forwards',
+        animationDelay: '0.25s'
+      }}
+    >
+      <div className="px-5 sm:px-6 mb-4 flex items-center justify-between">
         <h2 className="text-xl font-light text-gray-900 dark:text-white tracking-tight">
           Suggested for you
         </h2>
@@ -35,7 +41,7 @@ export function SuggestedProfiles({
           <Button
             variant="ghost"
             size="sm"
-            className="text-primary hover:text-primary/80 -mr-2 font-light"
+            className="text-primary hover:text-primary/90 -mr-2 font-medium"
             onClick={onSeeAll}
           >
             See all
@@ -46,12 +52,13 @@ export function SuggestedProfiles({
 
       {/* Horizontal scrolling profile cards */}
       <div className="overflow-x-auto scrollbar-hide">
-        <div className="flex gap-3 px-4 pb-2">
-          {profiles.map((profile) => (
+        <div className="flex gap-3 px-5 sm:px-6 pb-2">
+          {profiles.map((profile, index) => (
             <ProfileCard
               key={profile.user_id}
               profile={profile}
               onClick={() => onProfileClick?.(profile.user_id)}
+              index={index}
             />
           ))}
         </div>
@@ -63,9 +70,10 @@ export function SuggestedProfiles({
 interface ProfileCardProps {
   profile: SuggestedProfile;
   onClick: () => void;
+  index?: number;
 }
 
-function ProfileCard({ profile, onClick }: ProfileCardProps) {
+function ProfileCard({ profile, onClick, index = 0 }: ProfileCardProps) {
   const [isFollowing, setIsFollowing] = React.useState(false);
   const displayName = profile.display_name || profile.username || "Unknown";
   const username = profile.username;
@@ -82,10 +90,12 @@ function ProfileCard({ profile, onClick }: ProfileCardProps) {
         "bg-card dark:bg-white/[0.02] backdrop-blur-xl",
         "border border-gray-200 dark:border-white/10",
         "hover:shadow-[0_4px_20px_rgba(138,66,214,0.15)] dark:hover:shadow-[0_4px_20px_rgba(138,66,214,0.25)]",
-        "transition-all duration-300 cursor-pointer overflow-hidden relative"
+        "transition-all duration-300 cursor-pointer overflow-hidden relative opacity-0"
       )}
       style={{
         boxShadow: "0 2px 8px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.1)",
+        animation: 'fadeIn 0.5s ease-out forwards',
+        animationDelay: `${0.3 + index * 0.1}s`
       }}
     >
       {/* Subtle gradient overlay */}

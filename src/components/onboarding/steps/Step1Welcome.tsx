@@ -1,11 +1,9 @@
 'use client';
 
 import * as React from 'react';
-import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useOnboarding } from '../OnboardingContext';
 import Image from 'next/image';
-import { useTheme } from 'next-themes';
 
 export function Step1Welcome() {
   const { nextStep } = useOnboarding();

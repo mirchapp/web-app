@@ -207,10 +207,10 @@ export function AppLayout({ children, className }: AppLayoutProps) {
         <main
           className={cn(
             "h-full",
-            activeTab === 'videos' || activeTab === 'post' ? "overflow-hidden" : "overflow-y-auto"
+            activeTab === 'videos' || activeTab === 'post' || activeTab === 'profile' || activeTab === 'find' ? "overflow-hidden" : "overflow-y-auto"
           )}
           style={{
-            paddingBottom: activeTab === 'videos' || activeTab === 'post' ? '0' : 'env(safe-area-inset-bottom, 0px)'
+            paddingBottom: activeTab === 'videos' || activeTab === 'post' || activeTab === 'profile' || activeTab === 'find' ? '0' : 'env(safe-area-inset-bottom, 0px)'
           }}
         >
           <AnimatePresence mode="wait">
@@ -223,9 +223,12 @@ export function AppLayout({ children, className }: AppLayoutProps) {
                 duration: 0.2,
                 ease: "easeOut",
               }}
-              className="h-full"
+              className={cn(
+                "h-full",
+                (activeTab === 'profile' || activeTab === 'find') && "relative"
+              )}
               style={{
-                overflow: activeTab === 'profile' ? 'visible' : undefined,
+                overflow: activeTab === 'profile' || activeTab === 'find' ? 'visible' : undefined,
                 willChange: 'opacity',
                 backfaceVisibility: 'hidden',
                 WebkitBackfaceVisibility: 'hidden'
