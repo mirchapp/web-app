@@ -279,6 +279,7 @@ export function FindHome() {
               profiles={suggestions}
               onProfileClick={handleProfileClick}
               onSeeAll={() => setShowConnectDrawer(true)}
+              currentUserId={userId}
             />
           )}
 
@@ -297,6 +298,7 @@ export function FindHome() {
         profiles={suggestions}
         onClose={() => setShowConnectDrawer(false)}
         onProfileClick={handleProfileClick}
+        currentUserId={userId}
       />
     </div>
   );

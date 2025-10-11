@@ -6,6 +6,7 @@ import { User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SideDrawer } from "@/components/ui/side-drawer";
 import { cn } from "@/lib/utils";
+import { useFollow } from "@/hooks/useFollow";
 
 interface SuggestedProfile {
   user_id: string;
@@ -21,6 +22,7 @@ interface ConnectWithFriendsProps {
   isOpen: boolean;
   onClose: () => void;
   onProfileClick?: (userId: string) => void;
+  currentUserId?: string;
 }
 
 export function ConnectWithFriends({
@@ -28,20 +30,27 @@ export function ConnectWithFriends({
   isOpen,
   onClose,
   onProfileClick,
+  currentUserId,
 }: ConnectWithFriendsProps) {
   const [followedUsers, setFollowedUsers] = React.useState<Set<string>>(new Set());
+  const { toggleFollow } = useFollow(currentUserId || null);
 
-  const handleFollowToggle = (userId: string, e: React.MouseEvent) => {
+  const handleFollowToggle = async (userId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    setFollowedUsers((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(userId)) {
-        newSet.delete(userId);
-      } else {
-        newSet.add(userId);
-      }
-      return newSet;
-    });
+    const isCurrentlyFollowing = followedUsers.has(userId);
+    const success = await toggleFollow(userId, isCurrentlyFollowing);
+
+    if (success) {
+      setFollowedUsers((prev) => {
+        const newSet = new Set(prev);
+        if (newSet.has(userId)) {
+          newSet.delete(userId);
+        } else {
+          newSet.add(userId);
+        }
+        return newSet;
+      });
+    }
   };
 
   return (
@@ -81,6 +90,7 @@ export function ConnectWithFriends({
                   isFollowing={followedUsers.has(profile.user_id)}
                   onFollowToggle={handleFollowToggle}
                   onProfileClick={onProfileClick}
+                  currentUserId={currentUserId}
                 />
               ))}
             </div>
@@ -96,6 +106,7 @@ interface ProfileListItemProps {
   isFollowing: boolean;
   onFollowToggle: (userId: string, e: React.MouseEvent) => void;
   onProfileClick?: (userId: string) => void;
+  currentUserId?: string;
 }
 
 function ProfileListItem({
@@ -103,9 +114,11 @@ function ProfileListItem({
   isFollowing,
   onFollowToggle,
   onProfileClick,
+  currentUserId,
 }: ProfileListItemProps) {
   const displayName = profile.display_name || profile.username || "Unknown";
   const username = profile.username;
+  const { loading } = useFollow(currentUserId || null);
 
   return (
     <div
@@ -153,11 +166,13 @@ function ProfileListItem({
       {/* Follow Button */}
       <Button
         onClick={(e) => onFollowToggle(profile.user_id, e)}
+        disabled={loading}
         className={cn(
           "flex-shrink-0 h-8 px-5 rounded-[14px] text-xs font-medium transition-all duration-200 border",
           isFollowing
             ? "bg-gray-100/80 dark:bg-white/[0.05] hover:bg-gray-200/80 dark:hover:bg-white/[0.08] text-gray-700 dark:text-white/70 border-gray-300 dark:border-white/15"
-            : "bg-primary hover:bg-primary/90 text-white border-transparent"
+            : "bg-primary hover:bg-primary/90 text-white border-transparent",
+          loading && "opacity-50 cursor-not-allowed"
         )}
         style={
           isFollowing
@@ -171,7 +186,7 @@ function ProfileListItem({
               }
         }
       >
-        {isFollowing ? "Following" : "Follow"}
+        {loading ? "..." : isFollowing ? "Following" : "Follow"}
       </Button>
     </div>
   );

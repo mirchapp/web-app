@@ -5,6 +5,7 @@ import Image from "next/image";
 import { User, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useFollow } from "@/hooks/useFollow";
 
 interface SuggestedProfile {
   user_id: string;
@@ -18,12 +19,14 @@ interface SuggestedProfilesProps {
   profiles: SuggestedProfile[];
   onProfileClick?: (userId: string) => void;
   onSeeAll?: () => void;
+  currentUserId?: string;
 }
 
 export function SuggestedProfiles({
   profiles,
   onProfileClick,
   onSeeAll,
+  currentUserId,
 }: SuggestedProfilesProps) {
   return (
     <div
@@ -59,6 +62,7 @@ export function SuggestedProfiles({
               profile={profile}
               onClick={() => onProfileClick?.(profile.user_id)}
               index={index}
+              currentUserId={currentUserId}
             />
           ))}
         </div>
@@ -71,16 +75,21 @@ interface ProfileCardProps {
   profile: SuggestedProfile;
   onClick: () => void;
   index?: number;
+  currentUserId?: string;
 }
 
-function ProfileCard({ profile, onClick, index = 0 }: ProfileCardProps) {
+function ProfileCard({ profile, onClick, index = 0, currentUserId }: ProfileCardProps) {
   const [isFollowing, setIsFollowing] = React.useState(false);
+  const { toggleFollow, loading } = useFollow(currentUserId || null);
   const displayName = profile.display_name || profile.username || "Unknown";
   const username = profile.username;
 
-  const handleFollowClick = (e: React.MouseEvent) => {
+  const handleFollowClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    setIsFollowing(!isFollowing);
+    const success = await toggleFollow(profile.user_id, isFollowing);
+    if (success) {
+      setIsFollowing(!isFollowing);
+    }
   };
 
   return (
@@ -145,11 +154,13 @@ function ProfileCard({ profile, onClick, index = 0 }: ProfileCardProps) {
         {/* Follow Button - Purple Glassy */}
         <Button
           onClick={handleFollowClick}
+          disabled={loading}
           className={cn(
             "w-full h-9 rounded-[14px] text-xs font-medium transition-all duration-200 border",
             isFollowing
               ? "bg-gray-100/80 dark:bg-white/[0.05] hover:bg-gray-200/80 dark:hover:bg-white/[0.08] text-gray-700 dark:text-white/70 border-gray-300 dark:border-white/15"
-              : "bg-primary hover:bg-primary/90 text-white border-transparent"
+              : "bg-primary hover:bg-primary/90 text-white border-transparent",
+            loading && "opacity-50 cursor-not-allowed"
           )}
           style={
             isFollowing
@@ -163,7 +174,7 @@ function ProfileCard({ profile, onClick, index = 0 }: ProfileCardProps) {
                 }
           }
         >
-          {isFollowing ? "Following" : "Follow"}
+          {loading ? "..." : isFollowing ? "Following" : "Follow"}
         </Button>
       </div>
     </div>

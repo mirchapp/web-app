@@ -6,6 +6,8 @@ import { MapPin, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { createClient } from '@/utils/supabase/client';
+import { FollowersDrawer } from './FollowersDrawer';
+import { useRouter } from 'next/navigation';
 
 // Custom hook for parallax scrolling effect
 function useParallax(speed = 0.5) {
@@ -91,11 +93,16 @@ export function ProfileOverview() {
   const [message, setMessage] = React.useState<string | null>(null);
   const [showForgotPassword, setShowForgotPassword] = React.useState(false);
   const [_isStandalone, setIsStandalone] = React.useState(false);
+  const [followersCountData, setFollowersCountData] = React.useState(0);
+  const [followingCountData, setFollowingCountData] = React.useState(0);
+  const [showFollowersDrawer, setShowFollowersDrawer] = React.useState(false);
+  const [followDrawerMode, setFollowDrawerMode] = React.useState<"followers" | "following">("followers");
 
   const supabase = createClient();
+  const router = useRouter();
   const parallaxOffset = useParallax(0.3);
-  const friendsCount = useCounter(127, 2000);
-  const reviewsCount = useCounter(43, 2000);
+  const followersCount = useCounter(followersCountData, 2000);
+  const followingCount = useCounter(followingCountData, 2000);
   const postsCount = useCounter(89, 2000);
 
   // Memoize star positions so they don't change on re-render
@@ -136,6 +143,26 @@ export function ProfileOverview() {
         }
 
         setProfile(profileData);
+
+        // Fetch followers count (people following this user)
+        const { count: followersCount } = await supabase
+          .from('Follows')
+          .select('*', { count: 'exact', head: true })
+          .eq('following_id', user.id);
+
+        if (followersCount !== null) {
+          setFollowersCountData(followersCount);
+        }
+
+        // Fetch following count (people this user is following)
+        const { count: followingCount } = await supabase
+          .from('Follows')
+          .select('*', { count: 'exact', head: true })
+          .eq('follower_id', user.id);
+
+        if (followingCount !== null) {
+          setFollowingCountData(followingCount);
+        }
       }
 
       setLoading(false);
@@ -680,15 +707,27 @@ export function ProfileOverview() {
 
             {/* Stats with animated counters */}
             <div className="flex items-center gap-6 sm:gap-8 mb-5 sm:mb-6 px-4">
-              <div className="flex flex-col items-center gap-1">
-                <span className="text-2xl sm:text-3xl font-extralight text-gray-900 dark:text-white">{friendsCount}</span>
-                <span className="text-[9px] sm:text-[10px] text-gray-400 dark:text-white/35 uppercase tracking-widest font-light">Friends</span>
-              </div>
+              <button
+                onClick={() => {
+                  setFollowDrawerMode("followers");
+                  setShowFollowersDrawer(true);
+                }}
+                className="flex flex-col items-center gap-1 hover:opacity-70 transition-opacity cursor-pointer"
+              >
+                <span className="text-2xl sm:text-3xl font-extralight text-gray-900 dark:text-white">{followersCount}</span>
+                <span className="text-[9px] sm:text-[10px] text-gray-400 dark:text-white/35 uppercase tracking-widest font-light">Followers</span>
+              </button>
               <div className="h-8 sm:h-9 w-px bg-gray-200 dark:bg-white/10" />
-              <div className="flex flex-col items-center gap-1">
-                <span className="text-2xl sm:text-3xl font-extralight text-gray-900 dark:text-white">{reviewsCount}</span>
-                <span className="text-[9px] sm:text-[10px] text-gray-400 dark:text-white/35 uppercase tracking-widest font-light">Reviews</span>
-              </div>
+              <button
+                onClick={() => {
+                  setFollowDrawerMode("following");
+                  setShowFollowersDrawer(true);
+                }}
+                className="flex flex-col items-center gap-1 hover:opacity-70 transition-opacity cursor-pointer"
+              >
+                <span className="text-2xl sm:text-3xl font-extralight text-gray-900 dark:text-white">{followingCount}</span>
+                <span className="text-[9px] sm:text-[10px] text-gray-400 dark:text-white/35 uppercase tracking-widest font-light">Following</span>
+              </button>
               <div className="h-8 sm:h-9 w-px bg-gray-200 dark:bg-white/10" />
               <div className="flex flex-col items-center gap-1">
                 <span className="text-2xl sm:text-3xl font-extralight text-gray-900 dark:text-white">{postsCount}</span>
@@ -741,7 +780,7 @@ export function ProfileOverview() {
                   value="reviews"
                   className="relative z-10 rounded-[1.125rem] !text-gray-600 dark:!text-white/90 font-light text-xs sm:text-sm transition-all duration-200 flex items-center justify-center !bg-transparent !border-transparent !shadow-none data-[state=active]:!bg-[rgba(168,85,247,0.15)] dark:data-[state=active]:!bg-[rgba(168,85,247,0.3)] data-[state=active]:!text-purple-700 dark:data-[state=active]:!text-white data-[state=active]:!shadow-[0_2px_8px_rgba(138,66,214,0.25),inset_0_1px_0_rgba(138,66,214,0.15)] dark:data-[state=active]:!shadow-[0_4px_10px_rgba(168,85,247,0.5),inset_0_1px_0_rgba(255,255,255,0.15)] data-[state=active]:!border data-[state=active]:!border-purple-300 dark:data-[state=active]:!border-[rgba(192,132,252,0.35)] data-[state=active]:backdrop-blur-xl"
                 >
-                  Reviews
+                  Posts
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="flix" className="mt-5 sm:mt-6">
@@ -777,12 +816,24 @@ export function ProfileOverview() {
                 </div>
               </TabsContent>
               <TabsContent value="reviews" className="mt-6">
-                {/* Reviews content will go here */}
+                {/* Posts content will go here */}
               </TabsContent>
             </Tabs>
           </div>
         </div>
       </div>
+
+      {/* Followers/Following Drawer */}
+      {user && (
+        <FollowersDrawer
+          isOpen={showFollowersDrawer}
+          onClose={() => setShowFollowersDrawer(false)}
+          userId={user.id}
+          currentUserId={user.id}
+          mode={followDrawerMode}
+          onProfileClick={(userId) => router.push(`/profile/${userId}`)}
+        />
+      )}
     </div>
   );
 }
