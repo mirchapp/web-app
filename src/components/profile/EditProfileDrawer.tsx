@@ -3,14 +3,84 @@
 import * as React from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { User, X } from "lucide-react";
+import { User, X, Leaf, Wheat, Nut, Shell, Milk, Sprout, DollarSign, Flame } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
 import { SideDrawer } from "@/components/ui/side-drawer";
 import { createClient } from "@/utils/supabase/client";
 import { processImageForUpload, dataURLToFile } from "@/utils/imageProcessing";
 import Cropper from "react-easy-crop";
+
+const cuisines = [
+  '🍕 Italian', '🍜 Japanese', '🌮 Mexican', '🍔 American',
+  '🍛 Indian', '🥟 Chinese', '🥖 French', '🍗 Korean',
+  '🥙 Mediterranean', '🍝 Thai', '🌯 Vietnamese', '🥘 Spanish'
+];
+
+// Halal icon component with Arabic text
+const HalalIcon = () => (
+  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <text x="12" y="16" textAnchor="middle" fontSize="14" fill="currentColor" fontFamily="Arial">حلال</text>
+  </svg>
+);
+
+// COR Kosher icon component
+const KosherIcon = () => (
+  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <text x="12" y="15" textAnchor="middle" fontSize="9" fontWeight="bold" fill="currentColor" fontFamily="Arial">COR</text>
+  </svg>
+);
+
+interface DietaryRestriction {
+  id: string;
+  label: string;
+  icon: React.ReactNode;
+}
+
+const dietaryRestrictions: DietaryRestriction[] = [
+  {
+    id: 'vegetarian',
+    label: 'Vegetarian',
+    icon: <Leaf className="w-5 h-5" strokeWidth={1.5} />
+  },
+  {
+    id: 'vegan',
+    label: 'Vegan',
+    icon: <Sprout className="w-5 h-5" strokeWidth={1.5} />
+  },
+  {
+    id: 'gluten-free',
+    label: 'Gluten-Free',
+    icon: <Wheat className="w-5 h-5" strokeWidth={1.5} />
+  },
+  {
+    id: 'nut-allergy',
+    label: 'Nut Allergy',
+    icon: <Nut className="w-5 h-5" strokeWidth={1.5} />
+  },
+  {
+    id: 'shellfish-allergy',
+    label: 'Shellfish Allergy',
+    icon: <Shell className="w-5 h-5" strokeWidth={1.5} />
+  },
+  {
+    id: 'lactose-free',
+    label: 'Lactose-Free',
+    icon: <Milk className="w-5 h-5" strokeWidth={1.5} />
+  },
+  {
+    id: 'halal',
+    label: 'Halal',
+    icon: <HalalIcon />
+  },
+  {
+    id: 'kosher',
+    label: 'Kosher',
+    icon: <KosherIcon />
+  }
+];
 
 interface EditProfileDrawerProps {
   isOpen: boolean;
@@ -19,6 +89,10 @@ interface EditProfileDrawerProps {
     display_name?: string;
     username?: string;
     avatar_url?: string;
+    favourite_cuisines?: string[];
+    dietary_preferences?: string[];
+    price_preference?: number;
+    spice_preference?: number;
   } | null;
   onProfileUpdated: () => void;
 }
@@ -82,6 +156,16 @@ export function EditProfileDrawer({
 }: EditProfileDrawerProps) {
   const [displayName, setDisplayName] = React.useState(currentProfile?.display_name || "");
   const [avatarUrl, setAvatarUrl] = React.useState(currentProfile?.avatar_url || "");
+  const [selectedCuisines, setSelectedCuisines] = React.useState<string[]>([]);
+  const [selectedRestrictions, setSelectedRestrictions] = React.useState<string[]>(
+    currentProfile?.dietary_preferences || []
+  );
+  const [pricePreference, setPricePreference] = React.useState<number>(
+    currentProfile?.price_preference || 2
+  );
+  const [spicePreference, setSpicePreference] = React.useState<number>(
+    currentProfile?.spice_preference || 2
+  );
   const [isSaving, setIsSaving] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -103,8 +187,44 @@ export function EditProfileDrawer({
     if (currentProfile) {
       setDisplayName(currentProfile.display_name || "");
       setAvatarUrl(currentProfile.avatar_url || "");
+
+      // Map stored cuisines (without emojis) back to emoji versions for display
+      const storedCuisines = currentProfile.favourite_cuisines || [];
+      const displayCuisines = storedCuisines.map(storedCuisine => {
+        const matchingCuisine = cuisines.find(c =>
+          c.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim() === storedCuisine
+        );
+        return matchingCuisine || storedCuisine;
+      });
+
+      setSelectedCuisines(displayCuisines);
+      setSelectedRestrictions(currentProfile.dietary_preferences || []);
+      setPricePreference(currentProfile.price_preference || 2);
+      setSpicePreference(currentProfile.spice_preference || 2);
     }
   }, [currentProfile]);
+
+  const toggleCuisine = (cuisine: string) => {
+    setSelectedCuisines(prev =>
+      prev.includes(cuisine) ? prev.filter(c => c !== cuisine) : [...prev, cuisine]
+    );
+  };
+
+  const toggleRestriction = (restrictionId: string) => {
+    setSelectedRestrictions(prev =>
+      prev.includes(restrictionId) ? prev.filter(r => r !== restrictionId) : [...prev, restrictionId]
+    );
+  };
+
+  const getPriceLabel = (value: number) => {
+    const labels = ['$', '$$', '$$$', '$$$$'];
+    return labels[value - 1] || '$$';
+  };
+
+  const getSpiceLabel = (value: number) => {
+    const labels = ['Mild', 'Medium', 'Hot', 'Extra Hot'];
+    return labels[value - 1] || 'Medium';
+  };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -220,12 +340,21 @@ export function EditProfileDrawer({
         throw new Error("No user found");
       }
 
+      // Strip emojis from cuisines before saving to DB
+      const cuisinesWithoutEmojis = selectedCuisines.map(cuisine =>
+        cuisine.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim()
+      );
+
       // Update profile in database
       const { error: updateError } = await supabase
         .from("Profile")
         .update({
           display_name: displayName.trim(),
           avatar_url: avatarUrl,
+          favourite_cuisines: cuisinesWithoutEmojis,
+          dietary_preferences: selectedRestrictions,
+          price_preference: pricePreference,
+          spice_preference: spicePreference,
         })
         .eq("user_id", user.id);
 
@@ -240,6 +369,10 @@ export function EditProfileDrawer({
           display_name: displayName.trim(),
           username: currentProfile?.username,
           avatar_url: avatarUrl,
+          favourite_cuisines: cuisinesWithoutEmojis,
+          dietary_preferences: selectedRestrictions,
+          price_preference: pricePreference,
+          spice_preference: spicePreference,
         })
       );
 
@@ -380,6 +513,97 @@ export function EditProfileDrawer({
               <p className="text-xs text-muted-foreground/50 pl-1 font-light">
                 Username cannot be changed at this time
               </p>
+            </div>
+
+            {/* Favorite Cuisines */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium text-foreground/80 pl-1">
+                Favorite Cuisines
+              </Label>
+              <div className="grid grid-cols-2 gap-2.5">
+                {cuisines.map((cuisine) => (
+                  <button
+                    key={cuisine}
+                    onClick={() => toggleCuisine(cuisine)}
+                    className={`p-3.5 rounded-[14px] text-sm font-medium transition-all duration-200 active:scale-95 ${
+                      selectedCuisines.includes(cuisine)
+                        ? 'bg-primary text-primary-foreground shadow-[0_4px_12px_rgba(138,66,214,0.35)]'
+                        : 'bg-white/70 dark:bg-white/[0.02] border border-primary/10 dark:border-white/5 hover:bg-primary/5 dark:hover:bg-white/[0.05] hover:border-primary/20 shadow-sm dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)]'
+                    }`}
+                  >
+                    {cuisine}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Dietary Restrictions */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium text-foreground/80 pl-1">
+                Dietary Restrictions
+              </Label>
+              <div className="grid grid-cols-2 gap-2.5">
+                {dietaryRestrictions.map((restriction) => (
+                  <button
+                    key={restriction.id}
+                    onClick={() => toggleRestriction(restriction.id)}
+                    className={`p-3.5 rounded-[14px] text-sm font-medium transition-all duration-200 active:scale-95 flex items-center gap-2 ${
+                      selectedRestrictions.includes(restriction.id)
+                        ? 'bg-primary text-primary-foreground shadow-[0_4px_12px_rgba(138,66,214,0.35)]'
+                        : 'bg-white/70 dark:bg-white/[0.02] border border-primary/10 dark:border-white/5 hover:bg-primary/5 dark:hover:bg-white/[0.05] hover:border-primary/20 shadow-sm dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)]'
+                    }`}
+                  >
+                    {restriction.icon}
+                    <span className="text-xs">{restriction.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Price Preference Slider */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between pl-1">
+                <Label className="text-sm font-medium text-foreground/80 flex items-center gap-2">
+                  <DollarSign className="w-4 h-4" strokeWidth={1.5} />
+                  Price Preference
+                </Label>
+                <span className="text-sm font-medium text-primary">{getPriceLabel(pricePreference)}</span>
+              </div>
+              <Slider
+                value={[pricePreference]}
+                onValueChange={(value) => setPricePreference(value[0])}
+                min={1}
+                max={4}
+                step={1}
+                className="w-full"
+              />
+              <div className="flex justify-between text-xs text-muted-foreground/70">
+                <span>Budget</span>
+                <span>Luxury</span>
+              </div>
+            </div>
+
+            {/* Spice Preference Slider */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between pl-1">
+                <Label className="text-sm font-medium text-foreground/80 flex items-center gap-2">
+                  <Flame className="w-4 h-4" strokeWidth={1.5} />
+                  Spice Level
+                </Label>
+                <span className="text-sm font-medium text-primary">{getSpiceLabel(spicePreference)}</span>
+              </div>
+              <Slider
+                value={[spicePreference]}
+                onValueChange={(value) => setSpicePreference(value[0])}
+                min={1}
+                max={4}
+                step={1}
+                className="w-full"
+              />
+              <div className="flex justify-between text-xs text-muted-foreground/70">
+                <span>Mild</span>
+                <span>Extra Hot</span>
+              </div>
             </div>
 
             {/* Save Button */}

@@ -59,6 +59,10 @@ interface ProfileData {
   username?: string;
   avatar_url?: string;
   location?: string;
+  favourite_cuisines?: string[];
+  dietary_preferences?: string[];
+  price_preference?: number;
+  spice_preference?: number;
 }
 
 interface ProfileOverviewProps {
@@ -150,7 +154,7 @@ export function ProfileOverview({ viewingUserId }: ProfileOverviewProps = {}) {
         // Fetch profile data
         const { data: profileData } = await supabase
           .from('Profile')
-          .select('display_name, username, avatar_url, location')
+          .select('display_name, username, avatar_url, location, favourite_cuisines, dietary_preferences, price_preference, spice_preference')
           .eq('user_id', profileUserId)
           .single();
 
@@ -883,7 +887,7 @@ export function ProfileOverview({ viewingUserId }: ProfileOverviewProps = {}) {
             // Refresh profile data
             const { data: profileData } = await supabase
               .from('Profile')
-              .select('display_name, username, avatar_url, location')
+              .select('display_name, username, avatar_url, location, favourite_cuisines, dietary_preferences, price_preference, spice_preference')
               .eq('user_id', user.id)
               .single();
 

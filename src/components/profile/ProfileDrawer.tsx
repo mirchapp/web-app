@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ProfileOverview } from "./ProfileOverview";
 
@@ -84,7 +85,7 @@ export function ProfileDrawer({ isOpen, onClose, userId }: ProfileDrawerProps) {
     setIsHorizontalDrag(false);
   };
 
-  return (
+  const drawer = (
     <AnimatePresence mode="wait" onExitComplete={() => setDragOffset(0)}>
       {isOpen && (
         <motion.div
@@ -92,7 +93,7 @@ export function ProfileDrawer({ isOpen, onClose, userId }: ProfileDrawerProps) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ type: "tween", duration: 0.25, ease: "easeOut" }}
-          className="fixed z-50 bg-black/20 dark:bg-black/40 backdrop-blur-sm touch-manipulation"
+          className="fixed z-[70] bg-black/20 dark:bg-black/40 backdrop-blur-sm touch-manipulation"
           style={{
             top: 0,
             left: 0,
@@ -177,4 +178,10 @@ export function ProfileDrawer({ isOpen, onClose, userId }: ProfileDrawerProps) {
       )}
     </AnimatePresence>
   );
+
+  // Render in a portal to ensure it's at the top level of the DOM
+  if (typeof document !== "undefined") {
+    return createPortal(drawer, document.body);
+  }
+  return null;
 }
