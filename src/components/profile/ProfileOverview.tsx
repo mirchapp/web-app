@@ -827,7 +827,28 @@ export function ProfileOverview() {
       {user && (
         <FollowersDrawer
           isOpen={showFollowersDrawer}
-          onClose={() => setShowFollowersDrawer(false)}
+          onClose={async () => {
+            setShowFollowersDrawer(false);
+
+            // Refresh follower/following counts
+            const { count: followersCount } = await supabase
+              .from('Follows')
+              .select('*', { count: 'exact', head: true })
+              .eq('following_id', user.id);
+
+            if (followersCount !== null) {
+              setFollowersCountData(followersCount);
+            }
+
+            const { count: followingCount } = await supabase
+              .from('Follows')
+              .select('*', { count: 'exact', head: true })
+              .eq('follower_id', user.id);
+
+            if (followingCount !== null) {
+              setFollowingCountData(followingCount);
+            }
+          }}
           userId={user.id}
           currentUserId={user.id}
           mode={followDrawerMode}

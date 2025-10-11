@@ -150,6 +150,11 @@ export function FollowersDrawer({
         }
         return newSet;
       });
+
+      // If we're in "following" mode and we just unfollowed someone, remove them from the list
+      if (mode === "following" && isCurrentlyFollowing) {
+        setProfiles((prev) => prev.filter((p) => p.user_id !== profileUserId));
+      }
     }
   };
 

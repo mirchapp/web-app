@@ -13,6 +13,8 @@ import { createClient } from "@/utils/supabase/client";
 import { Input } from "@/components/ui/input";
 import { useProfileSearch } from "@/hooks/useProfileSearch";
 import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import { useFollow } from "@/hooks/useFollow";
 
 const featuredSummaries = getListSummaries("featured");
 const curatedSummaries = getListSummaries("curated");
@@ -41,6 +43,7 @@ const curatedListsData = curatedSummaries.map((article) => ({
 export function FindHome() {
   const [userId, setUserId] = React.useState<string>("");
   const [showConnectDrawer, setShowConnectDrawer] = React.useState(false);
+  const [followedUsers, setFollowedUsers] = React.useState<Set<string>>(new Set());
   const router = useRouter();
   const supabase = createClient();
 
@@ -55,6 +58,17 @@ export function FindHome() {
       if (session?.user) {
         console.log("Setting userId from session to:", session.user.id);
         setUserId(session.user.id);
+
+        // Fetch following status
+        const { data: followsData } = await supabase
+          .from("Follows")
+          .select("following_id")
+          .eq("follower_id", session.user.id);
+
+        if (followsData) {
+          const followingSet = new Set(followsData.map((f) => f.following_id));
+          setFollowedUsers(followingSet);
+        }
         return;
       }
 
@@ -67,6 +81,17 @@ export function FindHome() {
       if (user) {
         console.log("Setting userId to:", user.id);
         setUserId(user.id);
+
+        // Fetch following status
+        const { data: followsData } = await supabase
+          .from("Follows")
+          .select("following_id")
+          .eq("follower_id", user.id);
+
+        if (followsData) {
+          const followingSet = new Set(followsData.map((f) => f.following_id));
+          setFollowedUsers(followingSet);
+        }
       } else {
         console.log("No user found");
       }
@@ -92,6 +117,32 @@ export function FindHome() {
   const displayItems = results;
   const showResults = query.length > 0;
   const showSuggestions = !query && suggestions.length > 0;
+
+  // Update follow status when search results change
+  React.useEffect(() => {
+    if (!userId || results.length === 0) return;
+
+    const fetchFollowStatusForResults = async () => {
+      const profileIds = results.map((r) => r.user_id);
+
+      const { data: followsData } = await supabase
+        .from("Follows")
+        .select("following_id")
+        .eq("follower_id", userId)
+        .in("following_id", profileIds);
+
+      if (followsData) {
+        const followingSet = new Set(followsData.map((f) => f.following_id));
+        setFollowedUsers((prev) => {
+          const newSet = new Set(prev);
+          followsData.forEach((f) => newSet.add(f.following_id));
+          return newSet;
+        });
+      }
+    };
+
+    fetchFollowStatusForResults();
+  }, [results, userId, supabase]);
 
   // Debug logging
   React.useEffect(() => {
@@ -245,6 +296,19 @@ export function FindHome() {
                 onClick={() => handleProfileClick(profile.user_id)}
                 showReason={!query && "reason" in profile}
                 highlightUsername={query.startsWith("@")}
+                currentUserId={userId}
+                isFollowing={followedUsers.has(profile.user_id)}
+                onFollowChange={(isFollowing) => {
+                  setFollowedUsers((prev) => {
+                    const newSet = new Set(prev);
+                    if (isFollowing) {
+                      newSet.add(profile.user_id);
+                    } else {
+                      newSet.delete(profile.user_id);
+                    }
+                    return newSet;
+                  });
+                }}
               />
             ))}
           </div>
@@ -317,6 +381,9 @@ interface ProfileItemProps {
   onClick: () => void;
   showReason?: boolean;
   highlightUsername?: boolean;
+  currentUserId?: string;
+  isFollowing: boolean;
+  onFollowChange: (isFollowing: boolean) => void;
 }
 
 function ProfileItem({
@@ -324,24 +391,45 @@ function ProfileItem({
   onClick,
   showReason,
   highlightUsername,
+  currentUserId,
+  isFollowing,
+  onFollowChange,
 }: ProfileItemProps) {
   const displayName = profile.display_name || profile.username || "Unknown";
   const username = profile.username;
   const avatarUrl = profile.avatar_url;
   const reason = profile.reason;
+  const { toggleFollow, loading } = useFollow(currentUserId || null);
+
+  const handleFollowClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const success = await toggleFollow(profile.user_id, isFollowing);
+    if (success) {
+      onFollowChange(!isFollowing);
+    }
+  };
+
+  const showFollowButton = currentUserId && profile.user_id !== currentUserId;
 
   return (
-    <button
-      onClick={onClick}
+    <div
       className={cn(
-        "w-full flex items-center gap-3 px-4 py-3",
-        "hover:bg-gray-50 dark:hover:bg-white/[0.03] active:bg-gray-100 dark:active:bg-white/[0.05]",
-        "transition-all duration-200",
-        "text-left rounded-xl"
+        "w-full flex items-center gap-3 px-4 py-3.5",
+        "bg-card/30 dark:bg-white/[0.01] backdrop-blur-xl",
+        "border border-gray-200/50 dark:border-white/[0.06]",
+        "hover:bg-card/50 dark:hover:bg-white/[0.02]",
+        "hover:border-gray-300/50 dark:hover:border-white/[0.10]",
+        "hover:shadow-[0_2px_16px_rgba(0,0,0,0.04)] dark:hover:shadow-[0_2px_16px_rgba(138,66,214,0.08)]",
+        "transition-all duration-300",
+        "rounded-2xl cursor-pointer group"
       )}
+      style={{
+        boxShadow: "0 1px 3px rgba(0,0,0,0.02), inset 0 1px 0 rgba(255,255,255,0.05)",
+      }}
+      onClick={onClick}
     >
       {/* Avatar */}
-      <div className="relative flex-shrink-0 w-12 h-12 rounded-full overflow-hidden ring-1 ring-gray-200 dark:ring-white/10 shadow-sm">
+      <div className="relative flex-shrink-0 w-14 h-14 rounded-full overflow-hidden ring-1 ring-gray-200/60 dark:ring-white/[0.08] shadow-sm group-hover:ring-gray-300/60 dark:group-hover:ring-white/[0.12] transition-all duration-300">
         {avatarUrl ? (
           <Image
             src={avatarUrl}
@@ -350,54 +438,80 @@ function ProfileItem({
             className="object-cover"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gray-50 dark:bg-white/5">
-            <User className="h-6 w-6 text-gray-300 dark:text-white/30" />
+          <div className="w-full h-full flex items-center justify-center bg-gray-50/50 dark:bg-white/[0.03]">
+            <User className="h-7 w-7 text-gray-300 dark:text-white/20" />
           </div>
         )}
       </div>
 
       {/* Profile Info */}
       <div className="flex-1 min-w-0">
-        <div className="flex items-baseline gap-2">
+        <p
+          className={cn(
+            "text-[15px] font-medium text-gray-900 dark:text-white truncate mb-0.5",
+            !highlightUsername && "font-semibold"
+          )}
+        >
+          {displayName}
+        </p>
+        {username && (
           <p
             className={cn(
-              "text-sm font-medium text-gray-900 dark:text-white truncate",
-              !highlightUsername && "font-semibold"
+              "text-[13px] text-gray-500 dark:text-white/40 truncate font-light",
+              highlightUsername && "font-semibold text-gray-900 dark:text-white"
             )}
           >
-            {displayName}
+            @{username}
           </p>
-          {username && (
-            <p
-              className={cn(
-                "text-sm text-gray-500 dark:text-white/50 truncate font-light",
-                highlightUsername && "font-semibold text-gray-900 dark:text-white"
-              )}
-            >
-              @{username}
-            </p>
-          )}
-        </div>
+        )}
 
         {/* Bio or Reason */}
         {showReason && reason ? (
-          <p className="text-xs text-gray-500 dark:text-white/50 truncate mt-0.5 font-light">
+          <p className="text-xs text-gray-500 dark:text-white/40 truncate font-light leading-relaxed mt-1">
             {reason}
           </p>
         ) : profile.bio ? (
-          <p className="text-xs text-gray-500 dark:text-white/50 truncate mt-0.5 font-light">
+          <p className="text-xs text-gray-500 dark:text-white/40 truncate font-light leading-relaxed mt-1">
             {profile.bio}
           </p>
         ) : null}
 
         {/* Follower Count */}
         {profile.follower_count !== undefined && (
-          <p className="text-xs text-gray-400 dark:text-white/40 mt-0.5 font-light">
+          <p className="text-[11px] text-gray-400 dark:text-white/30 mt-1 font-light">
             {profile.follower_count.toLocaleString()}{" "}
             {profile.follower_count === 1 ? "follower" : "followers"}
           </p>
         )}
       </div>
-    </button>
+
+      {/* Follow Button */}
+      {showFollowButton && (
+        <Button
+          onClick={handleFollowClick}
+          disabled={loading}
+          className={cn(
+            "flex-shrink-0 h-8 px-4 rounded-full text-xs font-medium transition-all duration-300 border",
+            isFollowing
+              ? "bg-gray-100/80 dark:bg-white/[0.05] hover:bg-gray-200/80 dark:hover:bg-white/[0.08] text-gray-700 dark:text-white/70 border-gray-300 dark:border-white/15"
+              : "bg-primary hover:bg-primary/90 text-white border-transparent",
+            loading && "opacity-50 cursor-not-allowed"
+          )}
+          style={
+            isFollowing
+              ? {
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.1)",
+                }
+              : {
+                  background: "linear-gradient(135deg, rgba(168,85,247,0.95) 0%, rgba(138,66,214,0.95) 100%)",
+                  boxShadow: "0 4px 20px rgba(138,66,214,0.35), inset 0 1px 0 rgba(255,255,255,0.15)",
+                  backdropFilter: "blur(10px)",
+                }
+          }
+        >
+          {loading ? "..." : isFollowing ? "Following" : "Follow"}
+        </Button>
+      )}
+    </div>
   );
 }
