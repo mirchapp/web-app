@@ -43,9 +43,9 @@ export function CuratedLists({
       <div className="px-4 mb-4">
         <div className="flex items-center gap-2 mb-1">
           <MapPin className="h-5 w-5 text-primary" />
-          <h2 className="text-xl font-semibold text-foreground">{location}</h2>
+          <h2 className="text-xl font-light text-gray-900 dark:text-white tracking-tight">{location}</h2>
         </div>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-gray-600 dark:text-white/50 font-light">
           Curated lists for your area
         </p>
       </div>
@@ -56,18 +56,21 @@ export function CuratedLists({
           <div
             key={list.id}
             onClick={() => onListClick?.(list)}
+            className="group"
             style={{
               display: "grid",
               gridTemplateColumns: "112px 1fr auto",
               gap: "16px",
               alignItems: "center",
               height: "112px",
-              backgroundColor: isDark ? "#1a1a1a" : "#ffffff",
-              borderRadius: "12px",
-              border: `1px solid ${isDark ? "#333" : "#e5e5e5"}`,
+              backgroundColor: isDark ? "rgba(255,255,255,0.02)" : "#ffffff",
+              borderRadius: "16px",
+              border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgb(229,229,229)"}`,
               overflow: "hidden",
               cursor: "pointer",
               padding: "0",
+              transition: "all 0.3s ease",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.1)",
             }}
           >
             {/* Image */}
@@ -78,7 +81,7 @@ export function CuratedLists({
                 height: "112px",
                 flexShrink: 0,
                 overflow: "hidden",
-                borderRadius: "12px 0 0 12px",
+                borderRadius: "16px 0 0 16px",
               }}
             >
               <Image
@@ -86,7 +89,8 @@ export function CuratedLists({
                 alt={list.title}
                 fill
                 sizes="112px"
-                style={{ objectFit: "cover" }}
+                style={{ objectFit: "cover", transition: "transform 0.5s ease" }}
+                className="group-hover:scale-105"
               />
             </div>
 
@@ -103,7 +107,7 @@ export function CuratedLists({
             >
               <div
                 style={{
-                  fontWeight: 600,
+                  fontWeight: 500,
                   fontSize: "16px",
                   lineHeight: "1.4",
                   color: isDark ? "#ffffff" : "#000000",
@@ -123,11 +127,12 @@ export function CuratedLists({
                   alignItems: "center",
                   gap: "8px",
                   fontSize: "13px",
-                  color: isDark ? "rgba(255,255,255,0.7)" : "#555555",
+                  color: isDark ? "rgba(255,255,255,0.5)" : "rgb(107,114,128)",
+                  fontWeight: 300,
                 }}
               >
                 {list.category && (
-                  <span style={{ fontWeight: 600 }}>{list.category}</span>
+                  <span style={{ fontWeight: 500 }}>{list.category}</span>
                 )}
                 {typeof list.count === "number" && (
                   <span>{list.count} places</span>
@@ -137,13 +142,14 @@ export function CuratedLists({
                 style={{
                   fontSize: "14px",
                   lineHeight: "1.4",
-                  color: isDark ? "#a0a0a0" : "#666666",
+                  color: isDark ? "rgba(255,255,255,0.5)" : "rgb(107,114,128)",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   display: "-webkit-box",
                   WebkitLineClamp: 2,
                   WebkitBoxOrient: "vertical",
                   wordBreak: "break-word",
+                  fontWeight: 300,
                 }}
               >
                 {list.description ??
@@ -162,7 +168,7 @@ export function CuratedLists({
                 style={{
                   width: "20px",
                   height: "20px",
-                  color: isDark ? "#808080" : "#999999",
+                  color: isDark ? "rgba(255,255,255,0.4)" : "rgb(156,163,175)",
                 }}
               />
             </div>

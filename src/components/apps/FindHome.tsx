@@ -5,6 +5,7 @@ import { Search, Loader2, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FeaturedLists } from "./FeaturedLists";
 import { CuratedLists } from "./CuratedLists";
+import { SuggestedProfiles } from "./SuggestedProfiles";
 import { getListSummaries } from "@/data/mock/list-articles";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
@@ -98,8 +99,9 @@ export function FindHome() {
     minQueryLength: 1,
   });
 
-  const displayItems = results.length > 0 ? results : suggestions;
-  const showResults = query.length > 0 || suggestions.length > 0;
+  const displayItems = results;
+  const showResults = query.length > 0;
+  const showSuggestions = !query && suggestions.length > 0;
 
   // Debug logging
   React.useEffect(() => {
@@ -119,19 +121,54 @@ export function FindHome() {
     router.push(`/profile/${profileUserId}`);
   };
 
+  // In standalone PWA, bottom nav is still present, so use consistent padding
+  const bottomPadding = 'calc(env(safe-area-inset-bottom, 20px) + 88px)';
+
   return (
-    <div className="h-full overflow-y-auto pb-24">
+    <div className="absolute inset-0 overflow-y-auto bg-white dark:bg-[#0A0A0F]" style={{ paddingBottom: bottomPadding }}>
+      {/* Animated purple wave background - matching profile page */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* Purple wave gradient */}
+        <div
+          className="absolute left-0 right-0 h-[400px] opacity-20 dark:opacity-30"
+          style={{
+            top: '10%',
+            background: 'linear-gradient(90deg, rgba(138, 66, 214, 0.4) 0%, rgba(168, 85, 247, 0.3) 50%, rgba(138, 66, 214, 0.4) 100%)',
+            filter: 'blur(80px)',
+            transform: 'translateZ(0)',
+            animation: 'wave 8s ease-in-out infinite alternate'
+          }}
+        />
+
+        {/* Subtle stars/particles */}
+        <div className="absolute inset-0 opacity-15 dark:opacity-30">
+          {Array.from({ length: 20 }).map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-1 h-1 bg-purple-500/30 dark:bg-white/20 rounded-full"
+              style={{
+                top: `${Math.random() * 100}%`,
+                left: `${Math.random() * 100}%`,
+                animation: `twinkle ${2 + Math.random() * 3}s ease-in-out infinite`,
+                animationDelay: `${Math.random() * 2}s`,
+                willChange: 'opacity',
+              }}
+            />
+          ))}
+        </div>
+      </div>
+
       {/* Header Section */}
       <div
-        className="px-4 pb-6"
+        className="px-4 pb-6 relative z-10"
         style={{ paddingTop: "var(--header-top-padding-safe)" }}
       >
         {/* Greeting */}
         <div className="mb-6">
-          <h1 className="text-3xl font-semibold text-foreground mb-1">
+          <h1 className="text-3xl font-light text-gray-900 dark:text-white mb-1 tracking-tight">
             {greeting}, Faizaan
           </h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-gray-600 dark:text-white/50 font-light">
             Discover people and places
           </p>
         </div>
@@ -140,9 +177,9 @@ export function FindHome() {
         <div className="relative">
           <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10">
             {loading ? (
-              <Loader2 className="h-5 w-5 text-muted-foreground animate-spin" />
+              <Loader2 className="h-5 w-5 text-gray-400 dark:text-white/40 animate-spin" />
             ) : (
-              <Search className="h-5 w-5 text-muted-foreground" />
+              <Search className="h-5 w-5 text-gray-400 dark:text-white/40" />
             )}
           </div>
           <Input
@@ -152,25 +189,23 @@ export function FindHome() {
             onChange={(e) => setQuery(e.target.value)}
             className={cn(
               "h-14 pl-12 pr-4 rounded-2xl",
-              "bg-muted/50 border-border/50",
-              "text-base placeholder:text-muted-foreground",
+              "bg-card dark:bg-white/[0.02] backdrop-blur-xl",
+              "border border-gray-200 dark:border-white/10",
+              "text-base placeholder:text-gray-400 dark:placeholder:text-white/40",
               "focus-visible:ring-2 focus-visible:ring-primary/20",
-              "transition-all duration-200"
+              "transition-all duration-200 font-light",
+              "shadow-sm"
             )}
+            style={{
+              boxShadow: "0 2px 8px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.1)"
+            }}
           />
         </div>
       </div>
 
-      {/* Search Results or Suggestions */}
+      {/* Search Results */}
       {showResults && (
-        <div className="px-4 mb-6">
-          {/* Section Header */}
-          {!query && suggestions.length > 0 && (
-            <h3 className="text-sm font-medium text-muted-foreground mb-3 px-4">
-              Suggested for you
-            </h3>
-          )}
-
+        <div className="px-4 mb-6 relative z-10">
           {/* Error State */}
           {error && (
             <div className="px-4 py-3 text-sm text-destructive mb-4">
@@ -194,11 +229,11 @@ export function FindHome() {
           {/* Empty State */}
           {!loading && displayItems.length === 0 && query && (
             <div className="flex flex-col items-center justify-center py-12 px-4">
-              <User className="h-12 w-12 text-muted-foreground/50 mb-3" />
-              <p className="text-sm text-muted-foreground text-center">
+              <User className="h-12 w-12 text-gray-300 dark:text-white/30 mb-3" />
+              <p className="text-sm text-gray-600 dark:text-white/50 text-center font-light">
                 No results found
               </p>
-              <p className="text-xs text-muted-foreground/70 text-center mt-1">
+              <p className="text-xs text-gray-400 dark:text-white/40 text-center mt-1 font-light">
                 Try a different search term
               </p>
             </div>
@@ -208,12 +243,21 @@ export function FindHome() {
 
       {/* Featured Lists Section - Hide when searching */}
       {!query && (
-        <>
+        <div className="relative z-10">
           <FeaturedLists
             lists={featuredListsData}
             onSeeAll={() => console.log("See all featured lists")}
             onListClick={(list) => router.push(`/diners/lists/${list.slug}`)}
           />
+
+          {/* Suggested Profiles Carousel - Show when not searching */}
+          {showSuggestions && (
+            <SuggestedProfiles
+              profiles={suggestions}
+              onProfileClick={handleProfileClick}
+              onSeeAll={() => console.log("See all suggestions")}
+            />
+          )}
 
           {/* Curated Lists Section */}
           <CuratedLists
@@ -221,7 +265,7 @@ export function FindHome() {
             location="New York, NY"
             onListClick={(list) => router.push(`/diners/lists/${list.slug}`)}
           />
-        </>
+        </div>
       )}
     </div>
   );
@@ -258,13 +302,13 @@ function ProfileItem({
       onClick={onClick}
       className={cn(
         "w-full flex items-center gap-3 px-4 py-3",
-        "hover:bg-muted/50 active:bg-muted",
-        "transition-colors duration-150",
+        "hover:bg-gray-50 dark:hover:bg-white/[0.03] active:bg-gray-100 dark:active:bg-white/[0.05]",
+        "transition-all duration-200",
         "text-left rounded-xl"
       )}
     >
       {/* Avatar */}
-      <div className="relative flex-shrink-0 w-12 h-12 rounded-full bg-muted overflow-hidden">
+      <div className="relative flex-shrink-0 w-12 h-12 rounded-full overflow-hidden ring-1 ring-gray-200 dark:ring-white/10 shadow-sm">
         {avatarUrl ? (
           <Image
             src={avatarUrl}
@@ -273,8 +317,8 @@ function ProfileItem({
             className="object-cover"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <User className="h-6 w-6 text-muted-foreground" />
+          <div className="w-full h-full flex items-center justify-center bg-gray-50 dark:bg-white/5">
+            <User className="h-6 w-6 text-gray-300 dark:text-white/30" />
           </div>
         )}
       </div>
@@ -284,7 +328,7 @@ function ProfileItem({
         <div className="flex items-baseline gap-2">
           <p
             className={cn(
-              "text-sm font-medium text-foreground truncate",
+              "text-sm font-medium text-gray-900 dark:text-white truncate",
               !highlightUsername && "font-semibold"
             )}
           >
@@ -293,8 +337,8 @@ function ProfileItem({
           {username && (
             <p
               className={cn(
-                "text-sm text-muted-foreground truncate",
-                highlightUsername && "font-semibold text-foreground"
+                "text-sm text-gray-500 dark:text-white/50 truncate font-light",
+                highlightUsername && "font-semibold text-gray-900 dark:text-white"
               )}
             >
               @{username}
@@ -304,18 +348,18 @@ function ProfileItem({
 
         {/* Bio or Reason */}
         {showReason && reason ? (
-          <p className="text-xs text-muted-foreground/80 truncate mt-0.5">
+          <p className="text-xs text-gray-500 dark:text-white/50 truncate mt-0.5 font-light">
             {reason}
           </p>
         ) : profile.bio ? (
-          <p className="text-xs text-muted-foreground truncate mt-0.5">
+          <p className="text-xs text-gray-500 dark:text-white/50 truncate mt-0.5 font-light">
             {profile.bio}
           </p>
         ) : null}
 
         {/* Follower Count */}
         {profile.follower_count !== undefined && (
-          <p className="text-xs text-muted-foreground/70 mt-0.5">
+          <p className="text-xs text-gray-400 dark:text-white/40 mt-0.5 font-light">
             {profile.follower_count.toLocaleString()}{" "}
             {profile.follower_count === 1 ? "follower" : "followers"}
           </p>

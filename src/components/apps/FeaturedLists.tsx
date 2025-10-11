@@ -27,16 +27,16 @@ export function FeaturedLists({
   onListClick,
 }: FeaturedListsProps) {
   return (
-    <div className="mb-2">
+    <div className="mb-6">
       <div className="px-4 mb-4 flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-foreground">
+        <h2 className="text-xl font-light text-gray-900 dark:text-white tracking-tight">
           Featured Lists
         </h2>
         {onSeeAll && (
           <Button
             variant="ghost"
             size="sm"
-            className="text-primary -mr-2"
+            className="text-primary hover:text-primary/80 -mr-2 font-light"
             onClick={onSeeAll}
           >
             See all
@@ -51,7 +51,10 @@ export function FeaturedLists({
           {lists.map((list) => (
             <div
               key={list.id}
-              className="flex-none w-[300px] sm:w-[340px] overflow-hidden rounded-xl border border-border/50 hover:shadow-lg transition-all duration-200 cursor-pointer group h-48"
+              className="flex-none w-[300px] sm:w-[340px] overflow-hidden rounded-2xl border border-gray-200 dark:border-white/10 hover:shadow-[0_8px_30px_rgba(138,66,214,0.15)] dark:hover:shadow-[0_8px_30px_rgba(138,66,214,0.25)] transition-all duration-300 cursor-pointer group h-48"
+              style={{
+                boxShadow: "0 2px 8px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.1)",
+              }}
               onClick={() => onListClick?.(list)}
             >
               <div className="relative w-full h-full">
@@ -60,7 +63,7 @@ export function FeaturedLists({
                   alt={list.title}
                   fill
                   sizes="(max-width: 640px) 300px, 340px"
-                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  className="object-cover group-hover:scale-105 transition-transform duration-500"
                   style={{ position: "absolute" }}
                 />
 
@@ -76,21 +79,18 @@ export function FeaturedLists({
                   style={{ position: "absolute", zIndex: 2 }}
                 >
                   <h3
-                    className="font-bold text-xl mb-1.5 leading-tight text-white"
+                    className="font-light text-xl mb-1.5 leading-tight text-white tracking-tight"
                     style={{
-                      textShadow:
-                        "0 2px 8px rgba(0,0,0,0.8), 0 1px 3px rgba(0,0,0,0.9)",
-                      WebkitTextStroke: "0.5px rgba(0,0,0,0.1)",
+                      textShadow: "0 2px 8px rgba(0,0,0,0.8), 0 1px 3px rgba(0,0,0,0.9)",
                     }}
                   >
                     {list.title}
                   </h3>
                   {list.subtitle && (
                     <p
-                      className="text-sm font-semibold text-white/95"
+                      className="text-sm font-light text-white/95"
                       style={{
                         textShadow: "0 1px 4px rgba(0,0,0,0.8)",
-                        WebkitTextStroke: "0.3px rgba(0,0,0,0.1)",
                       }}
                     >
                       {list.subtitle}
