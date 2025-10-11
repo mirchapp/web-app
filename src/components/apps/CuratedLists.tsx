@@ -39,7 +39,13 @@ export function CuratedLists({
   }, []);
 
   return (
-    <div className="">
+    <div
+      className="opacity-0"
+      style={{
+        animation: 'fadeIn 0.6s ease-out forwards',
+        animationDelay: '0.3s'
+      }}
+    >
       <div className="px-4 mb-4">
         <div className="flex items-center gap-2 mb-1">
           <MapPin className="h-5 w-5 text-primary" />
@@ -52,11 +58,11 @@ export function CuratedLists({
 
       {/* List items */}
       <div className="space-y-3 px-4">
-        {lists.map((list) => (
+        {lists.map((list, index) => (
           <div
             key={list.id}
             onClick={() => onListClick?.(list)}
-            className="group"
+            className="group opacity-0"
             style={{
               display: "grid",
               gridTemplateColumns: "112px 1fr auto",
@@ -71,6 +77,8 @@ export function CuratedLists({
               padding: "0",
               transition: "all 0.3s ease",
               boxShadow: "0 2px 8px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.1)",
+              animation: 'fadeIn 0.5s ease-out forwards',
+              animationDelay: `${0.35 + index * 0.1}s`
             }}
           >
             {/* Image */}
