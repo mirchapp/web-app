@@ -149,16 +149,16 @@ export function ProfileDrawer({ isOpen, onClose, userId }: ProfileDrawerProps) {
                 overflowY: isHorizontalDrag ? "hidden" : "auto",
               }}
             >
-              {/* Close button */}
+              {/* Back button */}
               <button
                 onClick={handleProfileClose}
-                className="absolute top-4 right-4 z-50 w-8 h-8 rounded-full bg-black/20 dark:bg-white/10 backdrop-blur-md flex items-center justify-center hover:bg-black/30 dark:hover:bg-white/20 transition-colors"
+                className="absolute top-4 left-4 z-50 w-8 h-8 rounded-full bg-black/20 dark:bg-white/10 backdrop-blur-md flex items-center justify-center hover:bg-black/30 dark:hover:bg-white/20 transition-colors"
                 style={{
                   top: "calc(env(safe-area-inset-top, 0px) + 1rem)",
                 }}
               >
                 <svg
-                  className="w-5 h-5 text-white"
+                  className="w-4 h-4 text-white"
                   fill="none"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -166,7 +166,7 @@ export function ProfileDrawer({ isOpen, onClose, userId }: ProfileDrawerProps) {
                   viewBox="0 0 24 24"
                   stroke="currentColor"
                 >
-                  <path d="M6 18L18 6M6 6l12 12"></path>
+                  <path d="M15 19l-7-7 7-7"></path>
                 </svg>
               </button>
 
