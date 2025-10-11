@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { motion } from "framer-motion";
+import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 
 interface SideDrawerProps {
@@ -114,15 +115,111 @@ export function SideDrawer({
     setIsHorizontalDrag(false);
   };
 
+  // Prevent background scroll when drawer is open
+  React.useEffect(() => {
+    if (!isOpen) return;
+
+    const html = document.documentElement;
+    const body = document.body;
+    const prev = {
+      htmlOverflow: html.style.overflow,
+      bodyOverflow: body.style.overflow,
+      htmlOverscroll: (html.style as any).overscrollBehavior,
+      bodyOverscroll: (body.style as any).overscrollBehavior,
+    };
+
+    html.style.overflow = "hidden";
+    body.style.overflow = "hidden";
+    (html.style as any).overscrollBehavior = "none";
+    (body.style as any).overscrollBehavior = "none";
+
+    return () => {
+      html.style.overflow = prev.htmlOverflow;
+      body.style.overflow = prev.bodyOverflow;
+      (html.style as any).overscrollBehavior = prev.htmlOverscroll;
+      (body.style as any).overscrollBehavior = prev.bodyOverscroll;
+    };
+  }, [isOpen]);
+
+  // Additionally lock any scrollable ancestor containers (e.g., page wrappers with overflow-auto)
+  React.useEffect(() => {
+    if (!isOpen) return;
+
+    const locked: Array<{ el: HTMLElement; overflow: string; overscroll: string }> = [];
+
+    let node: HTMLElement | null = cardRef.current ? cardRef.current.parentElement as HTMLElement : null;
+    while (node) {
+      const style = window.getComputedStyle(node);
+      const overflowY = style.overflowY || style.overflow;
+      const isScrollable = overflowY === 'auto' || overflowY === 'scroll';
+      if (isScrollable) {
+        locked.push({ el: node, overflow: node.style.overflow, overscroll: (node.style as any).overscrollBehavior });
+        node.style.overflow = 'hidden';
+        (node.style as any).overscrollBehavior = 'none';
+      }
+      node = node.parentElement as HTMLElement | null;
+    }
+
+    return () => {
+      for (const item of locked) {
+        item.el.style.overflow = item.overflow;
+        (item.el.style as any).overscrollBehavior = item.overscroll;
+      }
+    };
+  }, [isOpen]);
+
+  // Block scroll gestures on the backdrop so the page behind cannot scroll
+  const handleBackdropTouchMove = React.useCallback((e: React.TouchEvent) => {
+    const target = e.target as Node;
+    if (scrollRef.current && scrollRef.current.contains(target)) return; // allow content scrolling
+    e.preventDefault();
+  }, []);
+
+  const handleBackdropWheel = React.useCallback((e: React.WheelEvent) => {
+    const target = e.target as Node;
+    if (scrollRef.current && scrollRef.current.contains(target)) return; // allow content scrolling
+    e.preventDefault();
+  }, []);
+
+  // Global capture to stop background scroll even if events start outside backdrop
+  React.useEffect(() => {
+    if (!isOpen) return;
+
+    const allowInside = (target: EventTarget | null) => {
+      if (!target) return false;
+      const node = target as Node;
+      return !!(cardRef.current && cardRef.current.contains(node));
+    };
+
+    const onTouchMove = (ev: TouchEvent) => {
+      if (!allowInside(ev.target)) {
+        ev.preventDefault();
+      }
+    };
+    const onWheel = (ev: WheelEvent) => {
+      if (!allowInside(ev.target)) {
+        ev.preventDefault();
+      }
+    };
+
+    window.addEventListener('touchmove', onTouchMove, { capture: true, passive: false });
+    window.addEventListener('wheel', onWheel, { capture: true, passive: false });
+
+    return () => {
+      window.removeEventListener('touchmove', onTouchMove, { capture: true } as any);
+      window.removeEventListener('wheel', onWheel, { capture: true } as any);
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
-  return (
+  const overlay = (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ type: "tween", duration: 0.25, ease: "easeOut" }}
-      className="fixed z-50 bg-transparent touch-manipulation"
+      className="fixed z-[60] bg-transparent touch-manipulation"
       style={{
         top: `calc(-1 * env(safe-area-inset-top))`,
         left: `calc(-1 * env(safe-area-inset-left))`,
@@ -130,8 +227,12 @@ export function SideDrawer({
         bottom: `calc(-1 * env(safe-area-inset-bottom))`,
         willChange: "opacity",
         pointerEvents: isClosing ? "none" : "auto",
+        // Prevent scroll chaining to the page behind on browsers that support it
+        overscrollBehavior: "none",
       }}
       onClick={handleClose}
+      onTouchMove={handleBackdropTouchMove}
+      onWheel={handleBackdropWheel}
     >
       <motion.div
         ref={cardRef}
@@ -264,4 +365,10 @@ export function SideDrawer({
       </motion.div>
     </motion.div>
   );
+
+  // Render in a portal to escape any transformed/scrolling ancestors
+  if (typeof document !== "undefined") {
+    return createPortal(overlay, document.body);
+  }
+  return null;
 }
