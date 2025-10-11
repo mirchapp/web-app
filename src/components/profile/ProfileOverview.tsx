@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { createClient } from '@/utils/supabase/client';
 import { FollowersDrawer } from './FollowersDrawer';
+import { EditProfileDrawer } from './EditProfileDrawer';
 import { useRouter } from 'next/navigation';
 
 // Custom hook for parallax scrolling effect
@@ -103,6 +104,7 @@ export function ProfileOverview({ viewingUserId }: ProfileOverviewProps = {}) {
   const [followingCountData, setFollowingCountData] = React.useState(0);
   const [showFollowersDrawer, setShowFollowersDrawer] = React.useState(false);
   const [followDrawerMode, setFollowDrawerMode] = React.useState<"followers" | "following">("followers");
+  const [showEditProfileDrawer, setShowEditProfileDrawer] = React.useState(false);
 
   const supabase = createClient();
   const router = useRouter();
@@ -712,10 +714,7 @@ export function ProfileOverview({ viewingUserId }: ProfileOverviewProps = {}) {
               <div className="mb-5 sm:mb-6">
                 <button
                   className="h-8 px-5 text-xs font-light rounded-full text-gray-700 dark:text-white/70 border border-gray-300 dark:border-white/15 bg-transparent hover:bg-gray-50 dark:hover:bg-white/5 hover:border-gray-400 dark:hover:border-white/25 transition-all duration-200"
-                  onClick={() => {
-                    // TODO: Navigate to edit profile
-                    console.log('Edit profile clicked');
-                  }}
+                  onClick={() => setShowEditProfileDrawer(true)}
                 >
                   Edit Profile
                 </button>
@@ -871,6 +870,27 @@ export function ProfileOverview({ viewingUserId }: ProfileOverviewProps = {}) {
           userId={viewingUserId || user.id}
           currentUserId={user.id}
           mode={followDrawerMode}
+        />
+      )}
+
+      {/* Edit Profile Drawer */}
+      {user && (
+        <EditProfileDrawer
+          isOpen={showEditProfileDrawer}
+          onClose={() => setShowEditProfileDrawer(false)}
+          currentProfile={profile}
+          onProfileUpdated={async () => {
+            // Refresh profile data
+            const { data: profileData } = await supabase
+              .from('Profile')
+              .select('display_name, username, avatar_url, location')
+              .eq('user_id', user.id)
+              .single();
+
+            if (profileData) {
+              setProfile(profileData);
+            }
+          }}
         />
       )}
     </div>
