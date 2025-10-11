@@ -365,24 +365,24 @@ export function SideDrawer({
             </Button>
           )}
 
-          {/* Optional Title */}
-          {title && (
-            <div
-              className="container mx-auto px-4 relative z-10"
-              style={{ paddingTop: headerTopPadding ?? "var(--overlay-card-top-padding-safe)" }}
-            >
-              <div className="max-w-md mx-auto">
-                <div className="text-center mb-6">
-                  <h1 className="text-2xl font-light text-gray-900 dark:text-white tracking-tight">
-                    {title}
-                  </h1>
+          {/* Content wrapper with proper top padding */}
+          <div style={{ paddingTop: headerTopPadding ?? "var(--overlay-card-top-padding-safe)" }}>
+            {/* Optional Title */}
+            {title && (
+              <div className="container mx-auto px-4 relative z-10 mb-6">
+                <div className="max-w-md mx-auto">
+                  <div className="text-center">
+                    <h1 className="text-2xl font-light text-gray-900 dark:text-white tracking-tight">
+                      {title}
+                    </h1>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
             {/* Custom Content */}
             {children}
+          </div>
           </div>
         </div>
       </motion.div>
