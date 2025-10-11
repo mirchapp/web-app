@@ -847,6 +847,7 @@ export function ProfileOverview({ viewingUserId }: ProfileOverviewProps = {}) {
       {user && (
         <FollowersDrawer
           isOpen={showFollowersDrawer}
+          zIndex={viewingUserId ? 75 : undefined}
           onClose={async () => {
             setShowFollowersDrawer(false);
 

@@ -88,18 +88,13 @@ export function ProfileDrawer({ isOpen, onClose, userId }: ProfileDrawerProps) {
   const drawer = (
     <AnimatePresence mode="wait" onExitComplete={() => setDragOffset(0)}>
       {isOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ type: "tween", duration: 0.1, ease: "easeOut" }}
-          className="fixed z-[70] bg-black/20 dark:bg-black/40 touch-manipulation"
+        <div
+          className="fixed z-[70] touch-manipulation"
           style={{
             top: 0,
             left: 0,
             right: 0,
             bottom: 0,
-            willChange: "opacity",
             pointerEvents: isClosing ? "none" : "auto",
           }}
           onClick={handleProfileClose}
@@ -174,7 +169,7 @@ export function ProfileDrawer({ isOpen, onClose, userId }: ProfileDrawerProps) {
               <ProfileOverview viewingUserId={userId} />
             </div>
           </motion.div>
-        </motion.div>
+        </div>
       )}
     </AnimatePresence>
   );

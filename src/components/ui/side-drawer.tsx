@@ -12,6 +12,7 @@ interface SideDrawerProps {
   showBackButton?: boolean;
   title?: string;
   headerTopPadding?: string; // CSS length for top padding of header/title, includes safe-area if desired
+  zIndex?: number; // Custom z-index for nested drawers
 }
 
 export function SideDrawer({
@@ -21,6 +22,7 @@ export function SideDrawer({
   showBackButton = true,
   title,
   headerTopPadding,
+  zIndex = 60,
 }: SideDrawerProps) {
   const [isClosing, setIsClosing] = React.useState(false);
   const scrollRef = React.useRef<HTMLDivElement>(null);
@@ -242,8 +244,9 @@ export function SideDrawer({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ type: "tween", duration: 0.25, ease: "easeOut" }}
-      className="fixed z-[60] bg-transparent touch-manipulation"
+      className="fixed bg-transparent touch-manipulation"
       style={{
+        zIndex,
         top: `calc(-1 * env(safe-area-inset-top))`,
         left: `calc(-1 * env(safe-area-inset-left))`,
         right: `calc(-1 * env(safe-area-inset-right))`,

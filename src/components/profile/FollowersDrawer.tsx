@@ -26,6 +26,7 @@ interface FollowersDrawerProps {
   currentUserId: string;
   mode: "followers" | "following";
   onProfileClick?: (userId: string) => void;
+  zIndex?: number;
 }
 
 export function FollowersDrawer({
@@ -35,6 +36,7 @@ export function FollowersDrawer({
   currentUserId,
   mode,
   onProfileClick,
+  zIndex,
 }: FollowersDrawerProps) {
   const [profiles, setProfiles] = React.useState<ProfileUser[]>([]);
   const [suggestedProfiles, setSuggestedProfiles] = React.useState<ProfileUser[]>([]);
@@ -180,6 +182,7 @@ export function FollowersDrawer({
       onClose={onClose}
       title={mode === "followers" ? "Followers" : "Following"}
       headerTopPadding="calc(env(safe-area-inset-top, 0px) + 2rem)"
+      zIndex={zIndex}
     >
       <div
         className="container mx-auto px-5 sm:px-6 pb-8 relative z-10"
