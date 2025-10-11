@@ -100,7 +100,7 @@ interface EditProfileDrawerProps {
 // Helper function to create cropped image
 const createImage = (url: string): Promise<HTMLImageElement> =>
   new Promise((resolve, reject) => {
-    const image = new Image();
+    const image = document.createElement('img') as HTMLImageElement;
     image.addEventListener("load", () => resolve(image));
     image.addEventListener("error", (error) => reject(error));
     image.setAttribute("crossOrigin", "anonymous");
