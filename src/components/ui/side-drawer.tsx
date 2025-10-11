@@ -151,24 +151,33 @@ export function SideDrawer({
     };
   }, [isOpen]);
 
-  // Additionally lock any scrollable ancestor containers (e.g., page wrappers with overflow-auto)
+  // Additionally lock any scrollable containers in the document
   React.useEffect(() => {
     if (!isOpen) return;
 
     const locked: Array<{ el: HTMLElement; overflow: string; overscroll: string }> = [];
 
-    let node: HTMLElement | null = cardRef.current ? cardRef.current.parentElement as HTMLElement : null;
-    while (node) {
-      const style = window.getComputedStyle(node);
+    // Find all potentially scrollable elements in the document
+    const allElements = document.querySelectorAll('*');
+    allElements.forEach((el) => {
+      const htmlEl = el as HTMLElement;
+      // Skip the drawer itself
+      if (cardRef.current && cardRef.current.contains(htmlEl)) return;
+
+      const style = window.getComputedStyle(htmlEl);
       const overflowY = style.overflowY || style.overflow;
       const isScrollable = overflowY === 'auto' || overflowY === 'scroll';
-      if (isScrollable) {
-        locked.push({ el: node, overflow: node.style.overflow, overscroll: node.style.getPropertyValue('overscroll-behavior') });
-        node.style.overflow = 'hidden';
-        node.style.setProperty('overscroll-behavior', 'none');
+
+      if (isScrollable && htmlEl.scrollHeight > htmlEl.clientHeight) {
+        locked.push({
+          el: htmlEl,
+          overflow: htmlEl.style.overflow,
+          overscroll: htmlEl.style.getPropertyValue('overscroll-behavior')
+        });
+        htmlEl.style.overflow = 'hidden';
+        htmlEl.style.setProperty('overscroll-behavior', 'none');
       }
-      node = node.parentElement as HTMLElement | null;
-    }
+    });
 
     return () => {
       for (const item of locked) {
@@ -336,7 +345,7 @@ export function SideDrawer({
               onClick={handleClose}
               className="absolute z-20 h-8 w-8 rounded-full hover:bg-muted/50 bg-background/80 backdrop-blur-sm"
               style={{
-                top: headerTopPadding ? `calc(${headerTopPadding} + 0.5rem)` : "calc(var(--overlay-card-top-padding-safe) + 1rem)",
+                top: headerTopPadding ? `calc(${headerTopPadding} + 0.5rem)` : "calc(var(--profile-top-padding-safe) + 0.5rem)",
                 left: "1rem",
               }}
             >
@@ -360,7 +369,7 @@ export function SideDrawer({
           {title && (
             <div
               className="container mx-auto px-4 relative z-10"
-              style={{ paddingTop: headerTopPadding ?? "var(--overlay-card-top-padding-safe)" }}
+              style={{ paddingTop: headerTopPadding ?? "var(--profile-top-padding-safe)" }}
             >
               <div className="max-w-md mx-auto">
                 <div className="text-center mb-6">
