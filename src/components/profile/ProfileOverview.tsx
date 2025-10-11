@@ -60,10 +60,16 @@ interface ProfileData {
   location?: string;
 }
 
-export function ProfileOverview() {
+interface ProfileOverviewProps {
+  viewingUserId?: string; // If provided, shows this user's profile instead of logged-in user
+}
+
+export function ProfileOverview({ viewingUserId }: ProfileOverviewProps = {}) {
   // Load cached profile data immediately to avoid skeleton loader
   const getCachedProfile = () => {
     if (typeof window === 'undefined') return null;
+    // Don't use cached profile if viewing someone else's profile
+    if (viewingUserId) return null;
     try {
       const cached = localStorage.getItem('cached_profile');
       return cached ? JSON.parse(cached) : null;
@@ -84,7 +90,7 @@ export function ProfileOverview() {
 
   const [user, setUser] = React.useState<{ id: string; email?: string } | null>(getCachedUser);
   const [profile, setProfile] = React.useState<ProfileData | null>(getCachedProfile);
-  const [loading, setLoading] = React.useState(!getCachedUser()); // Only show loader if no cache
+  const [loading, setLoading] = React.useState(viewingUserId ? true : !getCachedUser()); // Always show loader when viewing other profiles
   const [isSignUp, setIsSignUp] = React.useState(false);
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
@@ -117,6 +123,12 @@ export function ProfileOverview() {
 
   React.useEffect(() => {
     const getUser = async () => {
+      // Only reset profile state if viewing someone else's profile
+      if (viewingUserId) {
+        setLoading(true);
+        setProfile(null); // Clear previous profile to prevent flash
+      }
+
       const { data: { user } } = await supabase.auth.getUser();
 
       // Cache user data
@@ -129,16 +141,19 @@ export function ProfileOverview() {
 
       setUser(user);
 
-      if (user) {
-        // Fetch fresh profile data in background
+      // Determine which user's profile to fetch
+      const profileUserId = viewingUserId || user?.id;
+
+      if (profileUserId) {
+        // Fetch profile data
         const { data: profileData } = await supabase
           .from('Profile')
           .select('display_name, username, avatar_url, location')
-          .eq('user_id', user.id)
+          .eq('user_id', profileUserId)
           .single();
 
-        // Cache profile data
-        if (profileData) {
+        // Only cache if viewing own profile
+        if (!viewingUserId && profileData) {
           localStorage.setItem('cached_profile', JSON.stringify(profileData));
         }
 
@@ -148,7 +163,7 @@ export function ProfileOverview() {
         const { count: followersCount } = await supabase
           .from('Follows')
           .select('*', { count: 'exact', head: true })
-          .eq('following_id', user.id);
+          .eq('following_id', profileUserId);
 
         if (followersCount !== null) {
           setFollowersCountData(followersCount);
@@ -158,7 +173,7 @@ export function ProfileOverview() {
         const { count: followingCount } = await supabase
           .from('Follows')
           .select('*', { count: 'exact', head: true })
-          .eq('follower_id', user.id);
+          .eq('follower_id', profileUserId);
 
         if (followingCount !== null) {
           setFollowingCountData(followingCount);
@@ -168,7 +183,7 @@ export function ProfileOverview() {
       setLoading(false);
     };
     getUser();
-  }, [supabase]);
+  }, [supabase, viewingUserId]);
 
   // Detect iOS/Android PWA standalone mode to tweak layout
   React.useEffect(() => {
@@ -692,18 +707,20 @@ export function ProfileOverview() {
               </div>
             )}
 
-            {/* Edit Profile Button - Minimal pill */}
-            <div className="mb-5 sm:mb-6">
-              <button
-                className="h-8 px-5 text-xs font-light rounded-full text-gray-700 dark:text-white/70 border border-gray-300 dark:border-white/15 bg-transparent hover:bg-gray-50 dark:hover:bg-white/5 hover:border-gray-400 dark:hover:border-white/25 transition-all duration-200"
-                onClick={() => {
-                  // TODO: Navigate to edit profile
-                  console.log('Edit profile clicked');
-                }}
-              >
-                Edit Profile
-              </button>
-            </div>
+            {/* Edit Profile Button - Only show for own profile */}
+            {!viewingUserId && (
+              <div className="mb-5 sm:mb-6">
+                <button
+                  className="h-8 px-5 text-xs font-light rounded-full text-gray-700 dark:text-white/70 border border-gray-300 dark:border-white/15 bg-transparent hover:bg-gray-50 dark:hover:bg-white/5 hover:border-gray-400 dark:hover:border-white/25 transition-all duration-200"
+                  onClick={() => {
+                    // TODO: Navigate to edit profile
+                    console.log('Edit profile clicked');
+                  }}
+                >
+                  Edit Profile
+                </button>
+              </div>
+            )}
 
             {/* Stats with animated counters */}
             <div className="flex items-center gap-6 sm:gap-8 mb-5 sm:mb-6 px-4">
@@ -830,11 +847,13 @@ export function ProfileOverview() {
           onClose={async () => {
             setShowFollowersDrawer(false);
 
-            // Refresh follower/following counts
+            // Refresh follower/following counts for the profile being viewed
+            const profileUserId = viewingUserId || user.id;
+
             const { count: followersCount } = await supabase
               .from('Follows')
               .select('*', { count: 'exact', head: true })
-              .eq('following_id', user.id);
+              .eq('following_id', profileUserId);
 
             if (followersCount !== null) {
               setFollowersCountData(followersCount);
@@ -843,16 +862,15 @@ export function ProfileOverview() {
             const { count: followingCount } = await supabase
               .from('Follows')
               .select('*', { count: 'exact', head: true })
-              .eq('follower_id', user.id);
+              .eq('follower_id', profileUserId);
 
             if (followingCount !== null) {
               setFollowingCountData(followingCount);
             }
           }}
-          userId={user.id}
+          userId={viewingUserId || user.id}
           currentUserId={user.id}
           mode={followDrawerMode}
-          onProfileClick={(userId) => router.push(`/profile/${userId}`)}
         />
       )}
     </div>

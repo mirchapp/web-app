@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { useFollow } from "@/hooks/useFollow";
 import { createClient } from "@/utils/supabase/client";
 import { fetchSuggestedProfiles } from "@/lib/suggestions";
+import { ProfileDrawer } from "./ProfileDrawer";
 
 interface ProfileUser {
   user_id: string;
@@ -39,8 +40,18 @@ export function FollowersDrawer({
   const [suggestedProfiles, setSuggestedProfiles] = React.useState<ProfileUser[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [followedUsers, setFollowedUsers] = React.useState<Set<string>>(new Set());
+  const [showProfileDrawer, setShowProfileDrawer] = React.useState(false);
+  const [selectedProfileId, setSelectedProfileId] = React.useState<string>("");
   const { toggleFollow } = useFollow(currentUserId);
   const supabase = createClient();
+
+  const handleProfileClick = (profileUserId: string) => {
+    setSelectedProfileId(profileUserId);
+    setShowProfileDrawer(true);
+    if (onProfileClick) {
+      onProfileClick(profileUserId);
+    }
+  };
 
   // Fetch followers or following
   React.useEffect(() => {
@@ -92,8 +103,12 @@ export function FollowersDrawer({
           setProfiles([]);
         }
 
-        // Always fetch suggested profiles for following list (shown at the end)
-        await fetchSuggestedProfilesList();
+        // Only fetch suggested profiles if viewing current user's following list
+        if (userId === currentUserId) {
+          await fetchSuggestedProfilesList();
+        } else {
+          setSuggestedProfiles([]);
+        }
       }
 
       setLoading(false);
@@ -159,7 +174,8 @@ export function FollowersDrawer({
   };
 
   return (
-    <SideDrawer
+    <>
+      <SideDrawer
       isOpen={isOpen}
       onClose={onClose}
       title={mode === "followers" ? "Followers" : "Following"}
@@ -211,7 +227,7 @@ export function FollowersDrawer({
                         profile={profile}
                         isFollowing={followedUsers.has(profile.user_id)}
                         onFollowToggle={handleFollowToggle}
-                        onProfileClick={onProfileClick}
+                        onProfileClick={handleProfileClick}
                         currentUserId={currentUserId}
                         showFollowButton={profile.user_id !== currentUserId}
                       />
@@ -230,7 +246,7 @@ export function FollowersDrawer({
                     profile={profile}
                     isFollowing={followedUsers.has(profile.user_id)}
                     onFollowToggle={handleFollowToggle}
-                    onProfileClick={onProfileClick}
+                    onProfileClick={handleProfileClick}
                     currentUserId={currentUserId}
                     showFollowButton={profile.user_id !== currentUserId}
                   />
@@ -250,7 +266,7 @@ export function FollowersDrawer({
                         profile={profile}
                         isFollowing={followedUsers.has(profile.user_id)}
                         onFollowToggle={handleFollowToggle}
-                        onProfileClick={onProfileClick}
+                        onProfileClick={handleProfileClick}
                         currentUserId={currentUserId}
                         showFollowButton={profile.user_id !== currentUserId}
                       />
@@ -263,6 +279,14 @@ export function FollowersDrawer({
         </div>
       </div>
     </SideDrawer>
+
+      {/* Profile Drawer */}
+      <ProfileDrawer
+        isOpen={showProfileDrawer}
+        onClose={() => setShowProfileDrawer(false)}
+        userId={selectedProfileId}
+      />
+    </>
   );
 }
 

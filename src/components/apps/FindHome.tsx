@@ -15,6 +15,7 @@ import { useProfileSearch } from "@/hooks/useProfileSearch";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { useFollow } from "@/hooks/useFollow";
+import { ProfileDrawer } from "@/components/profile/ProfileDrawer";
 
 const featuredSummaries = getListSummaries("featured");
 const curatedSummaries = getListSummaries("curated");
@@ -44,6 +45,8 @@ export function FindHome() {
   const [userId, setUserId] = React.useState<string>("");
   const [showConnectDrawer, setShowConnectDrawer] = React.useState(false);
   const [followedUsers, setFollowedUsers] = React.useState<Set<string>>(new Set());
+  const [showProfileDrawer, setShowProfileDrawer] = React.useState(false);
+  const [selectedProfileId, setSelectedProfileId] = React.useState<string>("");
   const router = useRouter();
   const supabase = createClient();
 
@@ -159,7 +162,8 @@ export function FindHome() {
 
   // Handle profile click
   const handleProfileClick = (profileUserId: string) => {
-    router.push(`/profile/${profileUserId}`);
+    setSelectedProfileId(profileUserId);
+    setShowProfileDrawer(true);
   };
 
   // Memoize star positions so they don't change on re-render
@@ -363,6 +367,13 @@ export function FindHome() {
         onClose={() => setShowConnectDrawer(false)}
         onProfileClick={handleProfileClick}
         currentUserId={userId}
+      />
+
+      {/* Profile Drawer */}
+      <ProfileDrawer
+        isOpen={showProfileDrawer}
+        onClose={() => setShowProfileDrawer(false)}
+        userId={selectedProfileId}
       />
     </div>
   );
