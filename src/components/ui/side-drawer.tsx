@@ -286,6 +286,7 @@ export function SideDrawer({
           WebkitBackfaceVisibility: "hidden",
           transform: "translateZ(0)",
           touchAction: "none",
+          paddingTop: "env(safe-area-inset-top)",
         }}
       >
         {/* Drawer Content Wrapper - prevents parent content from showing */}
