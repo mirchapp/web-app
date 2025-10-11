@@ -126,14 +126,14 @@ export function FindHome() {
 
   return (
     <div
-      className="h-full overflow-y-auto bg-white dark:bg-[#0A0A0F] relative"
+      className="h-full overflow-y-auto bg-background relative"
       style={{
         paddingBottom: bottomPadding,
         WebkitOverflowScrolling: 'touch',
       }}
     >
       {/* Animated purple wave background - matching profile page */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none" style={{ zIndex: 0 }}>
+      <div className="fixed inset-0 overflow-hidden pointer-events-none bg-background" style={{ zIndex: 0 }}>
         {/* Purple wave gradient */}
         <div
           className="absolute left-0 right-0 h-[400px] opacity-20 dark:opacity-30"

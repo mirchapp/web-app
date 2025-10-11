@@ -53,14 +53,23 @@ export function BottomNavigation({
   const [isDragging, setIsDragging] = React.useState(false);
   const [dragX, setDragX] = React.useState<number | null>(null);
   const [pillLayout, setPillLayout] = React.useState<{ left: number; width: number; top: number; bottom: number }>({ left: 4, width: 0, top: 4, bottom: 4 });
-  const [isDarkBackground, setIsDarkBackground] = React.useState(() => {
-    // Check initial theme on mount
+  const getThemeIsDark = React.useCallback(() => {
+    if (typeof window === 'undefined') return false;
+    const docDark = document.documentElement.classList.contains('dark');
+    const mediaDark = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    return docDark || mediaDark;
+  }, []);
+
+  const [isDarkBackground, setIsDarkBackground] = React.useState<boolean>(() => {
     if (typeof window !== 'undefined') {
-      const isDark = document.documentElement.classList.contains('dark');
-      return isDark || activeTab === 'videos' || activeTab === 'post';
+      const themeDark = document.documentElement.classList.contains('dark') ||
+        (typeof window.matchMedia === 'function' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      if (activeTab === 'videos' || activeTab === 'post') return true;
+      return themeDark;
     }
     return activeTab === 'videos' || activeTab === 'post';
   });
+  const hasUserScrolledRef = React.useRef(false);
   const safeAreaInsets = useSafeArea();
   
   // Disable drag interactions to avoid interfering with global touch/click events
@@ -210,6 +219,13 @@ export function BottomNavigation({
   React.useEffect(() => {
     const detectBackground = () => {
       if (!containerRef.current) return;
+
+      // Before first scroll, prefer theme baseline (avoid white flash on dark mode)
+      if (!hasUserScrolledRef.current) {
+        const themeDark = getThemeIsDark();
+        setIsDarkBackground((activeTab === 'videos' || activeTab === 'post') ? true : themeDark);
+        return;
+      }
       const rect = containerRef.current.getBoundingClientRect();
       let totalLuminance = 0;
       let sampleCount = 0;
@@ -247,7 +263,7 @@ export function BottomNavigation({
       }
     };
 
-    // Run detection immediately (synchronously) to prevent flash
+    // Run detection immediately to establish baseline (will prefer theme until first scroll)
     detectBackground();
 
     // Then run again after a short delay to catch any layout changes and page transitions
@@ -260,6 +276,7 @@ export function BottomNavigation({
 
     let ticking = false;
     const schedule = () => {
+      hasUserScrolledRef.current = true;
       if (ticking) return;
       ticking = true;
       requestAnimationFrame(() => {
@@ -275,7 +292,14 @@ export function BottomNavigation({
       window.removeEventListener('scroll', schedule, true);
       window.removeEventListener('resize', schedule);
     };
-  }, [activeTab]);
+  }, [activeTab, getThemeIsDark]);
+
+  // If the tab changes and user hasn't scrolled yet, reset to theme baseline immediately
+  React.useEffect(() => {
+    // Reset scroll state when tab changes so we use theme baseline on new page
+    hasUserScrolledRef.current = false;
+    setIsDarkBackground((activeTab === 'videos' || activeTab === 'post') ? true : getThemeIsDark());
+  }, [activeTab, getThemeIsDark]);
 
   return (
     <div
