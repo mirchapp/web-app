@@ -12,7 +12,6 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { Input } from "@/components/ui/input";
 import { useProfileSearch } from "@/hooks/useProfileSearch";
-import { AnimatePresence } from "framer-motion";
 import Image from "next/image";
 
 const featuredSummaries = getListSummaries("featured");

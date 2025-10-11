@@ -57,7 +57,7 @@ interface RestaurantSelectorProps {
 }
 
 export function RestaurantSelector({ onSelectRestaurant, onMediaSelected }: RestaurantSelectorProps) {
-  const safeAreaInsets = useSafeArea();
+  const _safeAreaInsets = useSafeArea();
   const [searchQuery, setSearchQuery] = React.useState('');
   const [suggestions, setSuggestions] = React.useState<Restaurant[]>([]);
   const [nearbyRestaurants, setNearbyRestaurants] = React.useState<Restaurant[]>([]);
