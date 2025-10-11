@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { User, X, Leaf, Wheat, Nut, Shell, Milk, Sprout, DollarSign, Flame } from "lucide-react";
@@ -386,6 +387,85 @@ export function EditProfileDrawer({
     }
   };
 
+  const cropModal = showCropModal && (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[80] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+        onClick={handleCropCancel}
+      >
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.9, opacity: 0 }}
+          onClick={(e) => e.stopPropagation()}
+          className="relative w-full max-w-lg bg-background rounded-[20px] overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.5)]"
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between p-6 border-b border-border/50">
+            <h3 className="text-xl font-medium">Adjust your photo</h3>
+            <button
+              onClick={handleCropCancel}
+              className="p-2 rounded-full hover:bg-muted/50 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Cropper */}
+          <div className="relative h-[400px] bg-muted/30">
+            <Cropper
+              image={imageToCrop}
+              crop={crop}
+              zoom={zoom}
+              aspect={1}
+              cropShape="round"
+              showGrid={false}
+              onCropChange={setCrop}
+              onZoomChange={setZoom}
+              onCropComplete={onCropComplete}
+            />
+          </div>
+
+          {/* Zoom Control */}
+          <div className="p-6 border-t border-border/50 space-y-4">
+            <div className="space-y-2">
+              <Label className="text-sm text-muted-foreground">Zoom</Label>
+              <input
+                type="range"
+                min={1}
+                max={3}
+                step={0.1}
+                value={zoom}
+                onChange={(e) => setZoom(Number(e.target.value))}
+                className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary"
+              />
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3">
+              <Button
+                onClick={handleCropCancel}
+                variant="outline"
+                className="flex-1 h-12 rounded-[14px]"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleCropSave}
+                className="flex-1 h-12 rounded-[14px] shadow-[0_4px_20px_rgba(138,66,214,0.35)]"
+              >
+                Save
+              </Button>
+            </div>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+
   return (
     <>
       <SideDrawer
@@ -620,85 +700,8 @@ export function EditProfileDrawer({
         </div>
       </SideDrawer>
 
-      {/* Crop Modal */}
-      <AnimatePresence>
-        {showCropModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[70] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
-            onClick={handleCropCancel}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-lg bg-background rounded-[20px] overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.5)]"
-            >
-              {/* Header */}
-              <div className="flex items-center justify-between p-6 border-b border-border/50">
-                <h3 className="text-xl font-medium">Adjust your photo</h3>
-                <button
-                  onClick={handleCropCancel}
-                  className="p-2 rounded-full hover:bg-muted/50 transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              {/* Cropper */}
-              <div className="relative h-[400px] bg-muted/30">
-                <Cropper
-                  image={imageToCrop}
-                  crop={crop}
-                  zoom={zoom}
-                  aspect={1}
-                  cropShape="round"
-                  showGrid={false}
-                  onCropChange={setCrop}
-                  onZoomChange={setZoom}
-                  onCropComplete={onCropComplete}
-                />
-              </div>
-
-              {/* Zoom Control */}
-              <div className="p-6 border-t border-border/50 space-y-4">
-                <div className="space-y-2">
-                  <Label className="text-sm text-muted-foreground">Zoom</Label>
-                  <input
-                    type="range"
-                    min={1}
-                    max={3}
-                    step={0.1}
-                    value={zoom}
-                    onChange={(e) => setZoom(Number(e.target.value))}
-                    className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary"
-                  />
-                </div>
-
-                {/* Actions */}
-                <div className="flex gap-3">
-                  <Button
-                    onClick={handleCropCancel}
-                    variant="outline"
-                    className="flex-1 h-12 rounded-[14px]"
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={handleCropSave}
-                    className="flex-1 h-12 rounded-[14px] shadow-[0_4px_20px_rgba(138,66,214,0.35)]"
-                  >
-                    Save
-                  </Button>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Render crop modal via portal */}
+      {typeof document !== "undefined" && cropModal && createPortal(cropModal, document.body)}
     </>
   );
 }

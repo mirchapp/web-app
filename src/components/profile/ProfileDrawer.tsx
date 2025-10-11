@@ -92,8 +92,8 @@ export function ProfileDrawer({ isOpen, onClose, userId }: ProfileDrawerProps) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ type: "tween", duration: 0.25, ease: "easeOut" }}
-          className="fixed z-[70] bg-black/20 dark:bg-black/40 backdrop-blur-sm touch-manipulation"
+          transition={{ type: "tween", duration: 0.1, ease: "easeOut" }}
+          className="fixed z-[70] bg-black/20 dark:bg-black/40 touch-manipulation"
           style={{
             top: 0,
             left: 0,
