@@ -35,7 +35,7 @@ export function SuggestedProfiles({
           <Button
             variant="ghost"
             size="sm"
-            className="text-primary hover:text-primary/80 -mr-2 font-light"
+            className="text-primary hover:text-primary/90 -mr-2 font-medium"
             onClick={onSeeAll}
           >
             See all

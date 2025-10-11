@@ -121,11 +121,27 @@ export function FindHome() {
     router.push(`/profile/${profileUserId}`);
   };
 
+  // Memoize star positions so they don't change on re-render
+  const starPositions = React.useMemo(() => {
+    return Array.from({ length: 20 }, () => ({
+      top: Math.random() * 100,
+      left: Math.random() * 100,
+      duration: 2 + Math.random() * 3,
+      delay: Math.random() * 2,
+    }));
+  }, []);
+
   // In standalone PWA, bottom nav is still present, so use consistent padding
   const bottomPadding = 'calc(env(safe-area-inset-bottom, 20px) + 88px)';
 
   return (
-    <div className="absolute inset-0 overflow-y-auto bg-white dark:bg-[#0A0A0F]" style={{ paddingBottom: bottomPadding }}>
+    <div
+      className="absolute inset-0 overflow-y-auto bg-white dark:bg-[#0A0A0F]"
+      style={{
+        paddingBottom: bottomPadding,
+        WebkitOverflowScrolling: 'touch',
+      }}
+    >
       {/* Animated purple wave background - matching profile page */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Purple wave gradient */}
@@ -142,15 +158,15 @@ export function FindHome() {
 
         {/* Subtle stars/particles */}
         <div className="absolute inset-0 opacity-15 dark:opacity-30">
-          {Array.from({ length: 20 }).map((_, i) => (
+          {starPositions.map((star, i) => (
             <div
               key={i}
               className="absolute w-1 h-1 bg-purple-500/30 dark:bg-white/20 rounded-full"
               style={{
-                top: `${Math.random() * 100}%`,
-                left: `${Math.random() * 100}%`,
-                animation: `twinkle ${2 + Math.random() * 3}s ease-in-out infinite`,
-                animationDelay: `${Math.random() * 2}s`,
+                top: `${star.top}%`,
+                left: `${star.left}%`,
+                animation: `twinkle ${star.duration}s ease-in-out infinite`,
+                animationDelay: `${star.delay}s`,
                 willChange: 'opacity',
               }}
             />
