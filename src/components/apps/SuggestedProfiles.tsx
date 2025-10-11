@@ -33,7 +33,7 @@ export function SuggestedProfiles({
         animationDelay: '0.25s'
       }}
     >
-      <div className="px-4 mb-4 flex items-center justify-between">
+      <div className="px-5 sm:px-6 mb-4 flex items-center justify-between">
         <h2 className="text-xl font-light text-gray-900 dark:text-white tracking-tight">
           Suggested for you
         </h2>
@@ -52,7 +52,7 @@ export function SuggestedProfiles({
 
       {/* Horizontal scrolling profile cards */}
       <div className="overflow-x-auto scrollbar-hide">
-        <div className="flex gap-3 px-4 pb-2">
+        <div className="flex gap-3 px-5 sm:px-6 pb-2">
           {profiles.map((profile, index) => (
             <ProfileCard
               key={profile.user_id}

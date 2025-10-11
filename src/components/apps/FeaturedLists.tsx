@@ -34,7 +34,7 @@ export function FeaturedLists({
         animationDelay: '0.1s'
       }}
     >
-      <div className="px-4 mb-4 flex items-center justify-between">
+      <div className="px-5 sm:px-6 mb-4 flex items-center justify-between">
         <h2 className="text-xl font-light text-gray-900 dark:text-white tracking-tight">
           Featured Lists
         </h2>
@@ -53,7 +53,7 @@ export function FeaturedLists({
 
       {/* Horizontal scrolling featured cards */}
       <div className="overflow-x-auto scrollbar-hide">
-        <div className="flex gap-4 px-4 pb-2">
+        <div className="flex gap-4 px-5 sm:px-6 pb-2">
           {lists.map((list, index) => (
             <div
               key={list.id}

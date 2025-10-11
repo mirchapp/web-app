@@ -46,7 +46,7 @@ export function CuratedLists({
         animationDelay: '0.3s'
       }}
     >
-      <div className="px-4 mb-4">
+      <div className="px-5 sm:px-6 mb-4">
         <div className="flex items-center gap-2 mb-1">
           <MapPin className="h-5 w-5 text-primary" />
           <h2 className="text-xl font-light text-gray-900 dark:text-white tracking-tight">{location}</h2>
@@ -57,7 +57,7 @@ export function CuratedLists({
       </div>
 
       {/* List items */}
-      <div className="space-y-3 px-4">
+      <div className="space-y-3 px-5 sm:px-6">
         {lists.map((list, index) => (
           <div
             key={list.id}

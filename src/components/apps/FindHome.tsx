@@ -167,7 +167,7 @@ export function FindHome() {
 
       {/* Header Section */}
       <div
-        className="px-4 pb-6 relative z-10"
+        className="px-5 sm:px-6 pb-6 relative z-10"
         style={{ paddingTop: "calc(var(--header-top-padding-safe) - 20px)" }}
       >
         {/* Logo */}
@@ -229,7 +229,7 @@ export function FindHome() {
 
       {/* Search Results */}
       {showResults && (
-        <div className="px-4 mb-6 relative z-10">
+        <div className="px-5 sm:px-6 mb-6 relative z-10">
           {/* Error State */}
           {error && (
             <div className="px-4 py-3 text-sm text-destructive mb-4">

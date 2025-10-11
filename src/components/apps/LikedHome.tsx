@@ -8,7 +8,7 @@ export function LikedHome() {
   return (
     <div className="h-full overflow-y-auto pb-24">
       {/* Header */}
-      <div className="px-4 pb-6" style={{ paddingTop: 'var(--header-top-padding-safe)' }}>
+      <div className="px-5 sm:px-6 pb-6" style={{ paddingTop: 'var(--header-top-padding-safe)' }}>
         <h1 className="text-3xl font-semibold text-foreground mb-2">
           Liked
         </h1>
@@ -18,7 +18,7 @@ export function LikedHome() {
       </div>
 
       {/* Empty State */}
-      <div className="flex flex-col items-center justify-center px-4 py-20">
+      <div className="flex flex-col items-center justify-center px-5 sm:px-6 py-20">
         <div className="relative mb-6">
           <div className="h-24 w-24 rounded-full bg-primary/10 flex items-center justify-center">
             <Heart className="h-12 w-12 text-primary" />
