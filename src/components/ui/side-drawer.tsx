@@ -345,7 +345,7 @@ export function SideDrawer({
               onClick={handleClose}
               className="absolute z-20 h-8 w-8 rounded-full hover:bg-muted/50 bg-background/80 backdrop-blur-sm"
               style={{
-                top: headerTopPadding ? `calc(${headerTopPadding} + 0.5rem)` : "calc(var(--profile-top-padding-safe) + 0.5rem)",
+                top: headerTopPadding ? `calc(${headerTopPadding} + 0.5rem)` : "calc(var(--overlay-card-top-padding-safe) + 1rem)",
                 left: "1rem",
               }}
             >
@@ -369,7 +369,7 @@ export function SideDrawer({
           {title && (
             <div
               className="container mx-auto px-4 relative z-10"
-              style={{ paddingTop: headerTopPadding ?? "var(--profile-top-padding-safe)" }}
+              style={{ paddingTop: headerTopPadding ?? "var(--overlay-card-top-padding-safe)" }}
             >
               <div className="max-w-md mx-auto">
                 <div className="text-center mb-6">
