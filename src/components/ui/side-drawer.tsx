@@ -11,6 +11,7 @@ interface SideDrawerProps {
   children: React.ReactNode;
   showBackButton?: boolean;
   title?: string;
+  headerTopPadding?: string; // CSS length for top padding of header/title, includes safe-area if desired
 }
 
 export function SideDrawer({
@@ -19,6 +20,7 @@ export function SideDrawer({
   children,
   showBackButton = true,
   title,
+  headerTopPadding,
 }: SideDrawerProps) {
   const [isClosing, setIsClosing] = React.useState(false);
   const scrollRef = React.useRef<HTMLDivElement>(null);
@@ -124,20 +126,28 @@ export function SideDrawer({
     const prev = {
       htmlOverflow: html.style.overflow,
       bodyOverflow: body.style.overflow,
-      htmlOverscroll: (html.style as any).overscrollBehavior,
-      bodyOverscroll: (body.style as any).overscrollBehavior,
+      htmlOverscroll: html.style.getPropertyValue('overscroll-behavior'),
+      bodyOverscroll: body.style.getPropertyValue('overscroll-behavior'),
     };
 
     html.style.overflow = "hidden";
     body.style.overflow = "hidden";
-    (html.style as any).overscrollBehavior = "none";
-    (body.style as any).overscrollBehavior = "none";
+    html.style.setProperty('overscroll-behavior', 'none');
+    body.style.setProperty('overscroll-behavior', 'none');
 
     return () => {
       html.style.overflow = prev.htmlOverflow;
       body.style.overflow = prev.bodyOverflow;
-      (html.style as any).overscrollBehavior = prev.htmlOverscroll;
-      (body.style as any).overscrollBehavior = prev.bodyOverscroll;
+      if (prev.htmlOverscroll) {
+        html.style.setProperty('overscroll-behavior', prev.htmlOverscroll);
+      } else {
+        html.style.removeProperty('overscroll-behavior');
+      }
+      if (prev.bodyOverscroll) {
+        body.style.setProperty('overscroll-behavior', prev.bodyOverscroll);
+      } else {
+        body.style.removeProperty('overscroll-behavior');
+      }
     };
   }, [isOpen]);
 
@@ -153,9 +163,9 @@ export function SideDrawer({
       const overflowY = style.overflowY || style.overflow;
       const isScrollable = overflowY === 'auto' || overflowY === 'scroll';
       if (isScrollable) {
-        locked.push({ el: node, overflow: node.style.overflow, overscroll: (node.style as any).overscrollBehavior });
+        locked.push({ el: node, overflow: node.style.overflow, overscroll: node.style.getPropertyValue('overscroll-behavior') });
         node.style.overflow = 'hidden';
-        (node.style as any).overscrollBehavior = 'none';
+        node.style.setProperty('overscroll-behavior', 'none');
       }
       node = node.parentElement as HTMLElement | null;
     }
@@ -163,7 +173,11 @@ export function SideDrawer({
     return () => {
       for (const item of locked) {
         item.el.style.overflow = item.overflow;
-        (item.el.style as any).overscrollBehavior = item.overscroll;
+        if (item.overscroll) {
+          item.el.style.setProperty('overscroll-behavior', item.overscroll);
+        } else {
+          item.el.style.removeProperty('overscroll-behavior');
+        }
       }
     };
   }, [isOpen]);
@@ -206,8 +220,8 @@ export function SideDrawer({
     window.addEventListener('wheel', onWheel, { capture: true, passive: false });
 
     return () => {
-      window.removeEventListener('touchmove', onTouchMove, { capture: true } as any);
-      window.removeEventListener('wheel', onWheel, { capture: true } as any);
+      window.removeEventListener('touchmove', onTouchMove, { capture: true });
+      window.removeEventListener('wheel', onWheel, { capture: true });
     };
   }, [isOpen]);
 
@@ -322,7 +336,7 @@ export function SideDrawer({
               onClick={handleClose}
               className="absolute z-20 h-8 w-8 rounded-full hover:bg-muted/50 bg-background/80 backdrop-blur-sm"
               style={{
-                top: "calc(var(--overlay-card-top-padding-safe) + 1rem)",
+                top: headerTopPadding ? `calc(${headerTopPadding} + 0.5rem)` : "calc(var(--overlay-card-top-padding-safe) + 1rem)",
                 left: "1rem",
               }}
             >
@@ -346,10 +360,10 @@ export function SideDrawer({
           {title && (
             <div
               className="container mx-auto px-4 relative z-10"
-              style={{ paddingTop: "var(--overlay-card-top-padding-safe)" }}
+              style={{ paddingTop: headerTopPadding ?? "var(--overlay-card-top-padding-safe)" }}
             >
               <div className="max-w-md mx-auto">
-                <div className="text-center mb-6">
+                <div className="text-center mb-0.5">
                   <h1 className="text-2xl font-light text-gray-900 dark:text-white tracking-tight">
                     {title}
                   </h1>

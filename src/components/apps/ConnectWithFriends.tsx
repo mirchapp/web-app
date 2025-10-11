@@ -45,11 +45,17 @@ export function ConnectWithFriends({
   };
 
   return (
-    <SideDrawer isOpen={isOpen} onClose={onClose} title="Connect with friends">
+    <SideDrawer 
+      isOpen={isOpen} 
+      onClose={onClose} 
+      title="Connect with friends"
+      headerTopPadding="calc(env(safe-area-inset-top, 0px) + 2rem)"
+    >
       <div
         className="container mx-auto px-5 sm:px-6 pb-8 relative z-10"
         style={{
-          paddingTop: 'calc(var(--overlay-card-top-padding-safe) + 4rem)',
+          // Keep the title and subtitle tight
+          paddingTop: '0.25rem',
         }}
       >
         <div className="max-w-md mx-auto">
@@ -60,7 +66,7 @@ export function ConnectWithFriends({
             }}
           >
             {/* Header */}
-            <div className="mb-6 text-center px-4 w-full">
+            <div className="mb-7 text-center px-4 w-full">
               <p className="text-sm text-gray-600 dark:text-white/50 font-light">
                 Discover people you might know
               </p>
