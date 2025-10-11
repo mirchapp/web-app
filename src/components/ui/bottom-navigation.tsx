@@ -53,7 +53,14 @@ export function BottomNavigation({
   const [isDragging, setIsDragging] = React.useState(false);
   const [dragX, setDragX] = React.useState<number | null>(null);
   const [pillLayout, setPillLayout] = React.useState<{ left: number; width: number; top: number; bottom: number }>({ left: 4, width: 0, top: 4, bottom: 4 });
-  const [isDarkBackground, setIsDarkBackground] = React.useState(activeTab === 'videos' || activeTab === 'post');
+  const [isDarkBackground, setIsDarkBackground] = React.useState(() => {
+    // Check initial theme on mount
+    if (typeof window !== 'undefined') {
+      const isDark = document.documentElement.classList.contains('dark');
+      return isDark || activeTab === 'videos' || activeTab === 'post';
+    }
+    return activeTab === 'videos' || activeTab === 'post';
+  });
   const safeAreaInsets = useSafeArea();
   
   // Disable drag interactions to avoid interfering with global touch/click events
@@ -245,6 +252,8 @@ export function BottomNavigation({
 
     // Then run again after a short delay to catch any layout changes and page transitions
     const timeoutIds: NodeJS.Timeout[] = [];
+    timeoutIds.push(setTimeout(() => requestAnimationFrame(detectBackground), 0));
+    timeoutIds.push(setTimeout(() => requestAnimationFrame(detectBackground), 16));
     timeoutIds.push(setTimeout(() => requestAnimationFrame(detectBackground), 50));
     timeoutIds.push(setTimeout(() => requestAnimationFrame(detectBackground), 150));
     timeoutIds.push(setTimeout(() => requestAnimationFrame(detectBackground), 300));

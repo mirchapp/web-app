@@ -164,22 +164,10 @@ export function SideDrawer({
           touchAction: "none",
         }}
       >
-        {/* Drawer Content */}
-        <div
-          ref={scrollRef}
-          className="h-full overflow-y-auto relative bg-white dark:bg-[#0A0A0F]"
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          style={{
-            WebkitOverflowScrolling: "touch",
-            overscrollBehavior: "contain",
-            touchAction: isHorizontalDrag ? "none" : "pan-y",
-            overflowY: isHorizontalDrag ? "hidden" : "auto",
-          }}
-        >
+        {/* Drawer Content Wrapper - prevents parent content from showing */}
+        <div className="h-full w-full relative bg-white dark:bg-[#0A0A0F]">
           {/* Animated purple wave background - matching profile page */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
             {/* Purple wave gradient */}
             <div
               className="absolute left-0 right-0 h-[400px] opacity-20 dark:opacity-30"
@@ -211,7 +199,21 @@ export function SideDrawer({
             </div>
           </div>
 
-          {/* Back Button - Absolute Positioning */}
+          {/* Scrollable Content */}
+          <div
+            ref={scrollRef}
+            className="h-full overflow-y-auto relative"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            style={{
+              WebkitOverflowScrolling: "touch",
+              overscrollBehavior: "contain",
+              touchAction: isHorizontalDrag ? "none" : "pan-y",
+              overflowY: isHorizontalDrag ? "hidden" : "auto",
+            }}
+          >
+            {/* Back Button - Absolute Positioning */}
           {showBackButton && (
             <Button
               variant="ghost"
@@ -255,8 +257,9 @@ export function SideDrawer({
             </div>
           )}
 
-          {/* Custom Content */}
-          {children}
+            {/* Custom Content */}
+            {children}
+          </div>
         </div>
       </motion.div>
     </motion.div>

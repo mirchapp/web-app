@@ -47,8 +47,10 @@ export function ConnectWithFriends({
   return (
     <SideDrawer isOpen={isOpen} onClose={onClose}>
       <div
-        className="container mx-auto px-4 pb-32 relative z-10"
-        style={{ paddingTop: 'var(--overlay-card-top-padding-safe)' }}
+        className="container mx-auto px-5 sm:px-6 pb-32 relative z-10"
+        style={{
+          paddingTop: 'var(--overlay-card-top-padding-safe)',
+        }}
       >
         <div className="max-w-md mx-auto">
           <div
