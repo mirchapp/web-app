@@ -103,11 +103,11 @@ export function ProfileDrawer({ isOpen, onClose, userId }: ProfileDrawerProps) {
             ref={profileCardRef}
             initial={{ x: "100%", y: 0 }}
             animate={{
-              x: isClosing ? "100%" : dragOffset > 0 ? dragOffset : 0,
+              x: isClosing ? "100%" : (dragOffset > 0 ? dragOffset : 0),
               y: 0,
               transition: {
                 type: "tween",
-                duration: dragOffset > 0 ? 0 : isClosing ? 0.6 : 0.5,
+                duration: dragOffset > 0 ? 0 : (isClosing ? 0.6 : 0.5),
                 ease: dragOffset > 0 ? "linear" : [0.16, 1, 0.3, 1],
                 delay: 0,
               },
@@ -128,6 +128,7 @@ export function ProfileDrawer({ isOpen, onClose, userId }: ProfileDrawerProps) {
               WebkitBackfaceVisibility: "hidden",
               transform: "translateZ(0)",
               touchAction: "none",
+              paddingTop: "env(safe-area-inset-top)",
             }}
           >
             {/* Profile Content */}
