@@ -54,9 +54,9 @@ export function ConnectWithFriends({
   };
 
   return (
-    <SideDrawer 
-      isOpen={isOpen} 
-      onClose={onClose} 
+    <SideDrawer
+      isOpen={isOpen}
+      onClose={onClose}
       title="Connect with friends"
       headerTopPadding="calc(env(safe-area-inset-top, 0px) + 2rem)"
     >

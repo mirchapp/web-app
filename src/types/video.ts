@@ -1,4 +1,5 @@
 export interface User {
+  id?: string; // Optional user ID for profile lookup
   username: string;
   avatar: string;
   isFollowing: boolean;

@@ -7,19 +7,22 @@ import { ProfileOverview } from "./ProfileOverview";
 interface ProfileDrawerProps {
   isOpen: boolean;
   onClose: () => void;
-  userId: string;
+  userId?: string;
   zIndex?: number;
 }
 
 export function ProfileDrawer({ isOpen, onClose, userId, zIndex = 70 }: ProfileDrawerProps) {
+  // If no userId is provided, don't render anything (or show own profile)
+  if (!isOpen) return null;
+
   return (
     <SideDrawer
       isOpen={isOpen}
       onClose={onClose}
-      showBackButton={true}
+      showBackButton={false}
       zIndex={zIndex}
     >
-      <ProfileOverview viewingUserId={userId} />
+      <ProfileOverview viewingUserId={userId} onProfileClose={onClose} />
     </SideDrawer>
   );
 }

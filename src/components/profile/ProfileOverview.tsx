@@ -2,13 +2,15 @@
 
 import * as React from 'react';
 import Image from 'next/image';
-import { MapPin, Calendar } from 'lucide-react';
+import { MapPin, Calendar, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { createClient } from '@/utils/supabase/client';
 import { FollowersDrawer } from './FollowersDrawer';
 import { EditProfileDrawer } from './EditProfileDrawer';
 import { useRouter } from 'next/navigation';
+import { useFollow } from '@/hooks/useFollow';
+import { cn } from '@/lib/utils';
 
 // Custom hook for parallax scrolling effect
 function useParallax(speed = 0.5) {
@@ -68,9 +70,10 @@ interface ProfileData {
 
 interface ProfileOverviewProps {
   viewingUserId?: string; // If provided, shows this user's profile instead of logged-in user
+  onProfileClose?: () => void; // Callback to close the profile drawer
 }
 
-export function ProfileOverview({ viewingUserId }: ProfileOverviewProps = {}) {
+export function ProfileOverview({ viewingUserId, onProfileClose }: ProfileOverviewProps = {}) {
   // Load cached profile data immediately to avoid skeleton loader
   const getCachedProfile = () => {
     if (typeof window === 'undefined') return null;
@@ -110,6 +113,7 @@ export function ProfileOverview({ viewingUserId }: ProfileOverviewProps = {}) {
   const [showFollowersDrawer, setShowFollowersDrawer] = React.useState(false);
   const [followDrawerMode, setFollowDrawerMode] = React.useState<"followers" | "following">("followers");
   const [showEditProfileDrawer, setShowEditProfileDrawer] = React.useState(false);
+  const [isFollowing, setIsFollowing] = React.useState(false);
 
   const supabase = createClient();
   const router = useRouter();
@@ -117,6 +121,7 @@ export function ProfileOverview({ viewingUserId }: ProfileOverviewProps = {}) {
   const followersCount = useCounter(followersCountData, 2000);
   const followingCount = useCounter(followingCountData, 2000);
   const postsCount = useCounter(89, 2000);
+  const { toggleFollow, loading: followLoading } = useFollow(user?.id || null);
 
   // Memoize star positions so they don't change on re-render
   const starPositions = React.useMemo(() => {
@@ -185,6 +190,18 @@ export function ProfileOverview({ viewingUserId }: ProfileOverviewProps = {}) {
         if (followingCount !== null) {
           setFollowingCountData(followingCount);
         }
+
+        // If viewing someone else's profile, check if current user follows them
+        if (viewingUserId && user?.id) {
+          const { data: followData } = await supabase
+            .from('Follows')
+            .select('*')
+            .eq('follower_id', user.id)
+            .eq('following_id', viewingUserId)
+            .single();
+
+          setIsFollowing(!!followData);
+        }
       }
 
       setLoading(false);
@@ -204,6 +221,18 @@ export function ProfileOverview({ viewingUserId }: ProfileOverviewProps = {}) {
       setIsStandalone(standalone);
     } catch {}
   }, []);
+
+  // Handle follow button click
+  const handleFollowClick = async () => {
+    if (!viewingUserId || !user?.id) return;
+
+    const success = await toggleFollow(viewingUserId, isFollowing);
+    if (success) {
+      setIsFollowing(!isFollowing);
+      // Update followers count
+      setFollowersCountData(prev => isFollowing ? prev - 1 : prev + 1);
+    }
+  };
 
   // In standalone PWA, bottom nav is still present, so use consistent padding
   const bottomPadding = 'calc(env(safe-area-inset-bottom, 20px) + 88px)';
@@ -662,6 +691,19 @@ export function ProfileOverview({ viewingUserId }: ProfileOverviewProps = {}) {
 
       <div className="container mx-auto px-5 sm:px-6 relative z-10" style={{ paddingTop: 'var(--profile-top-padding-safe)' }}>
         <div className="max-w-lg mx-auto">
+          {/* Back button - only when viewing another user's profile */}
+          {viewingUserId && onProfileClose && (
+            <button
+              onClick={onProfileClose}
+              className="absolute left-4 z-50 h-8 w-8 rounded-full hover:bg-muted/50 bg-background/80 backdrop-blur-sm flex items-center justify-center transition-colors"
+              style={{ top: 'calc(var(--profile-top-padding-safe) + 0.5rem)' }}
+            >
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+          )}
+
           {/* Parallax header section */}
           <div
             className="flex flex-col items-center justify-center opacity-0 pt-4 sm:pt-6"
@@ -723,6 +765,27 @@ export function ProfileOverview({ viewingUserId }: ProfileOverviewProps = {}) {
                 >
                   Edit Profile
                 </button>
+              </div>
+            )}
+
+            {/* Follow Button - Only show when viewing another user's profile */}
+            {viewingUserId && user?.id && (
+              <div className="mb-5 sm:mb-6">
+                <Button
+                  onClick={handleFollowClick}
+                  disabled={followLoading}
+                  className={cn(
+                    "min-w-[140px] h-11 rounded-[14px] font-light transition-all duration-200",
+                    isFollowing
+                      ? "border-gray-200 dark:border-white/5 bg-white dark:bg-white/[0.02] hover:bg-gray-50 dark:hover:bg-white/[0.05] hover:border-gray-300 dark:hover:border-white/10 text-gray-700 dark:text-white/70"
+                      : "shadow-[0_4px_20px_rgba(138,66,214,0.35)] hover:shadow-[0_6px_24px_rgba(138,66,214,0.45)] text-white",
+                    followLoading && "opacity-50 cursor-not-allowed"
+                  )}
+                  variant={isFollowing ? "outline" : "default"}
+                >
+                  {!isFollowing && <UserPlus className="h-4 w-4 mr-2" />}
+                  {followLoading ? "..." : isFollowing ? "Following" : "Follow"}
+                </Button>
               </div>
             )}
 

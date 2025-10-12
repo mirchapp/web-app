@@ -13,6 +13,7 @@ interface SideDrawerProps {
   title?: string;
   headerTopPadding?: string; // CSS length for top padding of header/title, includes safe-area if desired
   zIndex?: number; // Custom z-index for nested drawers
+  fixedBackButton?: boolean; // If false, back button scrolls with content
 }
 
 export function SideDrawer({
@@ -23,6 +24,7 @@ export function SideDrawer({
   title,
   headerTopPadding,
   zIndex = 60,
+  fixedBackButton = true,
 }: SideDrawerProps) {
   const [isClosing, setIsClosing] = React.useState(false);
   const scrollRef = React.useRef<HTMLDivElement>(null);
@@ -375,8 +377,8 @@ export function SideDrawer({
               overflowY: isHorizontalDrag ? "hidden" : "auto",
             }}
           >
-            {/* Back Button - Absolute Positioning */}
-          {showBackButton && (
+            {/* Back Button */}
+          {showBackButton && fixedBackButton && (
             <Button
               variant="ghost"
               size="icon"
@@ -405,6 +407,32 @@ export function SideDrawer({
 
           {/* Content wrapper with proper top padding */}
           <div style={{ paddingTop: headerTopPadding ?? "var(--overlay-card-top-padding-safe)" }}>
+            {/* Back Button - Inline (scrolls with content) */}
+            {showBackButton && !fixedBackButton && (
+              <div className="px-4 mb-4">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleClose}
+                  className="h-8 w-8 rounded-full hover:bg-muted/50 bg-background/80 backdrop-blur-sm"
+                >
+                  <svg
+                    className="h-4 w-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 19l-7-7 7-7"
+                    />
+                  </svg>
+                </Button>
+              </div>
+            )}
+
             {/* Optional Title */}
             {title && (
               <div className="container mx-auto px-4 relative z-10 mb-6">

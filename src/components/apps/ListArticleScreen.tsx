@@ -190,11 +190,13 @@ export function ListArticleScreen({ article }: ListArticleScreenProps) {
         <div className="absolute top-6 left-6">
           <Button
             size="icon"
-            variant="secondary"
-            className="h-10 w-10 rounded-full bg-black/40 text-white backdrop-blur-md hover:bg-black/60"
+            variant="ghost"
+            className="h-8 w-8 rounded-full bg-black/40 text-white backdrop-blur-md hover:bg-black/60"
             onClick={handleNavigateBack}
           >
-            <ArrowLeft className="h-5 w-5" />
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
           </Button>
         </div>
 

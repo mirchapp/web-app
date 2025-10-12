@@ -10,6 +10,7 @@ import { useSafeArea } from '@/hooks/useSafeArea';
 import { RestaurantRow } from '@/components/restaurant/RestaurantRow';
 import { RestaurantDrawer } from '@/components/restaurant/RestaurantDrawer';
 import { RestaurantPage } from '@/components/restaurant/RestaurantPage';
+import { ProfileDrawer } from '@/components/profile/ProfileDrawer';
 import type { Video } from '@/types/video';
 
 interface VideoFeedProps {
@@ -22,7 +23,6 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
   const [showProfileCard, setShowProfileCard] = React.useState(false);
   const [showMiniRestaurantSheet, setShowMiniRestaurantSheet] = React.useState(false);
   const [showRestaurantPage, setShowRestaurantPage] = React.useState(false);
-  const [isProfileClosing, setIsProfileClosing] = React.useState(false);
   const [followedUsers, setFollowedUsers] = React.useState<Set<string>>(new Set());
   const [likedPosts, setLikedPosts] = React.useState<Set<string>>(new Set());
   const [showHeartAnimation, setShowHeartAnimation] = React.useState(false);
@@ -47,13 +47,6 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
   // Note: Body scroll locking is now handled by AppLayout
   // This component just renders full height content
 
-  // Reset dragOffset when profile card closes
-  React.useEffect(() => {
-    if (!showProfileCard) {
-      setDragOffset(0);
-    }
-  }, [showProfileCard]);
-
   // Trigger navbar background detection when overlays open/close
   React.useEffect(() => {
     // Trigger multiple times during animation for smooth adaptation
@@ -65,15 +58,6 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
   }, [showProfileCard, showMiniRestaurantSheet, showRestaurantPage]);
 
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
-  const profileCardRef = React.useRef<HTMLDivElement>(null);
-  const profileScrollRef = React.useRef<HTMLDivElement>(null);
-  const touchStartX = React.useRef<number>(0);
-  const touchStartY = React.useRef<number>(0);
-  const touchCurrentX = React.useRef<number>(0);
-  const touchCurrentY = React.useRef<number>(0);
-  const isDraggingHorizontally = React.useRef<boolean | null>(null);
-  const [dragOffset, setDragOffset] = React.useState<number>(0);
-  const [isHorizontalDrag, setIsHorizontalDrag] = React.useState<boolean>(false);
 
   // Finalize snap position and cancel momentum so taps register immediately
   const finalizeSnapAndCancelMomentum = React.useCallback(() => {
@@ -132,98 +116,6 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
     }
   }, [currentVideoIndex, videos.length, onVideoChange]);
 
-  React.useEffect(() => {
-    const button = profileCardRef.current;
-    if (!button) return;
-
-    const preventDrag = (e: DragEvent) => {
-      e.preventDefault();
-    };
-
-    button.addEventListener('dragstart', preventDrag);
-    return () => {
-      button.removeEventListener('dragstart', preventDrag);
-    };
-  }, []);
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
-    touchStartY.current = e.touches[0].clientY;
-    touchCurrentX.current = e.touches[0].clientX;
-    touchCurrentY.current = e.touches[0].clientY;
-    isDraggingHorizontally.current = null; // Reset direction detection
-    setIsHorizontalDrag(false); // Reset state
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    const currentX = e.touches[0].clientX;
-    const currentY = e.touches[0].clientY;
-
-    const diffX = currentX - touchStartX.current;
-    const diffY = currentY - touchStartY.current;
-    const absX = Math.abs(diffX);
-    const absY = Math.abs(diffY);
-
-    // Lock direction immediately on first movement
-    if (isDraggingHorizontally.current === null && (absX > 3 || absY > 3)) {
-      // If ANY vertical component exists, lock to vertical scrolling
-      // Only allow horizontal if it's PURELY horizontal (absY <= 3px tolerance)
-      const isHorizontal = absY <= 3 && absX > absY;
-      isDraggingHorizontally.current = isHorizontal;
-      setIsHorizontalDrag(isHorizontal); // Update state to trigger re-render
-    }
-
-    // Handle based on locked direction
-    if (isDraggingHorizontally.current === true) {
-      // Prevent scrolling when dragging card horizontally
-      e.preventDefault();
-      e.stopPropagation();
-
-      if (diffX > 0) {
-        setDragOffset(diffX);
-      }
-    } else if (isDraggingHorizontally.current === false) {
-      // Allow normal scrolling - don't interfere
-      setDragOffset(0);
-    }
-
-    touchCurrentX.current = currentX;
-    touchCurrentY.current = currentY;
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    e.stopPropagation();
-
-    const swipeDistance = touchCurrentX.current - touchStartX.current;
-
-    // Only close if it was a horizontal drag to the right (swipe right to close)
-    if (isDraggingHorizontally.current === true && swipeDistance > 100) {
-      // Controlled close to immediately allow touches to pass through backdrop
-      handleProfileClose();
-    } else {
-      // Snap back to position - framer-motion spring will handle smooth animation
-      setDragOffset(0);
-    }
-
-    // Reset touch tracking
-    touchStartX.current = 0;
-    touchStartY.current = 0;
-    touchCurrentX.current = 0;
-    touchCurrentY.current = 0;
-    isDraggingHorizontally.current = null;
-    setIsHorizontalDrag(false);
-  };
-
-  const handleProfileClose = () => {
-    setDragOffset(0); // Reset drag offset first
-    setIsProfileClosing(true);
-    // Wait for slide-out before unmounting to free pointer events immediately
-    setTimeout(() => {
-      setIsProfileClosing(false);
-      setShowProfileCard(false);
-    }, 600);
-  };
-
   const handleDoubleTap = React.useCallback(() => {
     const now = Date.now();
     const timeSinceLastTap = now - lastTapRef.current;
@@ -260,243 +152,12 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
         paddingBottom: `env(safe-area-inset-bottom)`
       }}
     >
-      {/* Profile Card Overlay */}
-      <AnimatePresence mode="wait" onExitComplete={() => setDragOffset(0)}>
-        {showProfileCard && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ type: 'tween', duration: 0.25, ease: 'easeOut' }}
-            className="fixed z-50 bg-transparent touch-manipulation"
-            style={{
-              top: `calc(-1 * env(safe-area-inset-top))`,
-              left: `calc(-1 * env(safe-area-inset-left))`,
-              right: `calc(-1 * env(safe-area-inset-right))`,
-              bottom: `calc(-1 * env(safe-area-inset-bottom))`,
-              willChange: 'opacity',
-              pointerEvents: isProfileClosing ? 'none' : 'auto'
-            }}
-            onClick={handleProfileClose}
-          >
-            <motion.div
-              ref={profileCardRef}
-              initial={{ x: '100%', y: 0 }}
-              animate={{
-                x: isProfileClosing ? '100%' : (dragOffset > 0 ? dragOffset : 0),
-                y: 0,
-                transition: {
-                  type: 'tween',
-                  duration: dragOffset > 0 ? 0 : (isProfileClosing ? 0.6 : 0.5),
-                  ease: dragOffset > 0 ? 'linear' : [0.16, 1, 0.3, 1],
-                  delay: 0
-                }
-              }}
-              exit={{
-                x: '100%',
-                y: 0,
-                transition: { type: 'tween', duration: 0.6, ease: [0.16, 1, 0.3, 1] }
-              }}
-              className="absolute right-0 top-0 h-full w-full max-w-md mx-auto bg-background shadow-2xl"
-              onClick={(e) => e.stopPropagation()}
-              drag={false}
-              dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-              dragElastic={0}
-              style={{
-                willChange: 'transform',
-                backfaceVisibility: 'hidden',
-                WebkitBackfaceVisibility: 'hidden',
-                transform: 'translateZ(0)',
-                touchAction: 'none' // Disable all default touch behaviors on the card
-              }}
-            >
-              {/* Profile Card Content */}
-              <div
-                ref={profileScrollRef}
-                className="h-full overflow-y-auto relative bg-white dark:bg-[#0A0A0F]"
-                onTouchStart={handleTouchStart}
-                onTouchMove={handleTouchMove}
-                onTouchEnd={handleTouchEnd}
-                style={{
-                  WebkitOverflowScrolling: 'touch',
-                  overscrollBehavior: 'contain',
-                  touchAction: isHorizontalDrag ? 'none' : 'pan-y',
-                  overflowY: isHorizontalDrag ? 'hidden' : 'auto'
-                }}
-              >
-                {/* Animated purple wave background - matching profile page */}
-                <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                  {/* Purple wave gradient */}
-                  <div
-                    className="absolute left-0 right-0 h-[400px] opacity-20 dark:opacity-30"
-                    style={{
-                      top: '10%',
-                      background: 'linear-gradient(90deg, rgba(138, 66, 214, 0.4) 0%, rgba(168, 85, 247, 0.3) 50%, rgba(138, 66, 214, 0.4) 100%)',
-                      filter: 'blur(80px)',
-                      transform: 'translateZ(0)',
-                      animation: 'wave 8s ease-in-out infinite alternate'
-                    }}
-                  />
-
-                  {/* Subtle stars/particles */}
-                  <div className="absolute inset-0 opacity-15 dark:opacity-30">
-                    {Array.from({ length: 20 }).map((_, i) => {
-                      const top = Math.random() * 100;
-                      const left = Math.random() * 100;
-                      const duration = 2 + Math.random() * 3;
-                      const delay = Math.random() * 2;
-                      return (
-                        <div
-                          key={i}
-                          className="absolute w-1 h-1 bg-purple-500/30 dark:bg-white/20 rounded-full"
-                          style={{
-                            top: `${top}%`,
-                            left: `${left}%`,
-                            animation: `twinkle ${duration}s ease-in-out infinite`,
-                            animationDelay: `${delay}s`,
-                            willChange: 'opacity',
-                          }}
-                        />
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Back Button - Absolute Positioning */}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleProfileClose}
-                  className="absolute z-20 h-8 w-8 rounded-full hover:bg-muted/50 bg-background/80 backdrop-blur-sm"
-                  style={{ top: 'calc(var(--overlay-card-top-padding-safe) + 1rem)', left: '1rem' }}
-                >
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                </Button>
-
-                <div className="container mx-auto px-4 pb-32 relative z-10" style={{ paddingTop: 'var(--overlay-card-top-padding-safe)' }}>
-                  <div className="max-w-md mx-auto">
-                    <div
-                      className="flex flex-col items-center justify-center animate-fade-in"
-                      style={{
-                        animation: 'fadeIn 0.6s ease-out'
-                      }}
-                    >
-                      {/* Avatar with minimal styling */}
-                      <div className="relative mb-5 sm:mb-6">
-                        <div className="relative h-32 w-32 sm:h-36 sm:w-36 rounded-full overflow-hidden ring-1 ring-gray-200 dark:ring-white/10 shadow-lg dark:shadow-lg shadow-purple-500/10">
-                          <Image
-                            src={videos[currentVideoIndex]?.user.avatar || ''}
-                            alt={videos[currentVideoIndex]?.user.username || ''}
-                            fill
-                            className="object-cover"
-                            unoptimized
-                          />
-                        </div>
-                      </div>
-
-                      {/* Name with hero-style typography */}
-                      <div className="mb-2 text-center px-4">
-                        <h1 className="text-3xl sm:text-4xl font-light text-gray-900 dark:text-white tracking-tight">
-                          {videos[currentVideoIndex]?.user.username}
-                        </h1>
-                      </div>
-
-                      {/* Location */}
-                      <div className="flex items-center gap-1.5 mb-5 text-gray-600 dark:text-white/50">
-                        <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                        <span className="text-xs sm:text-sm font-light">Waterloo, ON</span>
-                      </div>
-
-                      {/* Stats with animated counters */}
-                      <div className="flex items-center gap-6 sm:gap-8 mb-5 sm:mb-6 px-4">
-                        <div className="flex flex-col items-center gap-1">
-                          <span className="text-2xl sm:text-3xl font-extralight text-gray-900 dark:text-white">127</span>
-                          <span className="text-[9px] sm:text-[10px] text-gray-400 dark:text-white/35 uppercase tracking-widest font-light">Friends</span>
-                        </div>
-                        <div className="h-8 sm:h-9 w-px bg-gray-200 dark:bg-white/10" />
-                        <div className="flex flex-col items-center gap-1">
-                          <span className="text-2xl sm:text-3xl font-extralight text-gray-900 dark:text-white">43</span>
-                          <span className="text-[9px] sm:text-[10px] text-gray-400 dark:text-white/35 uppercase tracking-widest font-light">Reviews</span>
-                        </div>
-                        <div className="h-8 sm:h-9 w-px bg-gray-200 dark:bg-white/10" />
-                        <div className="flex flex-col items-center gap-1">
-                          <span className="text-2xl sm:text-3xl font-extralight text-gray-900 dark:text-white">89</span>
-                          <span className="text-[9px] sm:text-[10px] text-gray-400 dark:text-white/35 uppercase tracking-widest font-light">Posts</span>
-                        </div>
-                      </div>
-
-                      {/* Bio with minimal typography */}
-                      <p className="text-center text-sm sm:text-base leading-loose text-gray-600 dark:text-white/50 mb-4 sm:mb-5 px-6 max-w-md font-light">
-                        Food enthusiast sharing my culinary adventures. Always on the hunt for the perfect dish and hidden gems in the city.
-                      </p>
-
-                      {/* Joined Date */}
-                      <div className="flex items-center gap-1.5 text-gray-400 dark:text-white/30 mb-6 sm:mb-8">
-                        <Calendar className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-                        <span className="text-[10px] sm:text-xs font-light">Joined September 2024</span>
-                      </div>
-
-                      {/* Action Buttons */}
-                      <div className="flex gap-3 w-full max-w-xs mb-10">
-                        <Button
-                          className="flex-1 h-11 rounded-[14px] font-light shadow-[0_4px_20px_rgba(138,66,214,0.35)] hover:shadow-[0_6px_24px_rgba(138,66,214,0.45)] transition-all duration-200"
-                          variant="default"
-                        >
-                          <UserPlus className="h-4 w-4 mr-2" />
-                          Follow
-                        </Button>
-                        <Button
-                          className="flex-1 h-11 rounded-[14px] font-light border-gray-200 dark:border-white/5 bg-white dark:bg-white/[0.02] hover:bg-gray-50 dark:hover:bg-white/[0.05] hover:border-gray-300 dark:hover:border-white/10 transition-all duration-200"
-                          variant="outline"
-                        >
-                          <MessageCircle className="h-4 w-4 mr-2" />
-                          Message
-                        </Button>
-                      </div>
-
-                      {/* Recent Posts Section */}
-                      <div className="w-full">
-                        <h2 className="text-sm font-light text-gray-500 dark:text-foreground/60 mb-5 text-center tracking-wide">Recent Posts</h2>
-                        <div className="columns-2 gap-2 space-y-2">
-                          {[
-                            { id: 'photo-1546069901-ba9599a7e63c', height: 200 }, // burger
-                            { id: 'photo-1565299624946-b28f40a0ae38', height: 250 }, // pizza
-                            { id: 'photo-1567620905732-2d1ec7ab7445', height: 180 }, // pancakes
-                            { id: 'photo-1540189549336-e6e99c3679fe', height: 220 }, // salad
-                            { id: 'photo-1565958011703-44f9829ba187', height: 190 }, // sushi
-                            { id: 'photo-1551782450-a2132b4ba21d', height: 200 }, // pasta
-                          ].map((item, i) => (
-                            <div
-                              key={i}
-                              className="break-inside-avoid mb-2"
-                            >
-                              <div className="relative rounded-lg sm:rounded-xl bg-gray-100 dark:bg-white/5 overflow-hidden cursor-pointer ring-1 ring-gray-200 dark:ring-white/10 hover:ring-gray-300 dark:hover:ring-white/20 transition-all duration-300 shadow-lg hover:shadow-xl">
-                                <Image
-                                  src={`https://images.unsplash.com/${item.id}?w=400&h=${item.height}&fit=crop`}
-                                  alt={`Food ${i + 1}`}
-                                  width={400}
-                                  height={item.height}
-                                  className="object-cover w-full"
-                                  unoptimized
-                                />
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Profile Drawer */}
+      <ProfileDrawer
+        isOpen={showProfileCard}
+        onClose={() => setShowProfileCard(false)}
+        userId={videos[currentVideoIndex]?.user.id}
+      />
 
       <RestaurantDrawer
         isOpen={showMiniRestaurantSheet}

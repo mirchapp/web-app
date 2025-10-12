@@ -143,9 +143,11 @@ export function PostEditor({
             variant="ghost"
             size="icon"
             onClick={onBack}
-            className="h-9 w-9 rounded-full -ml-2 hover:bg-muted/50"
+            className="h-8 w-8 rounded-full -ml-2 hover:bg-muted/50 bg-background/80 backdrop-blur-sm"
           >
-            <ChevronLeft className="size-5" />
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
           </Button>
           <h1 className="flex-1 text-center text-3xl font-light bg-gradient-to-br from-foreground via-foreground to-foreground/70 bg-clip-text text-transparent tracking-tight">
             Create Post

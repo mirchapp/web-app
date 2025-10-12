@@ -304,7 +304,7 @@ export function BottomNavigation({
   return (
     <div
       className="fixed left-0 right-0 z-50 pointer-events-none px-4"
-      style={{ 
+      style={{
         bottom: 0,
         paddingBottom: `max(${safeAreaInsets.bottom}px, env(safe-area-inset-bottom, 8px))`,
       }}

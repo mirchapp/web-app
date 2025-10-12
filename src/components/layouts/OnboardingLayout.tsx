@@ -91,10 +91,12 @@ export function OnboardingLayout({
                   <Button
                     onClick={onBack}
                     variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0 rounded-full text-gray-600 dark:text-muted-foreground/80 hover:text-gray-900 dark:hover:text-muted-foreground hover:bg-transparent"
+                    size="icon"
+                    className="h-8 w-8 rounded-full hover:bg-muted/50 bg-background/80 backdrop-blur-sm"
                   >
-                    <ArrowLeft className="w-4 h-4" />
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
                   </Button>
                 </div>
               )}

@@ -103,8 +103,10 @@ export function RestaurantMenuPage({ isOpen, onClose, onConfirm, restaurantName,
               style={{ paddingTop: `${Math.max(safeAreaInsets.top, 12)}px` }}
             >
               <div className="flex items-center gap-2 py-3">
-                <Button variant="ghost" size="icon" onClick={handleClose} className="h-10 w-10 rounded-full">
-                  <ChevronLeft className="h-6 w-6" />
+                <Button variant="ghost" size="icon" onClick={handleClose} className="h-8 w-8 rounded-full hover:bg-muted/50 bg-background/80 backdrop-blur-sm">
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
                 </Button>
                 <h2 className="flex-1 text-center text-base font-semibold">{restaurantName}</h2>
                 <div className="w-10" />
