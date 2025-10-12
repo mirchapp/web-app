@@ -63,6 +63,7 @@ interface ProfileData {
   dietary_preferences?: string[];
   price_preference?: number;
   spice_preference?: number;
+  created_at?: string;
 }
 
 interface ProfileOverviewProps {
@@ -154,7 +155,7 @@ export function ProfileOverview({ viewingUserId }: ProfileOverviewProps = {}) {
         // Fetch profile data
         const { data: profileData } = await supabase
           .from('Profile')
-          .select('display_name, username, avatar_url, location, favourite_cuisines, dietary_preferences, price_preference, spice_preference')
+          .select('display_name, username, avatar_url, location, favourite_cuisines, dietary_preferences, price_preference, spice_preference, created_at')
           .eq('user_id', profileUserId)
           .single();
 
@@ -761,10 +762,14 @@ export function ProfileOverview({ viewingUserId }: ProfileOverviewProps = {}) {
             </p>
 
             {/* Joined Date */}
-            <div className="flex items-center gap-1.5 text-gray-400 dark:text-white/30 mb-6 sm:mb-8">
-              <Calendar className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-              <span className="text-[10px] sm:text-xs font-light">Joined September 2024</span>
-            </div>
+            {profile?.created_at && (
+              <div className="flex items-center gap-1.5 text-gray-400 dark:text-white/30 mb-6 sm:mb-8">
+                <Calendar className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                <span className="text-[10px] sm:text-xs font-light">
+                  Joined {new Date(profile.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                </span>
+              </div>
+            )}
 
             {/* Flix & Reviews Tabs - Matching navbar style */}
             <Tabs defaultValue="flix" className="w-full px-2 sm:px-0">
@@ -888,7 +893,7 @@ export function ProfileOverview({ viewingUserId }: ProfileOverviewProps = {}) {
             // Refresh profile data
             const { data: profileData } = await supabase
               .from('Profile')
-              .select('display_name, username, avatar_url, location, favourite_cuisines, dietary_preferences, price_preference, spice_preference')
+              .select('display_name, username, avatar_url, location, favourite_cuisines, dietary_preferences, price_preference, spice_preference, created_at')
               .eq('user_id', user.id)
               .single();
 
