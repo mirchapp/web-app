@@ -435,7 +435,7 @@ export function SideDrawer({
 
             {/* Optional Title */}
             {title && (
-              <div className="container mx-auto px-4 relative z-10 mb-6">
+              <div className="container mx-auto px-4 relative z-10 mb-2">
                 <div className="max-w-md mx-auto">
                   <div className="text-center">
                     <h1 className="text-2xl font-light text-gray-900 dark:text-white tracking-tight">
