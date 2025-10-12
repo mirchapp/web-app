@@ -159,6 +159,20 @@ export function SideDrawer({
 
     const locked: Array<{ el: HTMLElement; overflow: string; overscroll: string }> = [];
 
+    // Helper to check if element or any parent has higher z-index
+    const hasHigherZIndex = (element: HTMLElement): boolean => {
+      let current: HTMLElement | null = element;
+      while (current) {
+        const style = window.getComputedStyle(current);
+        const currentZIndex = parseInt(style.zIndex, 10);
+        if (!isNaN(currentZIndex) && currentZIndex > zIndex) {
+          return true;
+        }
+        current = current.parentElement;
+      }
+      return false;
+    };
+
     // Find all potentially scrollable elements in the document
     const allElements = document.querySelectorAll('*');
     allElements.forEach((el) => {
@@ -166,8 +180,11 @@ export function SideDrawer({
       // Skip the drawer itself
       if (cardRef.current && cardRef.current.contains(htmlEl)) return;
 
-      const style = window.getComputedStyle(htmlEl);
-      const overflowY = style.overflowY || style.overflow;
+      // Skip elements within containers with higher z-index (like ProfileDrawer on top)
+      if (hasHigherZIndex(htmlEl)) return;
+
+      const computedStyle = window.getComputedStyle(htmlEl);
+      const overflowY = computedStyle.overflowY || computedStyle.overflow;
       const isScrollable = overflowY === 'auto' || overflowY === 'scroll';
 
       if (isScrollable && htmlEl.scrollHeight > htmlEl.clientHeight) {
@@ -191,7 +208,7 @@ export function SideDrawer({
         }
       }
     };
-  }, [isOpen]);
+  }, [isOpen, zIndex]);
 
   // Block scroll gestures on the backdrop so the page behind cannot scroll
   const handleBackdropTouchMove = React.useCallback((e: React.TouchEvent) => {
@@ -213,7 +230,24 @@ export function SideDrawer({
     const allowInside = (target: EventTarget | null) => {
       if (!target) return false;
       const node = target as Node;
-      return !!(cardRef.current && cardRef.current.contains(node));
+
+      // Allow if inside this drawer
+      if (cardRef.current && cardRef.current.contains(node)) return true;
+
+      // Allow if inside a higher z-index container (like ProfileDrawer on top)
+      if (node instanceof HTMLElement) {
+        let current: HTMLElement | null = node;
+        while (current) {
+          const style = window.getComputedStyle(current);
+          const currentZIndex = parseInt(style.zIndex, 10);
+          if (!isNaN(currentZIndex) && currentZIndex > zIndex) {
+            return true;
+          }
+          current = current.parentElement;
+        }
+      }
+
+      return false;
     };
 
     const onTouchMove = (ev: TouchEvent) => {
@@ -234,7 +268,7 @@ export function SideDrawer({
       window.removeEventListener('touchmove', onTouchMove, { capture: true });
       window.removeEventListener('wheel', onWheel, { capture: true });
     };
-  }, [isOpen]);
+  }, [isOpen, zIndex]);
 
   if (!isOpen) return null;
 
