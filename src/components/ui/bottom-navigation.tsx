@@ -7,6 +7,7 @@ import {
   UserCircleIcon as UserSolidIcon,
   PlusCircleIcon as PlusCircleSolidIcon,
   MagnifyingGlassIcon as MagnifyingGlassSolidIcon,
+  HomeIcon as HomeSolidIcon,
 } from '@heroicons/react/24/solid';
 import {
   HeartIcon,
@@ -14,6 +15,7 @@ import {
   UserCircleIcon,
   PlusCircleIcon,
   MagnifyingGlassIcon,
+  HomeIcon,
 } from '@heroicons/react/24/outline';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -29,8 +31,8 @@ interface Tab {
 }
 
 const tabs: Tab[] = [
+  { id: 'home', label: 'Home', icon: { filled: HomeSolidIcon, outline: HomeIcon } },
   { id: 'discover', label: 'Find', icon: { filled: MagnifyingGlassSolidIcon, outline: MagnifyingGlassIcon } },
-  { id: 'liked', label: 'Liked', icon: { filled: HeartSolidIcon, outline: HeartIcon } },
   { id: 'post', label: 'Post', icon: { filled: PlusCircleSolidIcon, outline: PlusCircleIcon } },
   { id: 'videos', label: 'Flix', icon: { filled: VideoCameraSolidIcon, outline: VideoCameraIcon } },
   { id: 'profile', label: 'Profile', icon: { filled: UserSolidIcon, outline: UserCircleIcon } },
@@ -76,6 +78,7 @@ export function BottomNavigation({
   const dragEnabled = false;
   
   const tintMap: Record<string, { light: string; glow: string }> = {
+    home: { light: 'rgba(244, 114, 182, 0.06)', glow: 'rgba(236, 72, 153, 0.1)' },
     discover: { light: 'rgba(96, 165, 250, 0.06)', glow: 'rgba(59, 130, 246, 0.1)' },
     liked: { light: 'rgba(252, 165, 165, 0.06)', glow: 'rgba(248, 113, 113, 0.1)' },
     post: { light: 'rgba(129, 230, 217, 0.10)', glow: 'rgba(45, 212, 191, 0.16)' },

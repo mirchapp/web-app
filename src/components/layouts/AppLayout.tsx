@@ -5,13 +5,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { BottomNavigation } from '@/components/ui/bottom-navigation';
 import { ProfileOverview } from '@/components/profile/ProfileOverview';
 import { FindHome } from '@/components/apps/FindHome';
-import { LikedHome } from '@/components/apps/LikedHome';
 import { cn } from '@/lib/utils';
 import { VideoFeed } from '@/components/video/VideoFeed';
 import mockVideos from '@/data/mock/videos.json';
 import { PostScreen, PostEditorContext } from '@/components/apps/PostScreen';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
+import { HomeFeed } from '@/components/apps/HomeFeed';
 
 interface AppLayoutProps {
   children?: React.ReactNode;
@@ -19,14 +19,14 @@ interface AppLayoutProps {
 }
 
 // Placeholder components for each tab
+const HomeTab = () => <HomeFeed />;
 const FindTab = () => <FindHome />;
-const LikedTab = () => <LikedHome />;
 const PostTab = () => <PostScreen />;
 const VideosTab = () => <VideoFeed videos={mockVideos} />;
 const ProfileTab = () => <ProfileOverview />;
 
 export function AppLayout({ children, className }: AppLayoutProps) {
-  const [activeTab, setActiveTab] = React.useState('videos');
+  const [activeTab, setActiveTab] = React.useState('home');
   const [isInPostEditor, setIsInPostEditor] = React.useState(false);
   const [isCheckingOnboarding, setIsCheckingOnboarding] = React.useState(true);
   const router = useRouter();
@@ -150,10 +150,11 @@ export function AppLayout({ children, className }: AppLayoutProps) {
 
   const renderActiveComponent = () => {
     switch (activeTab) {
+      case 'home':
+        return <HomeTab />;
       case 'discover':
         return <FindTab />;
-      case 'liked':
-        return <LikedTab />;
+    // 'liked' tab removed from global bottom navigation - moved into profile section
       case 'post':
         return <PostTab />;
       case 'videos':
@@ -161,7 +162,7 @@ export function AppLayout({ children, className }: AppLayoutProps) {
       case 'profile':
         return <ProfileTab />;
       default:
-        return <FindTab />;
+        return <HomeTab />;
     }
   };
 
@@ -207,10 +208,10 @@ export function AppLayout({ children, className }: AppLayoutProps) {
         <main
           className={cn(
             "h-full",
-            activeTab === 'videos' || activeTab === 'post' || activeTab === 'profile' || activeTab === 'find' ? "overflow-hidden" : "overflow-y-auto"
+            activeTab === 'videos' || activeTab === 'post' || activeTab === 'profile' ? "overflow-hidden" : "overflow-y-auto"
           )}
           style={{
-            paddingBottom: activeTab === 'videos' || activeTab === 'post' || activeTab === 'profile' || activeTab === 'find' ? '0' : 'env(safe-area-inset-bottom, 0px)'
+            paddingBottom: activeTab === 'videos' || activeTab === 'post' || activeTab === 'profile' ? '0' : 'env(safe-area-inset-bottom, 0px)'
           }}
         >
           <AnimatePresence mode="wait">
@@ -225,10 +226,10 @@ export function AppLayout({ children, className }: AppLayoutProps) {
               }}
               className={cn(
                 "h-full",
-                (activeTab === 'profile' || activeTab === 'find') && "relative"
+                (activeTab === 'profile' || activeTab === 'discover') && "relative"
               )}
               style={{
-                overflow: activeTab === 'profile' || activeTab === 'find' ? 'visible' : undefined,
+                overflow: activeTab === 'profile' || activeTab === 'discover' ? 'visible' : undefined,
                 willChange: 'opacity',
                 backfaceVisibility: 'hidden',
                 WebkitBackfaceVisibility: 'hidden'
