@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { BottomNavigation } from '@/components/ui/bottom-navigation';
-import { ProfileOverview } from '@/components/profile/ProfileOverview';
-import { FindHome } from '@/components/apps/FindHome';
-import { LikedHome } from '@/components/apps/LikedHome';
-import { cn } from '@/lib/utils';
-import { VideoFeed } from '@/components/video/VideoFeed';
-import mockVideos from '@/data/mock/videos.json';
-import { PostScreen, PostEditorContext } from '@/components/apps/PostScreen';
-import { createClient } from '@/utils/supabase/client';
-import { useRouter } from 'next/navigation';
+import * as React from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { BottomNavigation } from "@/components/ui/bottom-navigation";
+import { ProfileOverview } from "@/components/profile/ProfileOverview";
+import { FindHome } from "@/components/apps/FindHome";
+import { cn } from "@/lib/utils";
+import { VideoFeed } from "@/components/video/VideoFeed";
+import mockVideos from "@/data/mock/videos.json";
+import { PostScreen, PostEditorContext } from "@/components/apps/PostScreen";
+import { createClient } from "@/utils/supabase/client";
+import { useRouter } from "next/navigation";
+import { HomeFeed } from "@/components/apps/HomeFeed";
 
 interface AppLayoutProps {
   children?: React.ReactNode;
@@ -19,50 +19,54 @@ interface AppLayoutProps {
 }
 
 // Placeholder components for each tab
+const HomeTab = () => <HomeFeed />;
 const FindTab = () => <FindHome />;
-const LikedTab = () => <LikedHome />;
 const PostTab = () => <PostScreen />;
 const VideosTab = () => <VideoFeed videos={mockVideos} />;
 const ProfileTab = () => <ProfileOverview />;
 
 export function AppLayout({ children, className }: AppLayoutProps) {
-  const [activeTab, setActiveTab] = React.useState('videos');
+  const [activeTab, setActiveTab] = React.useState("home");
   const [isInPostEditor, setIsInPostEditor] = React.useState(false);
   const [isCheckingOnboarding, setIsCheckingOnboarding] = React.useState(true);
   const router = useRouter();
   const supabase = createClient();
-
 
   // Check if user needs to complete onboarding
   React.useEffect(() => {
     const checkOnboarding = async () => {
       try {
         // Check localStorage cache first
-        const cachedCompletion = localStorage.getItem('onboarding_completed');
-        if (cachedCompletion === 'true') {
+        const cachedCompletion = localStorage.getItem("onboarding_completed");
+        if (cachedCompletion === "true") {
           setIsCheckingOnboarding(false);
           return;
         }
 
-        const { data: { user } } = await supabase.auth.getUser();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
 
         if (user) {
           const { data: profile, error } = await supabase
-            .from('Profile')
-            .select('signup_completed, signup_step')
-            .eq('user_id', user.id)
+            .from("Profile")
+            .select("signup_completed, signup_step")
+            .eq("user_id", user.id)
             .single();
 
           if (error) {
             // Table might not exist yet or no profile created - skip onboarding check
-            console.warn('Could not fetch profile, skipping onboarding check:', error.message);
+            console.warn(
+              "Could not fetch profile, skipping onboarding check:",
+              error.message
+            );
             setIsCheckingOnboarding(false);
             return;
           }
 
           if (profile && !profile.signup_completed) {
             // Don't redirect if already on onboarding page
-            if (window.location.pathname === '/onboarding') {
+            if (window.location.pathname === "/onboarding") {
               setIsCheckingOnboarding(false);
               return;
             }
@@ -73,29 +77,31 @@ export function AppLayout({ children, className }: AppLayoutProps) {
             const port = window.location.port;
 
             // Check if we're already on diners subdomain
-            const isOnDinersSubdomain = hostname.startsWith('diners.');
+            const isOnDinersSubdomain = hostname.startsWith("diners.");
 
             // Determine the diners domain
             let dinersUrl;
-            if (hostname.includes('localhost')) {
+            if (hostname.includes("localhost")) {
               // For localhost, use diners.localhost
               if (isOnDinersSubdomain) {
                 // Already on diners.localhost, just go to /onboarding
-                router.push('/onboarding');
+                router.push("/onboarding");
                 return;
               }
-              dinersUrl = `${protocol}//diners.localhost${port ? ':' + port : ':3000'}/onboarding`;
-            } else if (hostname.includes('mirch.app')) {
+              dinersUrl = `${protocol}//diners.localhost${
+                port ? ":" + port : ":3000"
+              }/onboarding`;
+            } else if (hostname.includes("mirch.app")) {
               // For production, use diners.mirch.app
               if (isOnDinersSubdomain) {
                 // Already on diners.mirch.app, just go to /onboarding
-                router.push('/onboarding');
+                router.push("/onboarding");
                 return;
               }
               dinersUrl = `${protocol}//diners.mirch.app/onboarding`;
             } else {
               // Fallback - stay on current domain
-              router.push('/onboarding');
+              router.push("/onboarding");
               return;
             }
 
@@ -105,11 +111,11 @@ export function AppLayout({ children, className }: AppLayoutProps) {
 
           // Cache the completion status if onboarding is completed
           if (profile && profile.signup_completed) {
-            localStorage.setItem('onboarding_completed', 'true');
+            localStorage.setItem("onboarding_completed", "true");
           }
         }
       } catch (error) {
-        console.error('Error checking onboarding:', error);
+        console.error("Error checking onboarding:", error);
       } finally {
         setIsCheckingOnboarding(false);
       }
@@ -123,7 +129,8 @@ export function AppLayout({ children, className }: AppLayoutProps) {
     const body = document.body;
     const html = document.documentElement;
 
-    const shouldLock = activeTab === 'videos' || activeTab === 'post' || activeTab === 'profile';
+    const shouldLock =
+      activeTab === "videos" || activeTab === "post" || activeTab === "profile";
 
     const prev = {
       bodyOverflow: body.style.overflow,
@@ -131,11 +138,11 @@ export function AppLayout({ children, className }: AppLayoutProps) {
     };
 
     if (shouldLock) {
-      body.style.overflow = 'hidden';
-      html.style.overflow = 'hidden';
+      body.style.overflow = "hidden";
+      html.style.overflow = "hidden";
     } else {
-      body.style.overflow = '';
-      html.style.overflow = '';
+      body.style.overflow = "";
+      html.style.overflow = "";
     }
 
     return () => {
@@ -150,18 +157,19 @@ export function AppLayout({ children, className }: AppLayoutProps) {
 
   const renderActiveComponent = () => {
     switch (activeTab) {
-      case 'discover':
+      case "home":
+        return <HomeTab />;
+      case "discover":
         return <FindTab />;
-      case 'liked':
-        return <LikedTab />;
-      case 'post':
+      // 'liked' tab removed from global bottom navigation - moved into profile section
+      case "post":
         return <PostTab />;
-      case 'videos':
+      case "videos":
         return <VideosTab />;
-      case 'profile':
+      case "profile":
         return <ProfileTab />;
       default:
-        return <FindTab />;
+        return <HomeTab />;
     }
   };
 
@@ -188,9 +196,14 @@ export function AppLayout({ children, className }: AppLayoutProps) {
   }
 
   return (
-    <PostEditorContext.Provider value={{ isInEditor: isInPostEditor, setIsInEditor: setIsInPostEditor }}>
+    <PostEditorContext.Provider
+      value={{ isInEditor: isInPostEditor, setIsInEditor: setIsInPostEditor }}
+    >
       <div
-        className={cn("fixed bg-background text-foreground overflow-hidden", className)}
+        className={cn(
+          "fixed bg-background text-foreground overflow-hidden",
+          className
+        )}
         style={{
           // Compensate for the safe area padding on html element
           top: `calc(-1 * env(safe-area-inset-top))`,
@@ -200,17 +213,26 @@ export function AppLayout({ children, className }: AppLayoutProps) {
           paddingTop: `env(safe-area-inset-top)`,
           paddingLeft: `env(safe-area-inset-left)`,
           paddingRight: `env(safe-area-inset-right)`,
-          paddingBottom: `env(safe-area-inset-bottom)`
+          paddingBottom: `env(safe-area-inset-bottom)`,
         }}
       >
         {/* Main content area with bottom padding for floating navigation */}
         <main
           className={cn(
             "h-full",
-            activeTab === 'videos' || activeTab === 'post' || activeTab === 'profile' || activeTab === 'find' ? "overflow-hidden" : "overflow-y-auto"
+            activeTab === "videos" ||
+              activeTab === "post" ||
+              activeTab === "profile"
+              ? "overflow-hidden"
+              : "overflow-y-auto"
           )}
           style={{
-            paddingBottom: activeTab === 'videos' || activeTab === 'post' || activeTab === 'profile' || activeTab === 'find' ? '0' : 'env(safe-area-inset-bottom, 0px)'
+            paddingBottom:
+              activeTab === "videos" ||
+              activeTab === "post" ||
+              activeTab === "profile"
+                ? "0"
+                : "env(safe-area-inset-bottom, 0px)",
           }}
         >
           <AnimatePresence mode="wait">
@@ -225,13 +247,17 @@ export function AppLayout({ children, className }: AppLayoutProps) {
               }}
               className={cn(
                 "h-full",
-                (activeTab === 'profile' || activeTab === 'find') && "relative"
+                (activeTab === "profile" || activeTab === "discover") &&
+                  "relative"
               )}
               style={{
-                overflow: activeTab === 'profile' || activeTab === 'find' ? 'visible' : undefined,
-                willChange: 'opacity',
-                backfaceVisibility: 'hidden',
-                WebkitBackfaceVisibility: 'hidden'
+                overflow:
+                  activeTab === "profile" || activeTab === "discover"
+                    ? "visible"
+                    : undefined,
+                willChange: "opacity",
+                backfaceVisibility: "hidden",
+                WebkitBackfaceVisibility: "hidden",
               }}
             >
               {children || renderActiveComponent()}
@@ -246,7 +272,6 @@ export function AppLayout({ children, className }: AppLayoutProps) {
             onTabChange={handleTabChange}
           />
         )}
-
       </div>
     </PostEditorContext.Provider>
   );

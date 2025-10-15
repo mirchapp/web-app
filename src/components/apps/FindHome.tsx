@@ -5,6 +5,7 @@ import { Search, Loader2, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FeaturedLists } from "./FeaturedLists";
 import { CuratedLists } from "./CuratedLists";
+import { SavedListsPreview } from "./SavedListsPreview";
 import { SuggestedProfiles } from "./SuggestedProfiles";
 import { ConnectWithFriends } from "./ConnectWithFriends";
 import { getListSummaries } from "@/data/mock/list-articles";
@@ -339,6 +340,12 @@ export function FindHome() {
             lists={featuredListsData}
             onSeeAll={() => console.log("See all featured lists")}
             onListClick={(list) => router.push(`/diners/lists/${list.slug}`)}
+          />
+
+          {/* Saved Lists Preview (user-specific) - now above friend suggestions */}
+          <SavedListsPreview
+            onSeeAll={() => console.log('See all saved lists')}
+            onListClick={(list) => router.push(`/diners/lists/${list.slug || list.id}`)}
           />
 
           {/* Suggested Profiles Carousel - Show when not searching */}

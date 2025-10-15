@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { createClient } from '@/utils/supabase/client';
 import { FollowersDrawer } from './FollowersDrawer';
+import { LikedHome } from '@/components/apps/LikedHome';
 import { EditProfileDrawer } from './EditProfileDrawer';
 import { useRouter } from 'next/navigation';
 import { useFollow } from '@/hooks/useFollow';
@@ -837,7 +838,7 @@ export function ProfileOverview({ viewingUserId, onProfileClose }: ProfileOvervi
             {/* Flix & Reviews Tabs - Matching navbar style */}
             <Tabs defaultValue="flix" className="w-full px-2 sm:px-0">
               <TabsList
-                className="w-full grid grid-cols-2 h-11 sm:h-12 rounded-[1.625rem] p-1 relative overflow-visible border border-gray-200 dark:border-white/15 bg-gray-100/80 dark:bg-[rgba(0,0,0,0.4)]"
+                className="w-full grid grid-cols-3 h-11 sm:h-12 rounded-[1.625rem] p-1 relative overflow-visible border border-gray-200 dark:border-white/15 bg-gray-100/80 dark:bg-[rgba(0,0,0,0.4)]"
                 style={{
                   backdropFilter: 'blur(3px) saturate(140%)',
                   WebkitBackdropFilter: 'blur(3px) saturate(140%)',
@@ -869,6 +870,12 @@ export function ProfileOverview({ viewingUserId, onProfileClose }: ProfileOvervi
                   className="relative z-10 rounded-[1.125rem] !text-gray-600 dark:!text-white/90 font-light text-xs sm:text-sm transition-all duration-200 flex items-center justify-center !bg-transparent !border-transparent !shadow-none data-[state=active]:!bg-[rgba(168,85,247,0.15)] dark:data-[state=active]:!bg-[rgba(168,85,247,0.3)] data-[state=active]:!text-purple-700 dark:data-[state=active]:!text-white data-[state=active]:!shadow-[0_2px_8px_rgba(138,66,214,0.25),inset_0_1px_0_rgba(138,66,214,0.15)] dark:data-[state=active]:!shadow-[0_4px_10px_rgba(168,85,247,0.5),inset_0_1px_0_rgba(255,255,255,0.15)] data-[state=active]:!border data-[state=active]:!border-purple-300 dark:data-[state=active]:!border-[rgba(192,132,252,0.35)] data-[state=active]:backdrop-blur-xl"
                 >
                   Posts
+                </TabsTrigger>
+                <TabsTrigger
+                  value="saved"
+                  className="relative z-10 rounded-[1.125rem] !text-gray-600 dark:!text-white/90 font-light text-xs sm:text-sm transition-all duration-200 flex items-center justify-center !bg-transparent !border-transparent !shadow-none data-[state=active]:!bg-[rgba(168,85,247,0.15)] dark:data-[state=active]:!bg-[rgba(168,85,247,0.3)] data-[state=active]:!text-purple-700 dark:data-[state=active]:!text-white data-[state=active]:!shadow-[0_2px_8px_rgba(138,66,214,0.25),inset_0_1px_0_rgba(138,66,214,0.15)] dark:data-[state=active]:!shadow-[0_4px_10px_rgba(168,85,247,0.5),inset_0_1px_0_rgba(255,255,255,0.15)] data-[state=active]:!border data-[state=active]:!border-purple-300 dark:data-[state=active]:!border-[rgba(192,132,252,0.35)] data-[state=active]:backdrop-blur-xl"
+                >
+                  Saved
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="flix" className="mt-5 sm:mt-6">
@@ -903,8 +910,24 @@ export function ProfileOverview({ viewingUserId, onProfileClose }: ProfileOvervi
                   ))}
                 </div>
               </TabsContent>
+              <TabsContent value="saved" className="mt-6">
+                <LikedHome />
+              </TabsContent>
               <TabsContent value="reviews" className="mt-6">
-                {/* Posts content will go here */}
+                {/* Sample post content for demo */}
+                <div className="rounded-xl border border-gray-200 dark:border-white/10 p-6 bg-card/30 dark:bg-white/[0.02] mb-4">
+                  <h3 className="text-lg font-semibold mb-2 text-foreground">Your Recent Posts</h3>
+                  <div className="space-y-3">
+                    <div className="p-3 rounded-lg bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10">
+                      <p className="text-sm text-foreground">"Had an amazing brunch at Sunny Side Café! Highly recommend the avocado toast."</p>
+                      <span className="block text-xs text-muted-foreground mt-1">2 days ago</span>
+                    </div>
+                    <div className="p-3 rounded-lg bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10">
+                      <p className="text-sm text-foreground">"Late night ramen at Tokyo Eats hit the spot. Spicy and delicious!"</p>
+                      <span className="block text-xs text-muted-foreground mt-1">5 days ago</span>
+                    </div>
+                  </div>
+                </div>
               </TabsContent>
             </Tabs>
           </div>
