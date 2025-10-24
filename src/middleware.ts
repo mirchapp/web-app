@@ -7,8 +7,8 @@ export function middleware(request: NextRequest) {
   // Extract subdomain
   const subdomain = hostname.split('.')[0];
 
-  // Handle localhost development
-  if (hostname.includes('localhost')) {
+  // Handle localhost development - ALL localhost traffic should stay local
+  if (hostname.includes('localhost') || process.env.NODE_ENV === 'development') {
     // For diners.localhost or explore.localhost
     if (subdomain === 'diners' || subdomain === 'explore') {
       // Only rewrite the root path
