@@ -377,70 +377,42 @@ export function SideDrawer({
               overflowY: isHorizontalDrag ? "hidden" : "auto",
             }}
           >
-            {/* Back Button */}
-          {showBackButton && fixedBackButton && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleClose}
-              className="absolute z-20 h-8 w-8 rounded-full hover:bg-muted/50 bg-background/80 backdrop-blur-sm"
-              style={{
-                top: headerTopPadding ? `calc(${headerTopPadding} + 0.5rem)` : "calc(var(--overlay-card-top-padding-safe) + 1rem)",
-                left: "1rem",
-              }}
-            >
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 19l-7-7 7-7"
-                />
-              </svg>
-            </Button>
-          )}
-
           {/* Content wrapper with proper top padding */}
           <div style={{ paddingTop: headerTopPadding ?? "var(--overlay-card-top-padding-safe)" }}>
-            {/* Back Button - Inline (scrolls with content) */}
-            {showBackButton && !fixedBackButton && (
-              <div className="px-4 mb-4">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleClose}
-                  className="h-8 w-8 rounded-full hover:bg-muted/50 bg-background/80 backdrop-blur-sm"
-                >
-                  <svg
-                    className="h-4 w-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 19l-7-7 7-7"
-                    />
-                  </svg>
-                </Button>
-              </div>
-            )}
-
-            {/* Optional Title */}
-            {title && (
-              <div className="container mx-auto px-4 relative z-10 mb-2">
+            {/* Header with Back Button and Title */}
+            {(showBackButton || title) && (
+              <div className="container mx-auto px-4 relative z-10 mb-6">
                 <div className="max-w-md mx-auto">
-                  <div className="text-center">
-                    <h1 className="text-2xl font-light text-gray-900 dark:text-white tracking-tight">
-                      {title}
-                    </h1>
+                  <div className="flex items-center justify-center relative">
+                    {/* Back Button */}
+                    {showBackButton && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={handleClose}
+                        className="absolute left-0 h-8 w-8 rounded-full hover:bg-muted/50 bg-background/80 backdrop-blur-sm"
+                      >
+                        <svg
+                          className="h-4 w-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15 19l-7-7 7-7"
+                          />
+                        </svg>
+                      </Button>
+                    )}
+                    {/* Title */}
+                    {title && (
+                      <h1 className="text-2xl font-light text-gray-900 dark:text-white tracking-tight">
+                        {title}
+                      </h1>
+                    )}
                   </div>
                 </div>
               </div>

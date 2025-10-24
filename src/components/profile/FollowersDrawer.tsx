@@ -184,9 +184,8 @@ export function FollowersDrawer({
       headerTopPadding="calc(env(safe-area-inset-top, 0px) + 2rem)"
       zIndex={zIndex}
     >
-      <div className="container mx-auto px-5 sm:px-6 pb-8 pt-4 relative z-10">
-        <div className="max-w-md mx-auto">
-          {loading ? (
+      <div className="px-5 sm:px-6 pb-8 max-w-md mx-auto relative z-10">
+        {loading ? (
             <div className="space-y-3">
               {[...Array(5)].map((_, i) => (
                 <div
@@ -202,79 +201,78 @@ export function FollowersDrawer({
                 </div>
               ))}
             </div>
-          ) : profiles.length === 0 ? (
-            <div className="w-full">
-              {/* Empty state header */}
-              <div className="flex flex-col items-center justify-center py-8 px-4">
-                <User className="h-12 w-12 text-gray-300 dark:text-white/30 mb-3" />
-                <p className="text-sm text-gray-600 dark:text-white/50 text-center font-light">
-                  {mode === "followers" ? "No followers yet" : "Not following anyone yet"}
-                </p>
-              </div>
-
-              {/* Suggested profiles */}
-              {suggestedProfiles.length > 0 && (
-                <div className="mt-4">
-                  <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3 px-2">
-                    Suggested for you
-                  </h3>
-                  <div className="space-y-3">
-                    {suggestedProfiles.map((profile) => (
-                      <ProfileListItem
-                        key={profile.user_id}
-                        profile={profile}
-                        isFollowing={followedUsers.has(profile.user_id)}
-                        onFollowToggle={handleFollowToggle}
-                        onProfileClick={handleProfileClick}
-                        currentUserId={currentUserId}
-                        showFollowButton={profile.user_id !== currentUserId}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
+        ) : profiles.length === 0 ? (
+          <>
+            {/* Empty state header */}
+            <div className="flex flex-col items-center justify-center py-8 px-4">
+              <User className="h-12 w-12 text-gray-300 dark:text-white/30 mb-3" />
+              <p className="text-sm text-gray-600 dark:text-white/50 text-center font-light">
+                {mode === "followers" ? "No followers yet" : "Not following anyone yet"}
+              </p>
             </div>
-          ) : (
-            <div className="w-full">
-              {/* Following list */}
-              <div className="space-y-3 w-full">
-                {profiles.map((profile) => (
-                  <ProfileListItem
-                    key={profile.user_id}
-                    profile={profile}
-                    isFollowing={followedUsers.has(profile.user_id)}
-                    onFollowToggle={handleFollowToggle}
-                    onProfileClick={handleProfileClick}
-                    currentUserId={currentUserId}
-                    showFollowButton={profile.user_id !== currentUserId}
-                  />
-                ))}
-              </div>
 
-              {/* Suggested profiles - shown at the end for following mode */}
-              {mode === "following" && suggestedProfiles.length > 0 && (
-                <div className="mt-6">
-                  <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3 px-2">
-                    Suggested for you
-                  </h3>
-                  <div className="space-y-3">
-                    {suggestedProfiles.map((profile) => (
-                      <ProfileListItem
-                        key={profile.user_id}
-                        profile={profile}
-                        isFollowing={followedUsers.has(profile.user_id)}
-                        onFollowToggle={handleFollowToggle}
-                        onProfileClick={handleProfileClick}
-                        currentUserId={currentUserId}
-                        showFollowButton={profile.user_id !== currentUserId}
-                      />
-                    ))}
-                  </div>
+            {/* Suggested profiles */}
+            {suggestedProfiles.length > 0 && (
+              <div className="mt-4">
+                <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3">
+                  Suggested for you
+                </h3>
+                <div className="space-y-3">
+                  {suggestedProfiles.map((profile) => (
+                    <ProfileListItem
+                      key={profile.user_id}
+                      profile={profile}
+                      isFollowing={followedUsers.has(profile.user_id)}
+                      onFollowToggle={handleFollowToggle}
+                      onProfileClick={handleProfileClick}
+                      currentUserId={currentUserId}
+                      showFollowButton={profile.user_id !== currentUserId}
+                    />
+                  ))}
                 </div>
-              )}
+              </div>
+            )}
+          </>
+        ) : (
+          <>
+            {/* Following list */}
+            <div className="space-y-3">
+              {profiles.map((profile) => (
+                <ProfileListItem
+                  key={profile.user_id}
+                  profile={profile}
+                  isFollowing={followedUsers.has(profile.user_id)}
+                  onFollowToggle={handleFollowToggle}
+                  onProfileClick={handleProfileClick}
+                  currentUserId={currentUserId}
+                  showFollowButton={profile.user_id !== currentUserId}
+                />
+              ))}
             </div>
-          )}
-        </div>
+
+            {/* Suggested profiles - shown at the end for following mode */}
+            {mode === "following" && suggestedProfiles.length > 0 && (
+              <div className="mt-6">
+                <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3">
+                  Suggested for you
+                </h3>
+                <div className="space-y-3">
+                  {suggestedProfiles.map((profile) => (
+                    <ProfileListItem
+                      key={profile.user_id}
+                      profile={profile}
+                      isFollowing={followedUsers.has(profile.user_id)}
+                      onFollowToggle={handleFollowToggle}
+                      onProfileClick={handleProfileClick}
+                      currentUserId={currentUserId}
+                      showFollowButton={profile.user_id !== currentUserId}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </SideDrawer>
 
