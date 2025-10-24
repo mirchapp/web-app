@@ -72,9 +72,10 @@ interface ProfileData {
 interface ProfileOverviewProps {
   viewingUserId?: string; // If provided, shows this user's profile instead of logged-in user
   onProfileClose?: () => void; // Callback to close the profile drawer
+  zIndex?: number; // z-index for nested drawers
 }
 
-export function ProfileOverview({ viewingUserId, onProfileClose }: ProfileOverviewProps = {}) {
+export function ProfileOverview({ viewingUserId, onProfileClose, zIndex }: ProfileOverviewProps = {}) {
   // Load cached profile data immediately to avoid skeleton loader
   const getCachedProfile = () => {
     if (typeof window === 'undefined') return null;
@@ -938,7 +939,7 @@ export function ProfileOverview({ viewingUserId, onProfileClose }: ProfileOvervi
       {user && (
         <FollowersDrawer
           isOpen={showFollowersDrawer}
-          zIndex={viewingUserId ? 75 : undefined}
+          zIndex={zIndex ? zIndex + 10 : 60}
           onClose={async () => {
             setShowFollowersDrawer(false);
 

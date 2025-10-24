@@ -281,6 +281,7 @@ export function FollowersDrawer({
         isOpen={showProfileDrawer}
         onClose={() => setShowProfileDrawer(false)}
         userId={selectedProfileId}
+        zIndex={zIndex ? zIndex + 10 : 70}
       />
     </>
   );

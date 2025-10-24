@@ -22,7 +22,7 @@ export function ProfileDrawer({ isOpen, onClose, userId, zIndex = 70 }: ProfileD
       showBackButton={false}
       zIndex={zIndex}
     >
-      <ProfileOverview viewingUserId={userId} onProfileClose={onClose} />
+      <ProfileOverview viewingUserId={userId} onProfileClose={onClose} zIndex={zIndex} />
     </SideDrawer>
   );
 }
