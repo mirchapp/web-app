@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useSafeArea } from '@/hooks/useSafeArea';
 import Image from 'next/image';
-import { ChevronLeft } from 'lucide-react';
+
 
 interface MenuItem {
   id: string;

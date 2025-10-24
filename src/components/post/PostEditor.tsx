@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useSafeArea } from '@/hooks/useSafeArea';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
-import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { ChevronRight, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { RestaurantMenuPage } from '@/components/restaurant/RestaurantMenuPage';
 import { NewPostRatings } from '@/components/ratings/NewPostRatings';

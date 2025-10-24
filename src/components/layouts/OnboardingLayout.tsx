@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import { cn } from '@/lib/utils';
-import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface OnboardingLayoutProps {

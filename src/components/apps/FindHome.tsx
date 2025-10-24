@@ -70,8 +70,8 @@ export function FindHome() {
           .eq("follower_id", session.user.id);
 
         if (followsData) {
-          const followingSet = new Set(followsData.map((f) => f.following_id));
-          setFollowedUsers(followingSet);
+          const nextFollowingSet = new Set(followsData.map((f) => f.following_id));
+          setFollowedUsers(nextFollowingSet);
         }
         return;
       }
@@ -136,11 +136,10 @@ export function FindHome() {
         .in("following_id", profileIds);
 
       if (followsData) {
-        const followingSet = new Set(followsData.map((f) => f.following_id));
         setFollowedUsers((prev) => {
-          const newSet = new Set(prev);
-          followsData.forEach((f) => newSet.add(f.following_id));
-          return newSet;
+          const updatedFollowingSet = new Set(prev);
+          followsData.forEach((f) => updatedFollowingSet.add(f.following_id));
+          return updatedFollowingSet;
         });
       }
     };

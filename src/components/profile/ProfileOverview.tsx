@@ -9,7 +9,7 @@ import { createClient } from '@/utils/supabase/client';
 import { FollowersDrawer } from './FollowersDrawer';
 import { LikedHome } from '@/components/apps/LikedHome';
 import { EditProfileDrawer } from './EditProfileDrawer';
-import { useRouter } from 'next/navigation';
+ 
 import { useFollow } from '@/hooks/useFollow';
 import { cn } from '@/lib/utils';
 
@@ -117,7 +117,7 @@ export function ProfileOverview({ viewingUserId, onProfileClose }: ProfileOvervi
   const [isFollowing, setIsFollowing] = React.useState(false);
 
   const supabase = createClient();
-  const router = useRouter();
+ 
   const parallaxOffset = useParallax(0.3);
   const followersCount = useCounter(followersCountData, 2000);
   const followingCount = useCounter(followingCountData, 2000);
@@ -919,11 +919,11 @@ export function ProfileOverview({ viewingUserId, onProfileClose }: ProfileOvervi
                   <h3 className="text-lg font-semibold mb-2 text-foreground">Your Recent Posts</h3>
                   <div className="space-y-3">
                     <div className="p-3 rounded-lg bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10">
-                      <p className="text-sm text-foreground">"Had an amazing brunch at Sunny Side Café! Highly recommend the avocado toast."</p>
+                      <p className="text-sm text-foreground">&ldquo;Had an amazing brunch at Sunny Side Café! Highly recommend the avocado toast.&rdquo;</p>
                       <span className="block text-xs text-muted-foreground mt-1">2 days ago</span>
                     </div>
                     <div className="p-3 rounded-lg bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10">
-                      <p className="text-sm text-foreground">"Late night ramen at Tokyo Eats hit the spot. Spicy and delicious!"</p>
+                      <p className="text-sm text-foreground">&ldquo;Late night ramen at Tokyo Eats hit the spot. Spicy and delicious!&rdquo;</p>
                       <span className="block text-xs text-muted-foreground mt-1">5 days ago</span>
                     </div>
                   </div>

@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
-import { Heart, Bookmark, Calendar, UserPlus, MessageCircle } from 'lucide-react';
+import { Heart, Bookmark } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useSafeArea } from '@/hooks/useSafeArea';

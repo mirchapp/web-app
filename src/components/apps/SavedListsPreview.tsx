@@ -4,7 +4,6 @@ import * as React from "react";
 import Image from "next/image";
 import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useRouter } from 'next/navigation';
 
 interface SavedListItem {
   id: string;

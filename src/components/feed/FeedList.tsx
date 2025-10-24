@@ -115,7 +115,7 @@ export function FeedList({ items }: FeedListProps) {
       );
     }
 
-    if (item.type === 'section-header') {
+    if ('type' in item && item.type === 'section-header') {
       return (
         <div
           key={item.id}
@@ -136,7 +136,7 @@ export function FeedList({ items }: FeedListProps) {
       );
     }
 
-    if (item.type === 'divider') {
+    if ('type' in item && item.type === 'divider') {
       return (
         <div
           key={item.id}

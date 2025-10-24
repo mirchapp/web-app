@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import {
-  HeartIcon as HeartSolidIcon,
   VideoCameraIcon as VideoCameraSolidIcon,
   UserCircleIcon as UserSolidIcon,
   PlusCircleIcon as PlusCircleSolidIcon,
@@ -10,7 +9,6 @@ import {
   HomeIcon as HomeSolidIcon,
 } from "@heroicons/react/24/solid";
 import {
-  HeartIcon,
   VideoCameraIcon,
   UserCircleIcon,
   PlusCircleIcon,
