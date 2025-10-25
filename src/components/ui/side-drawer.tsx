@@ -387,7 +387,7 @@ export function SideDrawer({
           <div style={{ paddingTop: headerTopPadding ?? "var(--overlay-card-top-padding-safe)" }}>
             {/* Header with Back Button and Title */}
             {(showBackButton || title) && (
-              <div className="container mx-auto px-4 relative z-10 mb-4">
+              <div className="container mx-auto px-4 relative z-10 mb-1">
                 <div className="max-w-md mx-auto">
                   <div className="flex items-center justify-center relative">
                     {/* Back Button */}
