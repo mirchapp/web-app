@@ -310,7 +310,7 @@ interface ProfileListItemProps {
   showFollowButton: boolean;
 }
 
-function ProfileListItem({
+const ProfileListItem = React.memo(function ProfileListItem({
   profile,
   isFollowing,
   onFollowToggle,
@@ -380,4 +380,11 @@ function ProfileListItem({
       )}
     </div>
   );
-}
+}, (prevProps, nextProps) => {
+  // Only re-render if these props actually changed
+  return (
+    prevProps.profile.user_id === nextProps.profile.user_id &&
+    prevProps.isFollowing === nextProps.isFollowing &&
+    prevProps.showFollowButton === nextProps.showFollowButton
+  );
+});

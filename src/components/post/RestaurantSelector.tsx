@@ -524,7 +524,7 @@ export function RestaurantSelector({ onSelectRestaurant, onMediaSelected }: Rest
             alt={restaurant.name}
             fill
             className="object-cover"
-            unoptimized
+           
           />
         ) : (
           <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">

@@ -148,7 +148,7 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
                           alt={restaurant.name}
                           fill
                           className="object-cover"
-                          unoptimized
+                         
                         />
                       </div>
                     </div>
@@ -253,7 +253,7 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
                                   width={80}
                                   height={80}
                                   className="object-cover"
-                                  unoptimized
+                                 
                                 />
                               </div>
                               <div className="flex-1 min-w-0">
@@ -318,7 +318,7 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
                                   width={80}
                                   height={80}
                                   className="object-cover"
-                                  unoptimized
+                                 
                                 />
                               </div>
                               <div className="flex-1 min-w-0">
@@ -376,7 +376,7 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
                                   width={80}
                                   height={80}
                                   className="object-cover"
-                                  unoptimized
+                                 
                                 />
                               </div>
                               <div className="flex-1 min-w-0">
@@ -435,7 +435,7 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
                                   width={80}
                                   height={80}
                                   className="object-cover"
-                                  unoptimized
+                                 
                                 />
                               </div>
                               <div className="flex-1 min-w-0">
@@ -494,7 +494,7 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
                                   width={80}
                                   height={80}
                                   className="object-cover"
-                                  unoptimized
+                                 
                                 />
                               </div>
                               <div className="flex-1 min-w-0">

@@ -46,7 +46,7 @@ export function RestaurantRow({ restaurantLogo, restaurantName, verified, onClic
           alt={restaurantName}
           fill
           className="object-cover"
-          unoptimized
+         
         />
       </div>
       <span

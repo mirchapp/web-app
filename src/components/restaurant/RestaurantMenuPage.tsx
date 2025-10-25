@@ -138,7 +138,7 @@ export function RestaurantMenuPage({ isOpen, onClose, onConfirm, restaurantName,
                           >
                             {item.image && (
                               <div className="h-16 w-16 rounded-lg overflow-hidden flex-shrink-0 bg-muted ring-1 ring-black/5 dark:ring-white/10">
-                                <Image src={item.image} alt={item.name} width={64} height={64} className="object-cover" unoptimized />
+                                <Image src={item.image} alt={item.name} width={64} height={64} className="object-cover" />
                               </div>
                             )}
                             <div className="flex-1 min-w-0">

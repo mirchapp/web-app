@@ -304,7 +304,7 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
                   alt={videos[currentVideoIndex].user.username}
                   fill
                   className="object-cover pointer-events-none"
-                  unoptimized
+                 
                 />
               </button>
               <div className="flex-1 min-w-0" style={{ pointerEvents: 'none' }}>
@@ -409,7 +409,7 @@ export function VideoFeed({ videos, onVideoChange }: VideoFeedProps) {
               alt={video.dish}
               fill
               className="object-cover"
-              unoptimized
+             
               priority={index === 0}
             />
             {/* Soft gradient overlay from bottom for text legibility */}

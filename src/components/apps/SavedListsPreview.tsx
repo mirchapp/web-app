@@ -59,7 +59,7 @@ export function SavedListsPreview({ onSeeAll, onListClick }: SavedListsPreviewPr
             >
               <div className="relative w-full h-full bg-gray-100 dark:bg-white/5 rounded-2xl overflow-hidden">
                 {list.imageUrl ? (
-                  <Image src={list.imageUrl} alt={list.title} fill sizes="(max-width: 640px) 260px, 300px" className="object-cover" unoptimized />
+                  <Image src={list.imageUrl} alt={list.title} fill sizes="(max-width: 640px) 260px, 300px" className="object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-gray-50 dark:bg-white/[0.02]">
                     <svg className="h-10 w-10 text-gray-300 dark:text-white/30" viewBox="0 0 24 24" fill="none" stroke="currentColor">

@@ -726,7 +726,7 @@ export function ProfileOverview({ viewingUserId, onProfileClose, zIndex }: Profi
                     className="object-cover"
                     priority
                     sizes="(max-width: 640px) 128px, 144px"
-                    unoptimized
+                   
                   />
                 ) : (
                   <div className="w-full h-full bg-gray-50 dark:bg-white/5 flex items-center justify-center">
@@ -904,7 +904,7 @@ export function ProfileOverview({ viewingUserId, onProfileClose, zIndex }: Profi
                           width={400}
                           height={item.height}
                           className="object-cover w-full"
-                          unoptimized
+                          loading="lazy"
                         />
                       </div>
                     </div>

@@ -216,7 +216,7 @@ export function CameraCapture({ restaurantName, onCapture, onBack }: CameraCaptu
                   alt="Captured photo"
                   fill
                   className="object-cover"
-                  unoptimized
+                 
                 />
               )}
             </div>

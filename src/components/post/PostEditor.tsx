@@ -202,7 +202,7 @@ export function PostEditor({
                 alt="Post preview"
                 fill
                 className="object-cover"
-                unoptimized
+               
               />
             )}
           </motion.div>
@@ -275,7 +275,7 @@ export function PostEditor({
                     alt={restaurantName}
                     fill
                     className="object-cover"
-                    unoptimized
+                   
                   />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
@@ -372,7 +372,7 @@ export function PostEditor({
                 />
               ) : (
                 <div className="absolute inset-0" onClick={(e) => e.stopPropagation()}>
-                  <Image src={mediaData} alt="Media preview" fill className="object-cover" unoptimized />
+                  <Image src={mediaData} alt="Media preview" fill className="object-cover" />
                 </div>
               )}
             </div>
@@ -433,7 +433,7 @@ export function PostEditor({
                       alt="User"
                       fill
                       className="object-cover"
-                      unoptimized
+                     
                     />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -461,7 +461,7 @@ export function PostEditor({
                             alt={restaurantName}
                             fill
                             className="object-cover"
-                            unoptimized
+                           
                           />
                         ) : (
                           <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">

@@ -122,7 +122,7 @@ export function RestaurantDrawer({ isOpen, onClose, onExpand, restaurant }: Rest
                     alt={restaurant.name}
                     fill
                     className="object-cover"
-                    unoptimized
+                   
                   />
                 </div>
                 <div className="flex-1 min-w-0">
