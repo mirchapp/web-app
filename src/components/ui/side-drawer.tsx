@@ -38,14 +38,17 @@ export function SideDrawer({
   const [isHorizontalDrag, setIsHorizontalDrag] = React.useState<boolean>(false);
 
   // Memoize star positions for background animation
+  // PERFORMANCE: Reduce animations for nested drawers
   const starPositions = React.useMemo(() => {
-    return Array.from({ length: 20 }, () => ({
+    const isNestedDrawer = zIndex > 60;
+    const starCount = isNestedDrawer ? 5 : 20; // Reduce from 20 to 5 for nested drawers
+    return Array.from({ length: starCount }, () => ({
       top: Math.random() * 100,
       left: Math.random() * 100,
       duration: 2 + Math.random() * 3,
       delay: Math.random() * 2,
     }));
-  }, []);
+  }, [zIndex]);
 
   const handleClose = React.useCallback(() => {
     setDragOffset(0);
@@ -155,49 +158,32 @@ export function SideDrawer({
     };
   }, [isOpen]);
 
-  // Additionally lock any scrollable containers in the document
+  // Lock scroll on background elements - OPTIMIZED: Only for lowest z-index drawer
   React.useEffect(() => {
     if (!isOpen) return;
 
+    // Only the lowest z-index drawer (base layer) handles background scroll locking
+    // Higher z-index drawers (nested) skip this expensive operation
+    const isNestedDrawer = zIndex > 60;
+    if (isNestedDrawer) return;
+
     const locked: Array<{ el: HTMLElement; overflow: string; overscroll: string }> = [];
 
-    // Helper to check if element or any parent has higher z-index
-    const hasHigherZIndex = (element: HTMLElement): boolean => {
-      let current: HTMLElement | null = element;
-      while (current) {
-        const style = window.getComputedStyle(current);
-        const currentZIndex = parseInt(style.zIndex, 10);
-        if (!isNaN(currentZIndex) && currentZIndex > zIndex) {
-          return true;
-        }
-        current = current.parentElement;
-      }
-      return false;
-    };
+    // Only lock main scrollable containers, not every element
+    const mainScrollContainers = [
+      document.body,
+      document.querySelector('main'),
+      document.querySelector('[role="main"]'),
+    ].filter(Boolean) as HTMLElement[];
 
-    // Find all potentially scrollable elements in the document
-    const allElements = document.querySelectorAll('*');
-    allElements.forEach((el) => {
-      const htmlEl = el as HTMLElement;
-      // Skip the drawer itself
-      if (cardRef.current && cardRef.current.contains(htmlEl)) return;
-
-      // Skip elements within containers with higher z-index (like ProfileDrawer on top)
-      if (hasHigherZIndex(htmlEl)) return;
-
-      const computedStyle = window.getComputedStyle(htmlEl);
-      const overflowY = computedStyle.overflowY || computedStyle.overflow;
-      const isScrollable = overflowY === 'auto' || overflowY === 'scroll';
-
-      if (isScrollable && htmlEl.scrollHeight > htmlEl.clientHeight) {
-        locked.push({
-          el: htmlEl,
-          overflow: htmlEl.style.overflow,
-          overscroll: htmlEl.style.getPropertyValue('overscroll-behavior')
-        });
-        htmlEl.style.overflow = 'hidden';
-        htmlEl.style.setProperty('overscroll-behavior', 'none');
-      }
+    mainScrollContainers.forEach((el) => {
+      locked.push({
+        el,
+        overflow: el.style.overflow,
+        overscroll: el.style.getPropertyValue('overscroll-behavior')
+      });
+      el.style.overflow = 'hidden';
+      el.style.setProperty('overscroll-behavior', 'none');
     });
 
     return () => {
@@ -225,9 +211,27 @@ export function SideDrawer({
     e.preventDefault();
   }, []);
 
-  // Global capture to stop background scroll even if events start outside backdrop
+  // Global capture to stop background scroll - OPTIMIZED: Only highest z-index drawer handles this
   React.useEffect(() => {
     if (!isOpen) return;
+
+    // Performance optimization: Only allow global listeners on the topmost drawer
+    // Lower z-index drawers don't need to block scroll - the top one handles it
+    const isTopMostDrawer = typeof window !== 'undefined' && (() => {
+      // Check if there are any drawers with higher z-index in the DOM
+      const allDrawerOverlays = document.querySelectorAll('[style*="z-index"]');
+      let maxZIndex = zIndex;
+      allDrawerOverlays.forEach((el) => {
+        const style = window.getComputedStyle(el);
+        const z = parseInt(style.zIndex, 10);
+        if (!isNaN(z) && z > maxZIndex) {
+          maxZIndex = z;
+        }
+      });
+      return maxZIndex === zIndex;
+    })();
+
+    if (!isTopMostDrawer) return;
 
     const allowInside = (target: EventTarget | null) => {
       if (!target) return false;
@@ -236,13 +240,13 @@ export function SideDrawer({
       // Allow if inside this drawer
       if (cardRef.current && cardRef.current.contains(node)) return true;
 
-      // Allow if inside a higher z-index container (like ProfileDrawer on top)
+      // Allow if inside a higher z-index container
       if (node instanceof HTMLElement) {
         let current: HTMLElement | null = node;
         while (current) {
           const style = window.getComputedStyle(current);
           const currentZIndex = parseInt(style.zIndex, 10);
-          if (!isNaN(currentZIndex) && currentZIndex > zIndex) {
+          if (!isNaN(currentZIndex) && currentZIndex >= zIndex) {
             return true;
           }
           current = current.parentElement;
@@ -263,6 +267,7 @@ export function SideDrawer({
       }
     };
 
+    // Use passive: false only when necessary
     window.addEventListener('touchmove', onTouchMove, { capture: true, passive: false });
     window.addEventListener('wheel', onWheel, { capture: true, passive: false });
 
@@ -331,6 +336,7 @@ export function SideDrawer({
         {/* Drawer Content Wrapper - prevents parent content from showing */}
         <div className="h-full w-full relative bg-white dark:bg-[#0A0A0F]">
           {/* Animated purple wave background - matching profile page */}
+          {/* PERFORMANCE: Disable animations for drawers that are not visible (covered by higher z-index) */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
             {/* Purple wave gradient */}
             <div
@@ -341,7 +347,7 @@ export function SideDrawer({
                   "linear-gradient(90deg, rgba(138, 66, 214, 0.4) 0%, rgba(168, 85, 247, 0.3) 50%, rgba(138, 66, 214, 0.4) 100%)",
                 filter: "blur(80px)",
                 transform: "translateZ(0)",
-                animation: "wave 8s ease-in-out infinite alternate",
+                animation: zIndex > 60 ? "none" : "wave 8s ease-in-out infinite alternate", // Disable wave for nested
               }}
             />
 
@@ -356,7 +362,7 @@ export function SideDrawer({
                     left: `${star.left}%`,
                     animation: `twinkle ${star.duration}s ease-in-out infinite`,
                     animationDelay: `${star.delay}s`,
-                    willChange: "opacity",
+                    willChange: zIndex > 80 ? "auto" : "opacity", // Remove will-change for deeply nested
                   }}
                 />
               ))}

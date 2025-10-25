@@ -55,6 +55,20 @@ export function FollowersDrawer({
     }
   };
 
+  // PERFORMANCE: Clear data when drawer closes to free memory
+  React.useEffect(() => {
+    if (!isOpen) {
+      // Delay cleanup to allow exit animation to complete
+      const timeout = setTimeout(() => {
+        setProfiles([]);
+        setSuggestedProfiles([]);
+        setFollowedUsers(new Set());
+        setShowProfileDrawer(false);
+      }, 600);
+      return () => clearTimeout(timeout);
+    }
+  }, [isOpen]);
+
   // Fetch followers or following
   React.useEffect(() => {
     if (!isOpen) return;
