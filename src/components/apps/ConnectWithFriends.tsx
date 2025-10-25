@@ -60,41 +60,24 @@ export function ConnectWithFriends({
       title="Connect with friends"
       headerTopPadding="calc(env(safe-area-inset-top, 0px) + 2rem)"
     >
-      <div
-        className="container mx-auto px-5 sm:px-6 pb-8 relative z-10"
-        style={{
-          // Keep the title and subtitle tight
-          paddingTop: '0.25rem',
-        }}
-      >
-        <div className="max-w-md mx-auto">
-          <div
-            className="flex flex-col items-center justify-center animate-fade-in"
-            style={{
-              animation: 'fadeIn 0.6s ease-out'
-            }}
-          >
-            {/* Header */}
-            <div className="mb-7 text-center px-4 w-full">
-              <p className="text-sm text-gray-600 dark:text-white/50 font-light">
-                Discover people you might know
-              </p>
-            </div>
+      <div className="px-5 sm:px-6 pb-8 max-w-md mx-auto">
+        {/* Subtitle - tight to title */}
+        <p className="text-center text-sm text-gray-600 dark:text-white/50 font-light mb-6">
+          Discover people you might know
+        </p>
 
-            {/* Profile List */}
-            <div className="space-y-3 w-full">
-              {profiles.map((profile) => (
-                <ProfileListItem
-                  key={profile.user_id}
-                  profile={profile}
-                  isFollowing={followedUsers.has(profile.user_id)}
-                  onFollowToggle={handleFollowToggle}
-                  onProfileClick={onProfileClick}
-                  currentUserId={currentUserId}
-                />
-              ))}
-            </div>
-          </div>
+        {/* Profile List */}
+        <div className="space-y-3">
+          {profiles.map((profile) => (
+            <ProfileListItem
+              key={profile.user_id}
+              profile={profile}
+              isFollowing={followedUsers.has(profile.user_id)}
+              onFollowToggle={handleFollowToggle}
+              onProfileClick={onProfileClick}
+              currentUserId={currentUserId}
+            />
+          ))}
         </div>
       </div>
     </SideDrawer>
@@ -117,25 +100,21 @@ function ProfileListItem({
   currentUserId,
 }: ProfileListItemProps) {
   const displayName = profile.display_name || profile.username || "Unknown";
-  const username = profile.username;
   const { loading } = useFollow(currentUserId || null);
 
   return (
     <div
       className={cn(
         "flex items-center gap-3 p-3 rounded-2xl",
-        "bg-card dark:bg-white/[0.02] backdrop-blur-xl",
+        "bg-card dark:bg-white/[0.02]",
         "border border-gray-200 dark:border-white/10",
-        "transition-all duration-200",
+        "transition-all duration-200 shadow-sm",
         onProfileClick && "cursor-pointer hover:shadow-lg"
       )}
-      style={{
-        boxShadow: "0 2px 8px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.1)",
-      }}
       onClick={() => onProfileClick?.(profile.user_id)}
     >
       {/* Avatar */}
-      <div className="relative flex-shrink-0 w-12 h-12 rounded-full overflow-hidden ring-1 ring-gray-200 dark:ring-white/10 shadow-sm">
+      <div className="flex-shrink-0 w-12 h-12 rounded-full overflow-hidden ring-1 ring-gray-200 dark:ring-white/10">
         {profile.avatar_url ? (
           <Image
             src={profile.avatar_url}
@@ -156,9 +135,9 @@ function ProfileListItem({
         <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
           {displayName}
         </p>
-        {username && (
+        {profile.username && (
           <p className="text-xs text-gray-500 dark:text-white/50 truncate font-light">
-            @{username}
+            @{profile.username}
           </p>
         )}
       </div>
@@ -168,23 +147,12 @@ function ProfileListItem({
         onClick={(e) => onFollowToggle(profile.user_id, e)}
         disabled={loading}
         className={cn(
-          "flex-shrink-0 h-8 px-5 rounded-[14px] text-xs font-medium transition-all duration-200 border",
+          "flex-shrink-0 h-8 px-5 rounded-[14px] text-xs font-medium transition-all duration-200",
           isFollowing
-            ? "bg-gray-100/80 dark:bg-white/[0.05] hover:bg-gray-200/80 dark:hover:bg-white/[0.08] text-gray-700 dark:text-white/70 border-gray-300 dark:border-white/15"
-            : "bg-primary hover:bg-primary/90 text-white border-transparent",
+            ? "bg-gray-100/80 dark:bg-white/[0.05] hover:bg-gray-200/80 dark:hover:bg-white/[0.08] text-gray-700 dark:text-white/70 border border-gray-300 dark:border-white/15"
+            : "bg-primary hover:bg-primary/90 text-white shadow-md hover:shadow-lg",
           loading && "opacity-50 cursor-not-allowed"
         )}
-        style={
-          isFollowing
-            ? {
-                boxShadow: "0 2px 8px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.1)",
-              }
-            : {
-                background: "linear-gradient(135deg, rgba(168,85,247,0.95) 0%, rgba(138,66,214,0.95) 100%)",
-                boxShadow: "0 4px 20px rgba(138,66,214,0.35), inset 0 1px 0 rgba(255,255,255,0.15)",
-                backdropFilter: "blur(10px)",
-              }
-        }
       >
         {loading ? "..." : isFollowing ? "Following" : "Follow"}
       </Button>
