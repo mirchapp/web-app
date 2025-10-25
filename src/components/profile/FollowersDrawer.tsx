@@ -326,14 +326,11 @@ function ProfileListItem({
     <div
       className={cn(
         "flex items-center gap-3 p-3 rounded-2xl",
-        "bg-card dark:bg-white/[0.02] backdrop-blur-xl",
+        "bg-card dark:bg-white/[0.02]",
         "border border-gray-200 dark:border-white/10",
-        "transition-all duration-200",
+        "transition-all duration-200 shadow-sm",
         onProfileClick && "cursor-pointer hover:shadow-lg"
       )}
-      style={{
-        boxShadow: "0 2px 8px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.1)",
-      }}
       onClick={() => onProfileClick?.(profile.user_id)}
     >
       {/* Avatar */}
@@ -371,23 +368,12 @@ function ProfileListItem({
           onClick={(e) => onFollowToggle(profile.user_id, e)}
           disabled={loading}
           className={cn(
-            "flex-shrink-0 h-8 px-5 rounded-[14px] text-xs font-medium transition-all duration-200 border",
+            "flex-shrink-0 h-8 px-5 rounded-[14px] text-xs font-medium transition-all duration-200",
             isFollowing
-              ? "bg-gray-100/80 dark:bg-white/[0.05] hover:bg-gray-200/80 dark:hover:bg-white/[0.08] text-gray-700 dark:text-white/70 border-gray-300 dark:border-white/15"
-              : "bg-primary hover:bg-primary/90 text-white border-transparent",
+              ? "bg-gray-100/80 dark:bg-white/[0.05] hover:bg-gray-200/80 dark:hover:bg-white/[0.08] text-gray-700 dark:text-white/70 border border-gray-300 dark:border-white/15 shadow-sm"
+              : "bg-primary hover:bg-primary/90 text-white shadow-md hover:shadow-lg",
             loading && "opacity-50 cursor-not-allowed"
           )}
-          style={
-            isFollowing
-              ? {
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.1)",
-                }
-              : {
-                  background: "linear-gradient(135deg, rgba(168,85,247,0.95) 0%, rgba(138,66,214,0.95) 100%)",
-                  boxShadow: "0 4px 20px rgba(138,66,214,0.35), inset 0 1px 0 rgba(255,255,255,0.15)",
-                  backdropFilter: "blur(10px)",
-                }
-          }
         >
           {loading ? "..." : isFollowing ? "Following" : "Follow"}
         </Button>
