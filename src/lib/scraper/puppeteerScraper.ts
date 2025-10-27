@@ -481,14 +481,56 @@ async function clickThroughCategoriesAndExtract(page: Page): Promise<string> {
       const out: Cat[] = [];
       const seenText = new Set<string>();
 
+      // Helper function to check if element should be excluded
+      const shouldExclude = (el: Element, text: string): boolean => {
+        const textLower = text.toLowerCase();
+        const href = (el.getAttribute('href') || '').toLowerCase();
+
+        // Exclude common non-menu actions
+        const excludePatterns = [
+          'order now', 'order online', 'start order', 'place order',
+          'contact us', 'contact', 'get in touch',
+          'find location', 'locations', 'find us', 'nearby location',
+          'directions', 'view map',
+          'reserve', 'book now', 'reservation',
+          'cart', 'checkout',
+          'sign in', 'log in', 'login', 'sign up',
+          'about us', 'about',
+          'careers', 'join us',
+          'gift card', 'catering'
+        ];
+
+        // Check if text matches excluded patterns
+        if (excludePatterns.some(pattern => textLower === pattern || textLower.includes(pattern))) {
+          return true;
+        }
+
+        // Check if href indicates navigation/action pages
+        const excludeHrefPatterns = [
+          '/order', '/contact', '/location', '/cart', '/checkout',
+          '/about', '/careers', '/catering', '/reserve', '/book'
+        ];
+
+        if (excludeHrefPatterns.some(pattern => href.includes(pattern))) {
+          return true;
+        }
+
+        // Check if element is in nav or footer
+        if (el.closest('nav, footer, [class*="nav"], [class*="footer"]')) {
+          return true;
+        }
+
+        return false;
+      };
+
       // Strategy 1: Menu containers
       const menuContainers = Array.from(document.querySelectorAll(
-        '[id*="menu-grid"], [class*="menu-grid"], [class*="menu-nav"], [class*="category"], [class*="MuiGrid-container"], section[class*="menu"], .menu-categories'
+        '[id*="menu-grid"], [class*="menu-grid"], [class*="menu-nav"], [class*="category"], [class*="MuiGrid-container"], section[class*="menu"], .menu-categories, [class*="tabs"], [class*="tab-"]'
       ));
 
       if (menuContainers.length > 0) {
         for (const container of menuContainers) {
-          const clickables = Array.from(container.querySelectorAll('a, button, [role="button"], [onclick], [class*="card"], [class*="item"]'));
+          const clickables = Array.from(container.querySelectorAll('a, button, [role="button"], [role="tab"], [onclick], [class*="card"], [class*="item"], [class*="tab"], span[data-filter], [class*="lte-tab"]'));
 
           for (const el of clickables) {
             const text = (el.textContent || '').trim();
@@ -501,7 +543,20 @@ async function clickThroughCategoriesAndExtract(page: Page): Promise<string> {
             // Skip concatenated text
             if (text.length > 100 && !text.includes(' ')) continue;
 
-            if (rect.width >= 50 && rect.height >= 20) {
+            // Skip excluded patterns
+            if (shouldExclude(el, text)) continue;
+
+            // Check if element is a tab/filter - these can be smaller
+            const isTabElement =
+              el.hasAttribute('role') && el.getAttribute('role') === 'tab' ||
+              el.hasAttribute('data-filter') ||
+              el.classList.contains('lte-tab') ||
+              el.matches('[class*="tab-"]');
+
+            const minSize = isTabElement ? 10 : 50; // Tabs can be smaller
+            const minHeight = isTabElement ? 10 : 20;
+
+            if (rect.width >= minSize && rect.height >= minHeight) {
               const href = (el.getAttribute('href') || '').trim();
               const isNavLink = !!href && !href.startsWith('#') && !href.startsWith('javascript') && href !== '/';
               out.push({ text, href: href || '#', isNavLink });
@@ -523,12 +578,11 @@ async function clickThroughCategoriesAndExtract(page: Page): Promise<string> {
           if (text.length < 3 || text.length > 200) continue;
           if (seenText.has(text)) continue;
 
-          const inNav = el.closest('nav');
-          const inFooter = el.closest('footer');
-          if (inNav || inFooter) continue;
-
           const textLower = text.toLowerCase();
           if (textLower === 'skip to main content' || textLower === 'skip to content') continue;
+
+          // Use the same exclusion logic
+          if (shouldExclude(el, text)) continue;
 
           const isLargeCard = rect.width >= 150 && rect.height >= 100;
           const isWideLink = rect.width >= 200 && rect.height >= 30;
@@ -557,17 +611,6 @@ async function clickThroughCategoriesAndExtract(page: Page): Promise<string> {
     for (let i = 0; i < inPageTabs.length; i++) {
       const category = inPageTabs[i];
 
-      // Navigate back if needed
-      const currentUrl = page.url();
-      if (currentUrl !== menuBaseUrl) {
-        try {
-          await page.goto(menuBaseUrl, { waitUntil: 'domcontentloaded', timeout: 10000 });
-          await delay(400);
-        } catch {
-          continue;
-        }
-      }
-
       try {
         // Skip concatenated text
         if (category.text.length > 100) continue;
@@ -579,12 +622,30 @@ async function clickThroughCategoriesAndExtract(page: Page): Promise<string> {
 
           const normalizedTarget = normalizeText(text);
 
-          // Try multiple selector strategies - fast combined approach
+          // Strategy 1: Try data-filter tabs first (for tab-based menus)
+          const dataFilterElements = Array.from(document.querySelectorAll('[data-filter]'));
+          for (const el of dataFilterElements) {
+            const elText = (el.textContent || '').trim();
+            const normalizedElText = normalizeText(elText);
+
+            if (normalizedElText === normalizedTarget) {
+              const rect = (el as HTMLElement).getBoundingClientRect();
+              if (rect.width > 0 && rect.height > 0) {
+                (el as HTMLElement).click();
+                return true;
+              }
+            }
+          }
+
+          // Strategy 2: Try other tab/category selectors
           const selectors = [
             '[role="tab"]',
+            'span[class*="tab"]',
+            'button[class*="tab"]',
+            'li[class*="tab"]',
             'a[href^="#"]',
-            'a, button, [role="button"]',
             '[onclick]',
+            'a, button, [role="button"]',
             '[class*="card"], [class*="tile"], [class*="item"]',
             'div[class*="MuiGrid"], div[class*="category"]'
           ];
@@ -613,25 +674,48 @@ async function clickThroughCategoriesAndExtract(page: Page): Promise<string> {
         }, category.text);
 
         if (clicked) {
-          const urlBeforeClick = currentUrl;
-          await delay(300); // Reduced from 500ms
+          const urlBeforeClick = page.url();
+          await delay(800); // Give tab time to update content (increased from 400ms)
           const urlAfterClick = page.url();
 
           if (urlAfterClick !== urlBeforeClick) {
             await delay(800); // Navigation detected
+            await scrollForLazyContent(page);
           } else {
-            await delay(200); // In-page change
+            // In-page tab change - wait for content to update
+            await delay(500);
           }
 
-          await scrollForLazyContent(page);
-
           const categoryContent = await page.evaluate(() => {
+            // Strategy 1: Get visible filtered items (for tab-based menus)
+            const allFilterItems = Array.from(document.querySelectorAll('.lte-filter-item, [class*="filter-item"]'));
+            const visibleItems = allFilterItems.filter(item => {
+              const style = (item as HTMLElement).style.display;
+              const computedStyle = window.getComputedStyle(item as HTMLElement);
+              return style !== 'none' && computedStyle.display !== 'none';
+            });
+
+            if (visibleItems.length > 0) {
+              return visibleItems.map(item => (item as HTMLElement).innerText || '').join('\n\n');
+            }
+
+            // Strategy 2: Get items with show/active classes
+            const showItems = Array.from(document.querySelectorAll('.show-item, .show, .active'));
+            if (showItems.length > 0) {
+              return showItems.map(item => (item as HTMLElement).innerText || '').join('\n\n');
+            }
+
+            // Fallback to main content area
             const scope = (document.querySelector('main, [role="main"], #main, .main, [class*="main"], [class*="content"]') as HTMLElement) || document.body;
             return scope.innerText || document.body.innerText || '';
           });
 
-          const norm = categoryContent.replace(/\s+/g, ' ');
-          const fingerprint = norm.slice(0, 250) + '::' + norm.slice(-250);
+          const norm = categoryContent.replace(/\s+/g, ' ').trim();
+          // Use more of the content for fingerprinting (500 chars from start, middle, end)
+          const start = norm.slice(0, 500);
+          const middle = norm.slice(Math.floor(norm.length / 2) - 250, Math.floor(norm.length / 2) + 250);
+          const end = norm.slice(-500);
+          const fingerprint = start + '::' + middle + '::' + end;
 
           if (!seenContent.has(fingerprint)) {
             console.log(`[Scraper] ✓ "${category.text}":`, categoryContent.length, 'chars');
