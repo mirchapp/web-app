@@ -17,6 +17,20 @@ export interface RestaurantHours {
   weekend: string;
 }
 
+export interface MenuCategory {
+  id: string;
+  name: string;
+  display_order: number;
+  Menu_Item: MenuItem[];
+}
+
+export interface MenuItem {
+  id: string;
+  name: string;
+  description: string | null;
+  price: string | null;
+}
+
 export interface Restaurant {
   id: string;
   name: string;
@@ -31,6 +45,14 @@ export interface Restaurant {
   hours?: RestaurantHours;
   about?: string;
   popularDishes?: PopularDish[];
+  // Database fields
+  slug?: string;
+  description?: string | null;
+  primaryColor?: string | null;
+  secondaryColor?: string | null;
+  accentColor?: string | null;
+  categories?: MenuCategory[];
+  fromDatabase?: boolean;
 }
 
 export interface VideoStats {

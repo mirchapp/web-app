@@ -79,6 +79,10 @@ const nextConfig = {
         protocol: 'https' as const,
         hostname: 'places.googleapis.com',
       },
+      {
+        protocol: 'https' as const,
+        hostname: 'framerusercontent.com',
+      },
     ],
   },
 };

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Search, Loader2, User } from "lucide-react";
+import { Search, Loader2, User, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FeaturedLists } from "./FeaturedLists";
 import { CuratedLists } from "./CuratedLists";
@@ -12,11 +12,13 @@ import { getListSummaries } from "@/data/mock/list-articles";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { Input } from "@/components/ui/input";
-import { useProfileSearch } from "@/hooks/useProfileSearch";
+import { useCombinedSearch } from "@/hooks/useCombinedSearch";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { useFollow } from "@/hooks/useFollow";
 import { ProfileDrawer } from "@/components/profile/ProfileDrawer";
+import { RestaurantPage } from "@/components/restaurant/RestaurantPage";
+import type { Restaurant } from "@/types/video";
 
 const featuredSummaries = getListSummaries("featured");
 const curatedSummaries = getListSummaries("curated");
@@ -48,6 +50,8 @@ export function FindHome() {
   const [followedUsers, setFollowedUsers] = React.useState<Set<string>>(new Set());
   const [showProfileDrawer, setShowProfileDrawer] = React.useState(false);
   const [selectedProfileId, setSelectedProfileId] = React.useState<string>("");
+  const [showRestaurantPage, setShowRestaurantPage] = React.useState(false);
+  const [selectedRestaurant, setSelectedRestaurant] = React.useState<Restaurant | null>(null);
   const router = useRouter();
   const supabase = createClient();
 
@@ -103,31 +107,32 @@ export function FindHome() {
     getUser();
   }, [supabase]);
 
-  // Use the profile search hook
+  // Use the combined search hook
   const {
     query,
     setQuery,
-    results,
-    suggestions,
+    profileResults,
+    restaurantResults,
+    profileSuggestions,
     loading,
     error,
-  } = useProfileSearch({
+  } = useCombinedSearch({
     viewerId: userId,
     limit: 20,
-    debounceMs: 200,
+    debounceMs: 300,
     minQueryLength: 1,
   });
 
-  const displayItems = results;
+  const displayItems = profileResults;
   const showResults = query.length > 0;
-  const showSuggestions = !query && suggestions.length > 0;
+  const showSuggestions = !query && profileSuggestions.length > 0;
 
   // Update follow status when search results change
   React.useEffect(() => {
-    if (!userId || results.length === 0) return;
+    if (!userId || profileResults.length === 0) return;
 
     const fetchFollowStatusForResults = async () => {
-      const profileIds = results.map((r) => r.user_id);
+      const profileIds = profileResults.map((r) => r.user_id);
 
       const { data: followsData } = await supabase
         .from("Follows")
@@ -145,25 +150,131 @@ export function FindHome() {
     };
 
     fetchFollowStatusForResults();
-  }, [results, userId, supabase]);
+  }, [profileResults, userId, supabase]);
 
   // Debug logging
   React.useEffect(() => {
     console.log("FindHome state:", {
       userId,
       query,
-      resultsCount: results.length,
-      suggestionsCount: suggestions.length,
+      profileResultsCount: profileResults.length,
+      restaurantResultsCount: restaurantResults.length,
+      suggestionsCount: profileSuggestions.length,
       loading,
       showResults,
       displayItemsCount: displayItems.length,
     });
-  }, [userId, query, results, suggestions, loading, showResults, displayItems]);
+  }, [userId, query, profileResults, restaurantResults, profileSuggestions, loading, showResults, displayItems]);
 
   // Handle profile click
   const handleProfileClick = (profileUserId: string) => {
     setSelectedProfileId(profileUserId);
     setShowProfileDrawer(true);
+  };
+
+  // Handle restaurant click
+  const handleRestaurantClick = async (restaurant: Restaurant) => {
+    console.log('🍽️  Restaurant clicked:', restaurant.name);
+
+    try {
+      // First, check if restaurant exists in database
+      console.log('🔍 Checking if restaurant exists in DB...');
+      const checkResponse = await fetch(`/api/restaurant/get?placeId=${restaurant.id}`);
+      const checkData = await checkResponse.json();
+
+      if (checkData.exists && checkData.restaurant) {
+        console.log('✅ Restaurant found in DB, using stored data');
+        console.log('📊 Categories:', checkData.restaurant.Menu_Category?.length || 0);
+        console.log('📊 Logo:', checkData.restaurant.logo_url ? 'Yes' : 'No');
+        console.log('📊 Colors:', checkData.restaurant.primary_colour ? 'Yes' : 'No');
+
+        // Use data from database - transform to Restaurant type
+        const dbRestaurant: Restaurant = {
+          id: checkData.restaurant.google_place_id,
+          name: checkData.restaurant.name,
+          logo: checkData.restaurant.logo_url || '',
+          verified: checkData.restaurant.verified || false,
+          rating: checkData.restaurant.rating || 0,
+          distance: restaurant.distance || '',
+          address: checkData.restaurant.address || '',
+          phone: checkData.restaurant.phone || '',
+          // Add DB-specific fields
+          slug: checkData.restaurant.slug,
+          description: checkData.restaurant.description,
+          primaryColor: checkData.restaurant.primary_colour,
+          secondaryColor: checkData.restaurant.secondary_colour,
+          accentColor: checkData.restaurant.accent_colour,
+          categories: checkData.restaurant.Menu_Category || [],
+          fromDatabase: true,
+        };
+
+        setSelectedRestaurant(dbRestaurant);
+        setShowRestaurantPage(true);
+        return; // Don't scrape if we have data
+      }
+
+      console.log('⚠️  Restaurant not in DB, opening page and triggering scrape...');
+
+      // Open page with placeholder data
+      setSelectedRestaurant(restaurant);
+      setShowRestaurantPage(true);
+
+      // Trigger scraping and saving in the background
+      const response = await fetch('/api/restaurant/scrape-and-save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          placeId: restaurant.id,
+          address: restaurant.address,
+          latitude: null,
+          longitude: null,
+          phone: restaurant.phone,
+          rating: restaurant.rating,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        console.log('✅ Restaurant scraped and saved:', data);
+
+        // Refresh data from database after scraping
+        const refreshResponse = await fetch(`/api/restaurant/get?placeId=${restaurant.id}`);
+        const refreshData = await refreshResponse.json();
+
+        if (refreshData.exists && refreshData.restaurant) {
+          console.log('🔄 Refreshing restaurant page with scraped data');
+          const updatedRestaurant: Restaurant = {
+            id: refreshData.restaurant.google_place_id,
+            name: refreshData.restaurant.name,
+            logo: refreshData.restaurant.logo_url || '',
+            verified: refreshData.restaurant.verified || false,
+            rating: refreshData.restaurant.rating || 0,
+            distance: restaurant.distance || '',
+            address: refreshData.restaurant.address || '',
+            phone: refreshData.restaurant.phone || '',
+            slug: refreshData.restaurant.slug,
+            description: refreshData.restaurant.description,
+            primaryColor: refreshData.restaurant.primary_colour,
+            secondaryColor: refreshData.restaurant.secondary_colour,
+            accentColor: refreshData.restaurant.accent_colour,
+            categories: refreshData.restaurant.Menu_Category || [],
+            fromDatabase: true,
+          };
+
+          setSelectedRestaurant(updatedRestaurant);
+        }
+      } else {
+        console.error('Failed to save restaurant:', data.error);
+      }
+    } catch (error) {
+      console.error('Error handling restaurant click:', error);
+      // Fallback: still open the page with basic data
+      setSelectedRestaurant(restaurant);
+      setShowRestaurantPage(true);
+    }
   };
 
   // Memoize star positions so they don't change on re-render
@@ -262,7 +373,7 @@ export function FindHome() {
           </div>
           <Input
             type="text"
-            placeholder="Search by name or @username"
+            placeholder="Search people and places"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className={cn(
@@ -292,35 +403,75 @@ export function FindHome() {
           )}
 
           {/* Profile List */}
-          <div className="space-y-1">
-            {displayItems.map((profile) => (
-              <ProfileItem
-                key={profile.user_id}
-                profile={profile}
-                onClick={() => handleProfileClick(profile.user_id)}
-                showReason={!query && "reason" in profile}
-                highlightUsername={query.startsWith("@")}
-                currentUserId={userId}
-                isFollowing={followedUsers.has(profile.user_id)}
-                onFollowChange={(isFollowing) => {
-                  setFollowedUsers((prev) => {
-                    const newSet = new Set(prev);
-                    if (isFollowing) {
-                      newSet.add(profile.user_id);
-                    } else {
-                      newSet.delete(profile.user_id);
-                    }
-                    return newSet;
-                  });
-                }}
-              />
-            ))}
-          </div>
+          {displayItems.length > 0 && (
+            <>
+              {restaurantResults.length > 0 && (
+                <div className="px-4 py-2 mb-2">
+                  <h3 className="text-sm font-medium text-gray-600 dark:text-white/50">
+                    People
+                  </h3>
+                </div>
+              )}
+              <div className="space-y-1 mb-6">
+                {displayItems.map((profile) => (
+                  <ProfileItem
+                    key={profile.user_id}
+                    profile={profile}
+                    onClick={() => handleProfileClick(profile.user_id)}
+                    showReason={!query && "reason" in profile}
+                    highlightUsername={query.startsWith("@")}
+                    currentUserId={userId}
+                    isFollowing={followedUsers.has(profile.user_id)}
+                    onFollowChange={(isFollowing) => {
+                      setFollowedUsers((prev) => {
+                        const newSet = new Set(prev);
+                        if (isFollowing) {
+                          newSet.add(profile.user_id);
+                        } else {
+                          newSet.delete(profile.user_id);
+                        }
+                        return newSet;
+                      });
+                    }}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* Restaurant Results */}
+          {restaurantResults.length > 0 && (
+            <>
+              <div className="px-4 py-2 mb-2">
+                <h3 className="text-sm font-medium text-gray-600 dark:text-white/50">
+                  Places
+                </h3>
+              </div>
+              <div className="space-y-1">
+                {restaurantResults.map((restaurant) => (
+                  <RestaurantItem
+                    key={restaurant.id}
+                    restaurant={restaurant}
+                    onClick={() => handleRestaurantClick({
+                      id: restaurant.placeId,
+                      name: restaurant.name,
+                      logo: restaurant.photo || '',
+                      verified: false,
+                      rating: restaurant.rating || 0,
+                      distance: restaurant.distance || '',
+                      address: restaurant.address,
+                      phone: '',
+                    })}
+                  />
+                ))}
+              </div>
+            </>
+          )}
 
           {/* Empty State */}
-          {!loading && displayItems.length === 0 && query && (
+          {!loading && displayItems.length === 0 && restaurantResults.length === 0 && query && (
             <div className="flex flex-col items-center justify-center py-12 px-4">
-              <User className="h-12 w-12 text-gray-300 dark:text-white/30 mb-3" />
+              <Search className="h-12 w-12 text-gray-300 dark:text-white/30 mb-3" />
               <p className="text-sm text-gray-600 dark:text-white/50 text-center font-light">
                 No results found
               </p>
@@ -350,7 +501,7 @@ export function FindHome() {
           {/* Suggested Profiles Carousel - Show when not searching */}
           {showSuggestions && (
             <SuggestedProfiles
-              profiles={suggestions}
+              profiles={profileSuggestions}
               onProfileClick={handleProfileClick}
               onSeeAll={() => setShowConnectDrawer(true)}
               currentUserId={userId}
@@ -369,7 +520,7 @@ export function FindHome() {
       {/* Connect with Friends Drawer */}
       <ConnectWithFriends
         isOpen={showConnectDrawer}
-        profiles={suggestions}
+        profiles={profileSuggestions}
         onClose={() => setShowConnectDrawer(false)}
         onProfileClick={handleProfileClick}
         currentUserId={userId}
@@ -381,6 +532,15 @@ export function FindHome() {
         onClose={() => setShowProfileDrawer(false)}
         userId={selectedProfileId}
       />
+
+      {/* Restaurant Page */}
+      {selectedRestaurant && (
+        <RestaurantPage
+          isOpen={showRestaurantPage}
+          onClose={() => setShowRestaurantPage(false)}
+          restaurant={selectedRestaurant}
+        />
+      )}
     </div>
   );
 }
@@ -529,6 +689,72 @@ function ProfileItem({
           {loading ? "..." : isFollowing ? "Following" : "Follow"}
         </Button>
       )}
+    </div>
+  );
+}
+
+interface RestaurantItemProps {
+  restaurant: {
+    id: string;
+    name: string;
+    address: string;
+    rating?: number;
+    photo?: string;
+    distance?: string;
+  };
+  onClick: () => void;
+}
+
+function RestaurantItem({ restaurant, onClick }: RestaurantItemProps) {
+  return (
+    <div
+      className={cn(
+        "w-full flex items-center gap-3 px-4 py-3.5",
+        "bg-card/30 dark:bg-white/[0.01] backdrop-blur-xl",
+        "border border-gray-200/50 dark:border-white/[0.06]",
+        "hover:bg-card/50 dark:hover:bg-white/[0.02]",
+        "hover:border-gray-300/50 dark:hover:border-white/[0.10]",
+        "hover:shadow-[0_2px_16px_rgba(0,0,0,0.04)] dark:hover:shadow-[0_2px_16px_rgba(138,66,214,0.08)]",
+        "transition-all duration-300",
+        "rounded-2xl cursor-pointer group"
+      )}
+      style={{
+        boxShadow: "0 1px 3px rgba(0,0,0,0.02), inset 0 1px 0 rgba(255,255,255,0.05)",
+      }}
+      onClick={onClick}
+    >
+      {/* Restaurant Image/Icon */}
+      <div className="relative flex-shrink-0 w-14 h-14 rounded-full overflow-hidden ring-1 ring-gray-200/60 dark:ring-white/[0.08] shadow-sm group-hover:ring-gray-300/60 dark:group-hover:ring-white/[0.12] transition-all duration-300">
+        {restaurant.photo ? (
+          <Image
+            src={restaurant.photo}
+            alt={restaurant.name}
+            fill
+            className="object-cover"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gray-50/50 dark:bg-white/[0.03]">
+            <MapPin className="h-7 w-7 text-gray-300 dark:text-white/20" />
+          </div>
+        )}
+      </div>
+
+      {/* Restaurant Info */}
+      <div className="flex-1 min-w-0">
+        <p className="text-[15px] font-semibold text-gray-900 dark:text-white truncate mb-0.5">
+          {restaurant.name}
+        </p>
+        {restaurant.address && (
+          <p className="text-[13px] text-gray-500 dark:text-white/40 truncate font-light">
+            {restaurant.address}
+          </p>
+        )}
+        {restaurant.distance && (
+          <p className="text-xs text-gray-400 dark:text-white/30 mt-1 font-light">
+            {restaurant.distance}
+          </p>
+        )}
+      </div>
     </div>
   );
 }

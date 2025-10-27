@@ -4,6 +4,7 @@ import { ProfileSearchResult, ProfileSuggestion } from "@/types/search";
 import { fetchSuggestedProfiles } from "@/lib/suggestions";
 
 const PLACES_AUTOCOMPLETE_URL = 'https://places.googleapis.com/v1/places:autocomplete';
+const PLACE_DETAILS_URL = 'https://places.googleapis.com/v1/places';
 
 export interface RestaurantResult {
   id: string;
@@ -11,6 +12,26 @@ export interface RestaurantResult {
   address: string;
   rating?: number;
   placeId: string;
+  photo?: string;
+  distance?: string;
+}
+
+interface PlacePhoto {
+  name: string;
+}
+
+interface PlaceLocation {
+  latitude: number;
+  longitude: number;
+}
+
+interface Place {
+  id: string;
+  displayName?: { text: string };
+  formattedAddress?: string;
+  rating?: number;
+  photos?: PlacePhoto[];
+  location?: PlaceLocation;
 }
 
 interface UseCombinedSearchOptions {
@@ -44,10 +65,79 @@ export function useCombinedSearch({
   const [loading, setLoading] = useState(false);
   const [suggesting, setSuggesting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
 
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+
+  // Get user location on mount - always try to get location
+  useEffect(() => {
+    const getUserLocation = async () => {
+      // Try to get location even without previous permission
+      if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            console.log('Got user location:', position.coords.latitude, position.coords.longitude);
+            setUserLocation({
+              lat: position.coords.latitude,
+              lng: position.coords.longitude,
+            });
+          },
+          async (error) => {
+            console.error('Error getting location:', error);
+            // Fallback to IP geolocation
+            try {
+              const res = await fetch('https://ipapi.co/json/', { cache: 'no-store' });
+              if (res.ok) {
+                const data = await res.json();
+                if (typeof data.latitude === 'number' && typeof data.longitude === 'number') {
+                  console.log('Got IP location:', data.latitude, data.longitude);
+                  setUserLocation({ lat: data.latitude, lng: data.longitude });
+                }
+              }
+            } catch (e) {
+              console.error('IP geolocation failed:', e);
+            }
+          },
+          { enableHighAccuracy: false, timeout: 5000, maximumAge: 300000 }
+        );
+      }
+    };
+
+    getUserLocation();
+  }, []);
+
+  // Calculate distance between two points
+  const calculateDistance = useCallback((from: { lat: number; lng: number }, to: PlaceLocation) => {
+    const R = 6371; // Earth's radius in km
+    const dLat = (to.latitude - from.lat) * Math.PI / 180;
+    const dLon = (to.longitude - from.lng) * Math.PI / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(from.lat * Math.PI / 180) * Math.cos(to.latitude * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c;
+
+    if (distance < 1) {
+      return `${Math.round(distance * 1000)}m away`;
+    }
+    return `${distance.toFixed(1)}km away`;
+  }, []);
+
+  // Calculate numeric distance in km for sorting
+  const calculateDistanceKm = useCallback((from: { lat: number; lng: number }, to: PlaceLocation) => {
+    const R = 6371;
+    const dLat = (to.latitude - from.lat) * Math.PI / 180;
+    const dLon = (to.longitude - from.lng) * Math.PI / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(from.lat * Math.PI / 180) * Math.cos(to.latitude * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }, []);
 
   // Fetch profile suggestions when query is empty
   const loadProfileSuggestions = useCallback(async () => {
@@ -118,17 +208,27 @@ export function useCombinedSearch({
       }
 
       try {
+        console.log('Searching restaurants with location:', userLocation);
         const response = await fetch(PLACES_AUTOCOMPLETE_URL, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'X-Goog-Api-Key': apiKey,
-            'X-Goog-FieldMask': 'suggestions.placePrediction.placeId,suggestions.placePrediction.text,suggestions.placePrediction.structuredFormat',
           },
           body: JSON.stringify({
             input: searchQuery,
             includedPrimaryTypes: ['restaurant'],
-            languageCode: 'en',
+            ...(userLocation ? {
+              locationBias: {
+                circle: {
+                  center: {
+                    latitude: userLocation.lat,
+                    longitude: userLocation.lng,
+                  },
+                  radius: 50000.0, // 50km radius
+                },
+              },
+            } : {}),
           }),
         });
 
@@ -139,29 +239,68 @@ export function useCombinedSearch({
         const data = await response.json();
         const suggestions = data.suggestions || [];
 
-        const restaurants: RestaurantResult[] = suggestions
+        // Fetch details for each suggestion to get photos and location
+        const detailsPromises = suggestions
           .filter((s: { placePrediction?: { placeId?: string } }) => s.placePrediction?.placeId)
-          .slice(0, 5) // Limit to 5 restaurant results
-          .map((s: {
+          .slice(0, 10) // Get more results so we can sort by distance
+          .map(async (s: {
             placePrediction: {
               placeId: string;
               text?: { text: string };
               structuredFormat?: { secondaryText?: { text: string } }
             }
-          }) => ({
-            id: s.placePrediction.placeId,
-            name: s.placePrediction.text?.text || 'Unknown Restaurant',
-            address: s.placePrediction.structuredFormat?.secondaryText?.text || '',
-            placeId: s.placePrediction.placeId,
-          }));
+          }) => {
+            const placeId = s.placePrediction.placeId;
 
+            try {
+              const detailsResponse = await fetch(`${PLACE_DETAILS_URL}/${placeId}`, {
+                method: 'GET',
+                headers: {
+                  'X-Goog-Api-Key': apiKey,
+                  'X-Goog-FieldMask': 'id,displayName,formattedAddress,rating,photos,location',
+                },
+              });
+
+              const placeDetails: Place = await detailsResponse.json();
+
+              const distanceKm = (userLocation && placeDetails.location)
+                ? calculateDistanceKm(userLocation, placeDetails.location)
+                : Number.POSITIVE_INFINITY;
+
+              return {
+                id: placeDetails.id,
+                name: placeDetails.displayName?.text || s.placePrediction.text?.text || 'Unknown Restaurant',
+                address: placeDetails.formattedAddress || s.placePrediction.structuredFormat?.secondaryText?.text || '',
+                rating: placeDetails.rating,
+                photo: placeDetails.photos?.[0]?.name
+                  ? `https://places.googleapis.com/v1/${placeDetails.photos[0].name}/media?key=${apiKey}&maxHeightPx=400&maxWidthPx=400`
+                  : undefined,
+                placeId: placeId,
+                distance: (userLocation && placeDetails.location)
+                  ? calculateDistance(userLocation, placeDetails.location)
+                  : undefined,
+                _distanceKm: distanceKm,
+              };
+            } catch (error) {
+              console.error('Error fetching place details:', error);
+              return null;
+            }
+          });
+
+        const restaurants = (await Promise.all(detailsPromises))
+          .filter((r): r is (RestaurantResult & { _distanceKm?: number }) => r !== null)
+          .sort((a, b) => (a._distanceKm ?? Number.POSITIVE_INFINITY) - (b._distanceKm ?? Number.POSITIVE_INFINITY))
+          .slice(0, 5) // Take only the 5 closest
+          .map(({ _distanceKm: _, ...rest }) => rest as RestaurantResult);
+
+        console.log('Restaurant results:', restaurants.map(r => ({ name: r.name, distance: r.distance })));
         setRestaurantResults(restaurants);
       } catch (err) {
         console.error("Error searching restaurants:", err);
         setRestaurantResults([]);
       }
     },
-    [apiKey, minQueryLength]
+    [apiKey, minQueryLength, userLocation, calculateDistance, calculateDistanceKm]
   );
 
   // Combined search function

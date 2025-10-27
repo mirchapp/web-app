@@ -17,6 +17,7 @@ interface RestaurantPageProps {
 export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPageProps) {
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const [isClosing, setIsClosing] = React.useState(false);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = React.useState(false);
   const _safeAreaInsets = useSafeArea();
 
   const handleClose = () => {
@@ -27,6 +28,17 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
       onClose();
     }, 300);
   };
+
+  // Extract colors from restaurant data, fallback to purple
+  const primaryColor = restaurant.primaryColor || 'rgba(138, 66, 214, 0.4)';
+  const accentColor = restaurant.accentColor || 'rgba(168, 85, 247, 0.3)';
+
+  // Check if we have database categories/items
+  const hasDbMenu = restaurant.fromDatabase && restaurant.categories && restaurant.categories.length > 0;
+
+  // Check if description is long (more than 200 characters)
+  const description = restaurant.description || restaurant.about || '';
+  const isLongDescription = description.length > 200;
 
   // Note: We don't modify body overflow here because VideoFeed already handles it
   // Modifying it here would interfere with VideoFeed's scroll prevention when closing
@@ -94,14 +106,14 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
                 overscrollBehavior: 'contain'
               }}
             >
-              {/* Animated purple wave background - matching profile page */}
+              {/* Animated wave background - uses restaurant colors */}
               <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                {/* Purple wave gradient */}
+                {/* Wave gradient with restaurant branding colors */}
                 <div
                   className="absolute left-0 right-0 h-[400px] opacity-20 dark:opacity-30"
                   style={{
                     top: '10%',
-                    background: 'linear-gradient(90deg, rgba(138, 66, 214, 0.4) 0%, rgba(168, 85, 247, 0.3) 50%, rgba(138, 66, 214, 0.4) 100%)',
+                    background: `linear-gradient(90deg, ${primaryColor} 0%, ${accentColor} 50%, ${primaryColor} 100%)`,
                     filter: 'blur(80px)',
                     transform: 'translateZ(0)',
                     animation: 'wave 8s ease-in-out infinite alternate'
@@ -141,14 +153,18 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
                     }}
                   >
                     {/* Restaurant Logo with enhanced glow effect */}
-                    <div className="relative mb-8">
-                      <div className="relative h-32 w-32 sm:h-40 sm:w-40 rounded-2xl overflow-hidden ring-1 ring-gray-200 dark:ring-white/10 shadow-lg dark:shadow-lg shadow-purple-500/10">
+                    <div className="relative mb-8 flex items-center justify-center">
+                      <div
+                        className="relative h-40 w-64 rounded-2xl overflow-hidden ring-1 ring-gray-200 dark:ring-white/10 shadow-lg"
+                        style={{
+                          boxShadow: `0 10px 40px ${restaurant.primaryColor ? `${restaurant.primaryColor}30` : 'rgba(138,66,214,0.2)'}`,
+                        }}
+                      >
                         <Image
                           src={restaurant.logo}
                           alt={restaurant.name}
                           fill
                           className="object-cover"
-                         
                         />
                       </div>
                     </div>
@@ -171,28 +187,57 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
                       </div>
                     </div>
 
-                    {/* Restaurant Bio with refined typography */}
-                    <p className="text-center text-sm sm:text-base leading-loose text-gray-600 dark:text-white/50 mb-6 px-4 max-w-sm font-light">
-                      Experience authentic cuisine with a modern twist. Our award-winning chefs prepare the finest dishes using locally-sourced ingredients in a warm and welcoming atmosphere.
-                    </p>
+                    {/* Restaurant Bio with refined typography - from DB or default */}
+                    {description && (
+                      <div className="text-center mb-6 px-4 max-w-sm">
+                        <p className={`text-sm sm:text-base leading-loose text-gray-600 dark:text-white/50 font-light ${!isDescriptionExpanded && isLongDescription ? 'line-clamp-3' : ''}`}>
+                          {description}
+                        </p>
+                        {isLongDescription && (
+                          <button
+                            onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                            className="text-xs mt-2 font-light transition-colors"
+                            style={{ color: restaurant.primaryColor || '#8A42D6' }}
+                          >
+                            {isDescriptionExpanded ? 'Show less' : 'Read more'}
+                          </button>
+                        )}
+                      </div>
+                    )}
 
-                    {/* Rating */}
-                    <div className="flex items-center gap-1.5 mb-4">
-                      <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-                      <span className="text-lg font-light text-gray-900 dark:text-white">{restaurant.rating}</span>
-                      <span className="text-sm text-gray-600 dark:text-white/50 font-light">• Restaurant</span>
+                    {/* Rating & Distance - Compact Row */}
+                    <div className="flex items-center justify-center gap-3 mb-2">
+                      <div className="flex items-center gap-1.5">
+                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                        <span className="text-base font-light text-gray-900 dark:text-white">{restaurant.rating}</span>
+                      </div>
+                      <span className="text-gray-400 dark:text-white/30">•</span>
+                      <span className="text-sm text-gray-600 dark:text-white/50 font-light">Restaurant</span>
+                      {restaurant.distance && (
+                        <>
+                          <span className="text-gray-400 dark:text-white/30">•</span>
+                          <span className="text-sm text-gray-600 dark:text-white/50 font-light">{restaurant.distance}</span>
+                        </>
+                      )}
                     </div>
 
-                    {/* Distance & Location */}
-                    <div className="flex items-center gap-1.5 mb-8 text-gray-600 dark:text-white/50">
-                      <MapPin className="h-4 w-4" />
-                      <span className="text-sm font-light">{restaurant.distance} • {restaurant.address}</span>
+                    {/* Location - Simplified */}
+                    <div className="flex items-center justify-center gap-1.5 mb-8 text-gray-600 dark:text-white/50">
+                      <MapPin className="h-3.5 w-3.5" />
+                      <span className="text-xs font-light">
+                        {restaurant.address.split(',').slice(0, 2).join(',')}
+                      </span>
                     </div>
 
-                    {/* Action Buttons - enhanced for light mode */}
+                    {/* Action Buttons - uses restaurant brand colors */}
                     <div className="flex gap-3 w-full max-w-xs mb-10">
                       <Button
-                        className="flex-1 h-11 rounded-[14px] font-light shadow-[0_4px_20px_rgba(138,66,214,0.35)] hover:shadow-[0_6px_24px_rgba(138,66,214,0.45)] transition-all duration-200"
+                        className="flex-1 h-11 rounded-[14px] font-light transition-all duration-200 border-0"
+                        style={{
+                          backgroundColor: restaurant.primaryColor || '#8A42D6',
+                          color: 'white',
+                          boxShadow: `0 4px 20px ${restaurant.primaryColor ? `${restaurant.primaryColor}55` : 'rgba(138,66,214,0.35)'}`,
+                        }}
                         onClick={() => {
                           console.log('Open in map');
                         }}
@@ -201,8 +246,12 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
                         Directions
                       </Button>
                       <Button
-                        variant="outline"
-                        className="flex-1 h-11 rounded-[14px] font-light border-gray-200 dark:border-white/5 bg-white dark:bg-white/[0.02] hover:bg-gray-50 dark:hover:bg-white/[0.05] hover:border-gray-300 dark:hover:border-white/10 transition-all duration-200"
+                        className="flex-1 h-11 rounded-[14px] font-light transition-all duration-200 backdrop-blur-md border-0"
+                        style={{
+                          color: restaurant.primaryColor || '#8A42D6',
+                          backgroundColor: `${restaurant.primaryColor || '#8A42D6'}15`,
+                          boxShadow: `inset 0 0 0 1px ${restaurant.primaryColor || '#8A42D6'}80`,
+                        }}
                         onClick={() => {
                           window.open(`tel:${restaurant.phone}`);
                         }}
@@ -298,8 +347,61 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
                     <div className="w-full mt-6">
                       <h3 className="text-base font-light text-gray-500 dark:text-foreground/60 mb-6 tracking-wide">Full Menu</h3>
 
-                      {/* Appetizers */}
-                      <div className="mb-8">
+                      {/* Render database categories if available */}
+                      {hasDbMenu ? (
+                        <>
+                          {restaurant.categories?.map((category) => (
+                            <div key={category.id} className="mb-8">
+                              <h4 className="text-base font-light text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                                <span
+                                  className="h-1 w-8 rounded-full"
+                                  style={{ backgroundColor: restaurant.primaryColor || '#8A42D6' }}
+                                ></span>
+                                {category.name}
+                              </h4>
+                              <div className="space-y-3">
+                                {category.Menu_Item.map((item) => (
+                                  <div
+                                    key={item.id}
+                                    className="flex gap-3 p-4 rounded-[14px] bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/5 shadow-sm dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] hover:border-purple-200 dark:hover:border-purple-500/20 transition-all duration-200"
+                                    style={{
+                                      borderColor: restaurant.accentColor ? `${restaurant.accentColor}20` : undefined,
+                                    }}
+                                  >
+                                    {/* If restaurant has a logo, use it as placeholder */}
+                                    {restaurant.logo && (
+                                      <div className="h-20 w-20 rounded-[12px] overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-muted ring-1 ring-gray-200 dark:ring-black/5">
+                                        <Image
+                                          src={restaurant.logo}
+                                          alt={item.name}
+                                          width={80}
+                                          height={80}
+                                          className="object-cover"
+                                        />
+                                      </div>
+                                    )}
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-start justify-between mb-1">
+                                        <p className="font-light text-base text-gray-900 dark:text-white">{item.name}</p>
+                                        {item.price && (
+                                          <p className="text-base font-light text-gray-900 dark:text-white ml-2">{item.price}</p>
+                                        )}
+                                      </div>
+                                      {item.description && (
+                                        <p className="text-sm text-gray-600 dark:text-white/50 mb-2 line-clamp-2 font-light">{item.description}</p>
+                                      )}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </>
+                      ) : (
+                        /* Fallback to hardcoded menu if no database data */
+                        <>
+                          {/* Appetizers */}
+                          <div className="mb-8">
                         <h4 className="text-base font-light text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                           <span className="h-1 w-8 bg-primary rounded-full"></span>
                           Appetizers
@@ -533,6 +635,8 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
                           ))}
                         </div>
                       </div>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
