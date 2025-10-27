@@ -165,23 +165,43 @@ export async function scrapeRestaurantMenuWithPuppeteer(
  */
 async function dismissPopups(page: Page): Promise<void> {
   try {
-    const clicked = await page.evaluate(() => {
-      const acceptKeywords = ['accept', 'allow', 'agree', 'continue', 'ok', 'got it', 'close', 'dismiss', 'no thanks', '×', 'x'];
+    const result = await page.evaluate(() => {
+      // Use exact matches or word boundaries to avoid false positives like "booking" matching "ok"
+      const acceptKeywords = ['accept', 'allow', 'agree', 'continue', 'got it', 'close', 'dismiss', 'no thanks', '×', 'x'];
+      const exactKeywords = ['ok', 'yes', 'no']; // These must be exact word matches
       const buttons = Array.from(document.querySelectorAll('button, a, [role="button"], [class*="modal"] button, [class*="popup"] button'));
 
       for (const btn of buttons) {
         const text = (btn.textContent || '').toLowerCase().trim();
         const ariaLabel = (btn.getAttribute('aria-label') || '').toLowerCase();
         const rect = (btn as HTMLElement).getBoundingClientRect();
+        const href = (btn as HTMLAnchorElement).href || '';
+        const className = (btn.className || '').toString();
 
         if (rect.width === 0 || rect.height === 0 || text.length > 60) continue;
 
         const inModal = btn.closest('[role="dialog"], [class*="modal"], [class*="popup"]');
-        const isAcceptButton = acceptKeywords.some(kw => text.includes(kw) || ariaLabel.includes(kw));
+
+        // Skip navigation items - they should never be popup buttons
+        const isNavItem = className.includes('nav') ||
+                         className.includes('menu-item') ||
+                         className.includes('elementor-item') ||
+                         btn.closest('nav, header');
+
+        if (isNavItem) continue;
+
+        // Check if it's an accept button with proper word boundary matching
+        const hasKeyword = acceptKeywords.some(kw => text.includes(kw) || ariaLabel.includes(kw));
+        const hasExactKeyword = exactKeywords.some(kw => {
+          // Match as whole word only (with word boundaries)
+          const regex = new RegExp(`\\b${kw}\\b`);
+          return regex.test(text) || regex.test(ariaLabel);
+        });
+        const isAcceptButton = hasKeyword || hasExactKeyword;
 
         if (isAcceptButton && inModal) {
           (btn as HTMLElement).click();
-          return true;
+          return { clicked: true, text, className, href, inModal: true };
         }
       }
 
@@ -193,15 +213,15 @@ async function dismissPopups(page: Page): Promise<void> {
           const rect = (overlay as HTMLElement).getBoundingClientRect();
           if (rect.width > window.innerWidth * 0.8) {
             (overlay as HTMLElement).remove();
-            return true;
+            return { clicked: false, removed: true, className: (overlay as HTMLElement).className };
           }
         }
       }
 
-      return false;
+      return { clicked: false };
     });
 
-    if (clicked) {
+    if (result && result.clicked) {
       await delay(200);
     }
   } catch (error) {
@@ -242,19 +262,20 @@ async function navigateToMenu(page: Page): Promise<void> {
     }
 
     // Look for menu button
-    const buttonText = await page.evaluate(() => {
+    const buttonInfo = await page.evaluate(() => {
       const buttons = Array.from(document.querySelectorAll('a, button, [role="button"]'));
 
       for (const btn of buttons) {
         const text = (btn.textContent || '').trim();
         const textLower = text.toLowerCase();
         const rect = (btn as HTMLElement).getBoundingClientRect();
+        const href = (btn as HTMLAnchorElement).href || '';
 
         if (!text || text.length > 60 || rect.width === 0 || rect.height === 0) continue;
         if (textLower.includes('cart') || textLower.includes('checkout') || textLower.includes('account') || textLower.includes('login')) continue;
 
         if (textLower.includes('menu') || textLower === 'menu' || textLower.includes('view menu')) {
-          return text;
+          return { buttonText: text, href: href };
         }
       }
 
@@ -263,44 +284,65 @@ async function navigateToMenu(page: Page): Promise<void> {
         const text = (btn.textContent || '').trim();
         const textLower = text.toLowerCase();
         const rect = (btn as HTMLElement).getBoundingClientRect();
+        const href = (btn as HTMLAnchorElement).href || '';
 
         if (!text || text.length > 60 || rect.width === 0 || rect.height === 0) continue;
 
         if (textLower.includes('order now') || textLower.includes('order online') || textLower.includes('start order')) {
-          return text;
+          return { buttonText: text, href: href };
         }
       }
 
-      return null;
+      return { buttonText: null, href: '' };
     });
 
-    if (!buttonText) {
+    if (!buttonInfo.buttonText) {
       return;
     }
 
-    const clicked = await page.evaluate((text) => {
-      const buttons = Array.from(document.querySelectorAll('a, button, [role="button"]'));
-      for (const btn of buttons) {
-        if ((btn.textContent || '').trim() === text) {
-          const rect = (btn as HTMLElement).getBoundingClientRect();
-          if (rect.width > 0 && rect.height > 0) {
-            (btn as HTMLElement).click();
-            return true;
+    // Check if menu button will cause navigation
+    const willNavigate = buttonInfo.href && !buttonInfo.href.includes('#') && buttonInfo.href !== page.url();
+
+    if (willNavigate) {
+      // If it's a link that will navigate, wait for navigation
+      const [response] = await Promise.all([
+        page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 5000 }).catch(() => null),
+        page.evaluate((text) => {
+          const buttons = Array.from(document.querySelectorAll('a, button, [role="button"]'));
+          for (const btn of buttons) {
+            if ((btn.textContent || '').trim() === text) {
+              const rect = (btn as HTMLElement).getBoundingClientRect();
+              if (rect.width > 0 && rect.height > 0) {
+                (btn as HTMLElement).click();
+                return true;
+              }
+            }
+          }
+          return false;
+        }, buttonInfo.buttonText)
+      ]);
+    } else {
+      const clicked = await page.evaluate((text) => {
+        const buttons = Array.from(document.querySelectorAll('a, button, [role="button"]'));
+        for (const btn of buttons) {
+          if ((btn.textContent || '').trim() === text) {
+            const rect = (btn as HTMLElement).getBoundingClientRect();
+            if (rect.width > 0 && rect.height > 0) {
+              (btn as HTMLElement).click();
+              return true;
+            }
           }
         }
-      }
-      return false;
-    }, buttonText);
+        return false;
+      }, buttonInfo.buttonText);
+    }
 
-    if (clicked) {
-      console.log('[Scraper] Clicked menu button');
-      await delay(1000);
+    await delay(1000);
 
-      try {
-        await page.waitForSelector('[id*="menu"], [class*="menu-grid"], main', { timeout: 3000 });
-      } catch {
-        // Continue anyway
-      }
+    try {
+      await page.waitForSelector('[id*="menu"], [class*="menu-grid"], main', { timeout: 3000 });
+    } catch {
+      // Continue anyway
     }
   } catch (error) {
     // Ignore navigation errors
@@ -466,6 +508,9 @@ async function clickThroughCategoriesAndExtract(page: Page): Promise<string> {
     let allText = '';
     const seenContent = new Set<string>();
 
+    // Wait for any animated content to appear (Elementor, tab systems, etc.)
+    await delay(1000);
+
     // Extract initial content
     await scrollForLazyContent(page);
     const initialText = await page.evaluate(() => document.body.innerText || '');
@@ -497,7 +542,9 @@ async function clickThroughCategoriesAndExtract(page: Page): Promise<string> {
           'sign in', 'log in', 'login', 'sign up',
           'about us', 'about',
           'careers', 'join us',
-          'gift card', 'catering'
+          'gift card', 'catering',
+          'group booking', 'group bookings', 'private event', 'private events',
+          'home', 'gallery', 'press', 'news', 'blog'
         ];
 
         // Check if text matches excluded patterns
@@ -508,15 +555,27 @@ async function clickThroughCategoriesAndExtract(page: Page): Promise<string> {
         // Check if href indicates navigation/action pages
         const excludeHrefPatterns = [
           '/order', '/contact', '/location', '/cart', '/checkout',
-          '/about', '/careers', '/catering', '/reserve', '/book'
+          '/about', '/careers', '/catering', '/reserve', '/book',
+          '/group-booking', '/group-bookings', '/private-event', '/private-events',
+          '/home', '/gallery', '/press', '/news', '/blog'
         ];
 
         if (excludeHrefPatterns.some(pattern => href.includes(pattern))) {
           return true;
         }
 
-        // Check if element is in nav or footer
-        if (el.closest('nav, footer, [class*="nav"], [class*="footer"]')) {
+        // Check if element is in specific navigation structures
+        // Only exclude nav/footer tags and specific nav-related classes, not any class containing "nav"
+        if (el.closest('nav, footer, header')) {
+          return true;
+        }
+
+        // Check if element or immediate parent has navigation-specific classes
+        const navClasses = ['navbar', 'nav-menu', 'navigation', 'nav-bar', 'nav-item', 'nav-link', 'elementor-nav-menu'];
+        const elementClasses = (el.className || '').toString().toLowerCase();
+        const parentClasses = (el.parentElement?.className || '').toString().toLowerCase();
+
+        if (navClasses.some(navClass => elementClasses.includes(navClass) || parentClasses.includes(navClass))) {
           return true;
         }
 
@@ -525,12 +584,12 @@ async function clickThroughCategoriesAndExtract(page: Page): Promise<string> {
 
       // Strategy 1: Menu containers
       const menuContainers = Array.from(document.querySelectorAll(
-        '[id*="menu-grid"], [class*="menu-grid"], [class*="menu-nav"], [class*="category"], [class*="MuiGrid-container"], section[class*="menu"], .menu-categories, [class*="tabs"], [class*="tab-"]'
+        '[id*="menu-grid"], [class*="menu-grid"], [class*="menu-nav"], [class*="category"], [class*="MuiGrid-container"], section[class*="menu"], .menu-categories, [class*="tabs"], [class*="tab-"], .jet-tabs__control-wrapper, .jet-tabs'
       ));
 
       if (menuContainers.length > 0) {
         for (const container of menuContainers) {
-          const clickables = Array.from(container.querySelectorAll('a, button, [role="button"], [role="tab"], [onclick], [class*="card"], [class*="item"], [class*="tab"], span[data-filter], [class*="lte-tab"]'));
+          const clickables = Array.from(container.querySelectorAll('a, button, [role="button"], [role="tab"], [onclick], [class*="card"], [class*="item"], [class*="tab"], span[data-filter], [class*="lte-tab"], .jet-tabs__control'));
 
           for (const el of clickables) {
             const text = (el.textContent || '').trim();
@@ -540,8 +599,12 @@ async function clickThroughCategoriesAndExtract(page: Page): Promise<string> {
             if (text.length < 3 || text.length > 200) continue;
             if (seenText.has(text)) continue;
 
-            // Skip concatenated text
+            // Skip concatenated text (e.g., "LUNCHDINNERBRUNCHDESSERTCOCKTAILWINE")
             if (text.length > 100 && !text.includes(' ')) continue;
+
+            // Skip if text is ALL CAPS and contains multiple category-like words without spaces
+            const hasMultipleCapsWords = /^[A-Z]{15,}$/.test(text);
+            if (hasMultipleCapsWords) continue;
 
             // Skip excluded patterns
             if (shouldExclude(el, text)) continue;
@@ -551,7 +614,9 @@ async function clickThroughCategoriesAndExtract(page: Page): Promise<string> {
               el.hasAttribute('role') && el.getAttribute('role') === 'tab' ||
               el.hasAttribute('data-filter') ||
               el.classList.contains('lte-tab') ||
-              el.matches('[class*="tab-"]');
+              el.classList.contains('jet-tabs__control') ||
+              el.matches('[class*="tab-"]') ||
+              el.matches('[class*="jet-tab"]');
 
             const minSize = isTabElement ? 10 : 50; // Tabs can be smaller
             const minHeight = isTabElement ? 10 : 20;
@@ -566,9 +631,18 @@ async function clickThroughCategoriesAndExtract(page: Page): Promise<string> {
         }
       }
 
-      // Strategy 2: Fallback
-      if (out.length < 3) {
-        const allClickables = Array.from(document.querySelectorAll('a, button, [role="button"], [onclick]'));
+      // Filter out duplicate lowercase versions (e.g., "wine" when we already have "WINE")
+      const upperCaseTexts = new Set(out.map(c => c.text.toUpperCase()));
+      const filtered = out.filter(c => {
+        // Keep if it's the uppercase version, or if there's no uppercase equivalent
+        return c.text === c.text.toUpperCase() || !upperCaseTexts.has(c.text.toUpperCase());
+      });
+
+      // Strategy 2: Fallback (more conservative - avoid navbar items)
+      if (filtered.length < 3) {
+        // Only look in main content area, not navbar/header/footer
+        const mainContent = document.querySelector('main, [role="main"], #main, .main-content, [class*="content-area"]') || document.body;
+        const allClickables = Array.from(mainContent.querySelectorAll('a, button, [role="button"], [onclick]'));
 
         for (const el of allClickables) {
           const text = (el.textContent || '').trim();
@@ -584,6 +658,9 @@ async function clickThroughCategoriesAndExtract(page: Page): Promise<string> {
           // Use the same exclusion logic
           if (shouldExclude(el, text)) continue;
 
+          // Additional check: skip if element is in header/nav/footer (belt and suspenders)
+          if (el.closest('nav, header, footer')) continue;
+
           const isLargeCard = rect.width >= 150 && rect.height >= 100;
           const isWideLink = rect.width >= 200 && rect.height >= 30;
           const isMediumElement = rect.width >= 120 && rect.height >= 50;
@@ -591,13 +668,13 @@ async function clickThroughCategoriesAndExtract(page: Page): Promise<string> {
           if (isLargeCard || isWideLink || isMediumElement) {
             const href = (el.getAttribute('href') || '').trim();
             const isNavLink = !!href && !href.startsWith('#') && !href.startsWith('javascript') && href !== '/';
-            out.push({ text, href: href || '#', isNavLink });
+            filtered.push({ text, href: href || '#', isNavLink });
             seenText.add(text);
           }
         }
       }
 
-      return out.slice(0, 30); // Limit to 30 categories max
+      return filtered.slice(0, 30); // Limit to 30 categories max
     });
 
     console.log('[Scraper] Found', categories.length, 'categories');
@@ -639,7 +716,9 @@ async function clickThroughCategoriesAndExtract(page: Page): Promise<string> {
 
           // Strategy 2: Try other tab/category selectors
           const selectors = [
+            '.jet-tabs__control',
             '[role="tab"]',
+            '[data-filter]',
             'span[class*="tab"]',
             'button[class*="tab"]',
             'li[class*="tab"]',
@@ -675,19 +754,32 @@ async function clickThroughCategoriesAndExtract(page: Page): Promise<string> {
 
         if (clicked) {
           const urlBeforeClick = page.url();
-          await delay(800); // Give tab time to update content (increased from 400ms)
+          await delay(1000); // Give tab time to update content - Elementor animations can take 800ms
           const urlAfterClick = page.url();
 
           if (urlAfterClick !== urlBeforeClick) {
             await delay(800); // Navigation detected
             await scrollForLazyContent(page);
           } else {
-            // In-page tab change - wait for content to update
-            await delay(500);
+            // In-page tab change - wait for animation to complete
+            await delay(200); // Additional wait for animation
           }
 
           const categoryContent = await page.evaluate(() => {
-            // Strategy 1: Get visible filtered items (for tab-based menus)
+            // Strategy 1: Jet Tabs - get active content panel
+            const activeJetTabContent = document.querySelector('.jet-tabs__content.active-content');
+            if (activeJetTabContent) {
+              // Use textContent instead of innerText for Jet Tabs (innerText returns 0 for hidden/animated content)
+              const innerText = (activeJetTabContent as HTMLElement).innerText || '';
+              const textContent = (activeJetTabContent as HTMLElement).textContent || '';
+              const text = innerText.length > 50 ? innerText : textContent;
+
+              if (text.trim().length > 10) {
+                return text;
+              }
+            }
+
+            // Strategy 2: Get visible filtered items (for tab-based menus)
             const allFilterItems = Array.from(document.querySelectorAll('.lte-filter-item, [class*="filter-item"]'));
             const visibleItems = allFilterItems.filter(item => {
               const style = (item as HTMLElement).style.display;
@@ -699,14 +791,14 @@ async function clickThroughCategoriesAndExtract(page: Page): Promise<string> {
               return visibleItems.map(item => (item as HTMLElement).innerText || '').join('\n\n');
             }
 
-            // Strategy 2: Get items with show/active classes
-            const showItems = Array.from(document.querySelectorAll('.show-item, .show, .active'));
+            // Strategy 3: Get items with show/active classes (excluding tab controls)
+            const showItems = Array.from(document.querySelectorAll('.show-item, .show, .active:not([class*="control"])'));
             if (showItems.length > 0) {
               return showItems.map(item => (item as HTMLElement).innerText || '').join('\n\n');
             }
 
             // Fallback to main content area
-            const scope = (document.querySelector('main, [role="main"], #main, .main, [class*="main"], [class*="content"]') as HTMLElement) || document.body;
+            const scope = (document.querySelector('main, [role="main"], #main, .main') as HTMLElement) || document.body;
             return scope.innerText || document.body.innerText || '';
           });
 
@@ -718,7 +810,6 @@ async function clickThroughCategoriesAndExtract(page: Page): Promise<string> {
           const fingerprint = start + '::' + middle + '::' + end;
 
           if (!seenContent.has(fingerprint)) {
-            console.log(`[Scraper] ✓ "${category.text}":`, categoryContent.length, 'chars');
             allText += '\n\n=== ' + category.text.toUpperCase() + ' ===\n\n' + categoryContent;
             seenContent.add(fingerprint);
           }
@@ -751,7 +842,6 @@ async function clickThroughCategoriesAndExtract(page: Page): Promise<string> {
         const fingerprint = norm.slice(0, 250) + '::' + norm.slice(-250);
 
         if (!seenContent.has(fingerprint)) {
-          console.log(`[Scraper] ✓ "${category.text}":`, categoryContent.length, 'chars');
           allText += '\n\n=== ' + category.text.toUpperCase() + ' ===\n\n' + categoryContent;
           seenContent.add(fingerprint);
         }
