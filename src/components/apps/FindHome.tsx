@@ -213,62 +213,63 @@ export function FindHome() {
         return; // Don't scrape if we have data
       }
 
-      console.log('⚠️  Restaurant not in DB, opening page and triggering scrape...');
+      console.log('⚠️  Restaurant not in DB, opening page with basic data...');
 
       // Open page with placeholder data
       setSelectedRestaurant(restaurant);
       setShowRestaurantPage(true);
 
-      // Trigger scraping and saving in the background
-      const response = await fetch('/api/restaurant/scrape-and-save', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          placeId: restaurant.id,
-          address: restaurant.address,
-          latitude: null,
-          longitude: null,
-          phone: restaurant.phone,
-          rating: restaurant.rating,
-        }),
-      });
+      // // SCRAPER DISABLED FOR NOW
+      // // Trigger scraping and saving in the background
+      // const response = await fetch('/api/restaurant/scrape-and-save', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //   },
+      //   body: JSON.stringify({
+      //     placeId: restaurant.id,
+      //     address: restaurant.address,
+      //     latitude: null,
+      //     longitude: null,
+      //     phone: restaurant.phone,
+      //     rating: restaurant.rating,
+      //   }),
+      // });
 
-      const data = await response.json();
+      // const data = await response.json();
 
-      if (data.success) {
-        console.log('✅ Restaurant scraped and saved:', data);
+      // if (data.success) {
+      //   console.log('✅ Restaurant scraped and saved:', data);
 
-        // Refresh data from database after scraping
-        const refreshResponse = await fetch(`/api/restaurant/get?placeId=${restaurant.id}`);
-        const refreshData = await refreshResponse.json();
+      //   // Refresh data from database after scraping
+      //   const refreshResponse = await fetch(`/api/restaurant/get?placeId=${restaurant.id}`);
+      //   const refreshData = await refreshResponse.json();
 
-        if (refreshData.exists && refreshData.restaurant) {
-          console.log('🔄 Refreshing restaurant page with scraped data');
-          const updatedRestaurant: Restaurant = {
-            id: refreshData.restaurant.google_place_id,
-            name: refreshData.restaurant.name,
-            logo: refreshData.restaurant.logo_url || '',
-            verified: refreshData.restaurant.verified || false,
-            rating: refreshData.restaurant.rating || 0,
-            distance: restaurant.distance || '',
-            address: refreshData.restaurant.address || '',
-            phone: refreshData.restaurant.phone || '',
-            slug: refreshData.restaurant.slug,
-            description: refreshData.restaurant.description,
-            primaryColor: refreshData.restaurant.primary_colour,
-            secondaryColor: refreshData.restaurant.secondary_colour,
-            accentColor: refreshData.restaurant.accent_colour,
-            categories: refreshData.restaurant.Menu_Category || [],
-            fromDatabase: true,
-          };
+      //   if (refreshData.exists && refreshData.restaurant) {
+      //     console.log('🔄 Refreshing restaurant page with scraped data');
+      //     const updatedRestaurant: Restaurant = {
+      //       id: refreshData.restaurant.google_place_id,
+      //       name: refreshData.restaurant.name,
+      //       logo: refreshData.restaurant.logo_url || '',
+      //       verified: refreshData.restaurant.verified || false,
+      //       rating: refreshData.restaurant.rating || 0,
+      //       distance: restaurant.distance || '',
+      //       address: refreshData.restaurant.address || '',
+      //       phone: refreshData.restaurant.phone || '',
+      //       slug: refreshData.restaurant.slug,
+      //       description: refreshData.restaurant.description,
+      //       primaryColor: refreshData.restaurant.primary_colour,
+      //       secondaryColor: refreshData.restaurant.secondary_colour,
+      //       accentColor: refreshData.restaurant.accent_colour,
+      //       categories: refreshData.restaurant.Menu_Category || [],
+      //       fromDatabase: true,
+      //     };
 
-          setSelectedRestaurant(updatedRestaurant);
-        }
-      } else {
-        console.error('Failed to save restaurant:', data.error);
-      }
+      //     setSelectedRestaurant(updatedRestaurant);
+      //   }
+      // } else {
+      //   console.error('Failed to save restaurant:', data.error);
+      // }
     } catch (error) {
       console.error('Error handling restaurant click:', error);
       // Fallback: still open the page with basic data
