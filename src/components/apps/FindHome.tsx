@@ -52,6 +52,13 @@ export function FindHome() {
   const [selectedProfileId, setSelectedProfileId] = React.useState<string>("");
   const [showRestaurantPage, setShowRestaurantPage] = React.useState(false);
   const [selectedRestaurant, setSelectedRestaurant] = React.useState<Restaurant | null>(null);
+  const [isScraperLoading, setIsScraperLoading] = React.useState(false);
+  const [scraperStatus, setScraperStatus] = React.useState<{
+    step: string;
+    details?: string;
+    currentStep: number;
+    totalSteps: number;
+  } | undefined>(undefined);
   const router = useRouter();
   const supabase = createClient();
 
@@ -213,63 +220,171 @@ export function FindHome() {
         return; // Don't scrape if we have data
       }
 
-      console.log('⚠️  Restaurant not in DB, opening page with basic data...');
+      console.log('⚠️  Restaurant not in DB, opening page and triggering scrape...');
 
-      // Open page with placeholder data
+      // Open page with placeholder data and show loading state
       setSelectedRestaurant(restaurant);
       setShowRestaurantPage(true);
+      setIsScraperLoading(true);
+      setScraperStatus({
+        step: 'Initializing scraper...',
+        details: 'Preparing to fetch menu data',
+        currentStep: 1,
+        totalSteps: 5,
+      });
 
-      // // SCRAPER DISABLED FOR NOW
-      // // Trigger scraping and saving in the background
-      // const response = await fetch('/api/restaurant/scrape-and-save', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify({
-      //     placeId: restaurant.id,
-      //     address: restaurant.address,
-      //     latitude: null,
-      //     longitude: null,
-      //     phone: restaurant.phone,
-      //     rating: restaurant.rating,
-      //   }),
-      // });
+      // Trigger scraping and saving in the background
+      try {
+        setScraperStatus({
+          step: 'Checking if restaurant exists...',
+          details: `Place ID: ${restaurant.id}`,
+          currentStep: 2,
+          totalSteps: 5,
+        });
 
-      // const data = await response.json();
+        const response = await fetch('/api/restaurant/scrape-and-save', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            placeId: restaurant.id,
+            address: restaurant.address,
+            latitude: null,
+            longitude: null,
+            phone: restaurant.phone,
+            rating: restaurant.rating,
+          }),
+        });
 
-      // if (data.success) {
-      //   console.log('✅ Restaurant scraped and saved:', data);
+        setScraperStatus({
+          step: 'Scraping menu data...',
+          details: 'Extracting categories, items, and branding',
+          currentStep: 3,
+          totalSteps: 5,
+        });
 
-      //   // Refresh data from database after scraping
-      //   const refreshResponse = await fetch(`/api/restaurant/get?placeId=${restaurant.id}`);
-      //   const refreshData = await refreshResponse.json();
+        const data = await response.json();
 
-      //   if (refreshData.exists && refreshData.restaurant) {
-      //     console.log('🔄 Refreshing restaurant page with scraped data');
-      //     const updatedRestaurant: Restaurant = {
-      //       id: refreshData.restaurant.google_place_id,
-      //       name: refreshData.restaurant.name,
-      //       logo: refreshData.restaurant.logo_url || '',
-      //       verified: refreshData.restaurant.verified || false,
-      //       rating: refreshData.restaurant.rating || 0,
-      //       distance: restaurant.distance || '',
-      //       address: refreshData.restaurant.address || '',
-      //       phone: refreshData.restaurant.phone || '',
-      //       slug: refreshData.restaurant.slug,
-      //       description: refreshData.restaurant.description,
-      //       primaryColor: refreshData.restaurant.primary_colour,
-      //       secondaryColor: refreshData.restaurant.secondary_colour,
-      //       accentColor: refreshData.restaurant.accent_colour,
-      //       categories: refreshData.restaurant.Menu_Category || [],
-      //       fromDatabase: true,
-      //     };
+        // If scrape is in progress (another request is already processing), wait and poll
+        if (data.inProgress) {
+          console.log('⏳ Scrape job already in progress, polling for completion...');
+          setScraperStatus({
+            step: 'Waiting for ongoing scrape...',
+            details: 'Another request is already processing this restaurant',
+            currentStep: 3,
+            totalSteps: 5,
+          });
 
-      //     setSelectedRestaurant(updatedRestaurant);
-      //   }
-      // } else {
-      //   console.error('Failed to save restaurant:', data.error);
-      // }
+          // Poll the database until the restaurant is available
+          let pollAttempts = 0;
+          const maxPollAttempts = 30; // 30 attempts = up to 30 seconds
+
+          while (pollAttempts < maxPollAttempts) {
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+
+            const pollResponse = await fetch(`/api/restaurant/get?placeId=${restaurant.id}`);
+            const pollData = await pollResponse.json();
+
+            if (pollData.exists && pollData.restaurant && pollData.restaurant.Menu_Category) {
+              console.log('✅ Restaurant is now available from ongoing scrape');
+
+              // Update with the complete data
+              const updatedRestaurant: Restaurant = {
+                id: pollData.restaurant.google_place_id,
+                name: pollData.restaurant.name,
+                logo: pollData.restaurant.logo_url || '',
+                verified: pollData.restaurant.verified || false,
+                rating: pollData.restaurant.rating || 0,
+                distance: restaurant.distance || '',
+                address: pollData.restaurant.address || '',
+                phone: pollData.restaurant.phone || '',
+                slug: pollData.restaurant.slug,
+                description: pollData.restaurant.description,
+                primaryColor: pollData.restaurant.primary_colour,
+                secondaryColor: pollData.restaurant.secondary_colour,
+                accentColor: pollData.restaurant.accent_colour,
+                categories: pollData.restaurant.Menu_Category || [],
+                fromDatabase: true,
+              };
+
+              setSelectedRestaurant(updatedRestaurant);
+              setIsScraperLoading(false);
+              setScraperStatus(undefined);
+              return;
+            }
+
+            pollAttempts++;
+            setScraperStatus({
+              step: 'Waiting for ongoing scrape...',
+              details: `Checking database... (${pollAttempts}/${maxPollAttempts})`,
+              currentStep: 3,
+              totalSteps: 5,
+            });
+          }
+
+          // Timeout - show basic data
+          console.log('⚠️  Polling timeout, showing basic data');
+          setIsScraperLoading(false);
+          setScraperStatus(undefined);
+          return;
+        }
+
+        setScraperStatus({
+          step: 'Saving to database...',
+          details: `Categories: ${data.totalCategories || 0}, Items: ${data.totalItems || 0}`,
+          currentStep: 4,
+          totalSteps: 5,
+        });
+
+        if (data.success) {
+          console.log('✅ Restaurant scraped and saved:', data);
+
+          setScraperStatus({
+            step: 'Loading restaurant data...',
+            details: 'Refreshing with complete menu information',
+            currentStep: 5,
+            totalSteps: 5,
+          });
+
+          // Refresh data from database after scraping
+          const refreshResponse = await fetch(`/api/restaurant/get?placeId=${restaurant.id}`);
+          const refreshData = await refreshResponse.json();
+
+          if (refreshData.exists && refreshData.restaurant) {
+            console.log('🔄 Refreshing restaurant page with scraped data');
+            const updatedRestaurant: Restaurant = {
+              id: refreshData.restaurant.google_place_id,
+              name: refreshData.restaurant.name,
+              logo: refreshData.restaurant.logo_url || '',
+              verified: refreshData.restaurant.verified || false,
+              rating: refreshData.restaurant.rating || 0,
+              distance: restaurant.distance || '',
+              address: refreshData.restaurant.address || '',
+              phone: refreshData.restaurant.phone || '',
+              slug: refreshData.restaurant.slug,
+              description: refreshData.restaurant.description,
+              primaryColor: refreshData.restaurant.primary_colour,
+              secondaryColor: refreshData.restaurant.secondary_colour,
+              accentColor: refreshData.restaurant.accent_colour,
+              categories: refreshData.restaurant.Menu_Category || [],
+              fromDatabase: true,
+            };
+
+            setSelectedRestaurant(updatedRestaurant);
+            setIsScraperLoading(false);
+            setScraperStatus(undefined);
+          }
+        } else {
+          console.error('Failed to save restaurant:', data.error);
+          setIsScraperLoading(false);
+          setScraperStatus(undefined);
+        }
+      } catch (scrapeError) {
+        console.error('Error during scraping:', scrapeError);
+        setIsScraperLoading(false);
+        setScraperStatus(undefined);
+      }
     } catch (error) {
       console.error('Error handling restaurant click:', error);
       // Fallback: still open the page with basic data
@@ -538,8 +653,14 @@ export function FindHome() {
       {selectedRestaurant && (
         <RestaurantPage
           isOpen={showRestaurantPage}
-          onClose={() => setShowRestaurantPage(false)}
+          onClose={() => {
+            setShowRestaurantPage(false);
+            setIsScraperLoading(false);
+            setScraperStatus(undefined);
+          }}
           restaurant={selectedRestaurant}
+          isLoading={isScraperLoading}
+          loadingStatus={scraperStatus}
         />
       )}
     </div>

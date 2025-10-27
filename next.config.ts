@@ -65,23 +65,7 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https' as const,
-        hostname: 'images.unsplash.com',
-      },
-      {
-        protocol: 'https' as const,
-        hostname: 'picsum.photos',
-      },
-      {
-        protocol: 'https' as const,
-        hostname: 'sinrtasfxoouvarnisuu.supabase.co',
-      },
-      {
-        protocol: 'https' as const,
-        hostname: 'places.googleapis.com',
-      },
-      {
-        protocol: 'https' as const,
-        hostname: 'framerusercontent.com',
+        hostname: '**',
       },
     ],
   },

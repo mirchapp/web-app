@@ -12,9 +12,16 @@ interface RestaurantPageProps {
   isOpen: boolean;
   onClose: () => void;
   restaurant: Restaurant;
+  isLoading?: boolean;
+  loadingStatus?: {
+    step: string;
+    details?: string;
+    currentStep: number;
+    totalSteps: number;
+  };
 }
 
-export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPageProps) {
+export function RestaurantPage({ isOpen, onClose, restaurant, isLoading = false, loadingStatus }: RestaurantPageProps) {
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const [isClosing, setIsClosing] = React.useState(false);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = React.useState(false);
@@ -155,19 +162,61 @@ export function RestaurantPage({ isOpen, onClose, restaurant }: RestaurantPagePr
                     {/* Restaurant Logo with enhanced glow effect */}
                     <div className="relative mb-8 flex items-center justify-center">
                       <div
-                        className="relative h-40 w-64 rounded-2xl overflow-hidden ring-1 ring-gray-200 dark:ring-white/10 shadow-lg"
+                        className="relative h-32 w-64 rounded-2xl overflow-hidden ring-1 ring-gray-200 dark:ring-white/10 shadow-lg"
                         style={{
                           boxShadow: `0 10px 40px ${restaurant.primaryColor ? `${restaurant.primaryColor}30` : 'rgba(138,66,214,0.2)'}`,
                         }}
                       >
-                        <Image
-                          src={restaurant.logo}
-                          alt={restaurant.name}
-                          fill
-                          className="object-cover"
-                        />
+                        {isLoading ? (
+                          <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-white/5 dark:to-white/10 animate-pulse rounded-2xl" />
+                        ) : (
+                          <Image
+                            src={restaurant.logo}
+                            alt={restaurant.name}
+                            fill
+                            className="object-contain rounded-2xl"
+                            sizes="256px"
+                          />
+                        )}
                       </div>
                     </div>
+
+                    {/* Loading Status Debug Info */}
+                    {isLoading && loadingStatus && (
+                      <div className="w-full max-w-md mb-8 p-4 rounded-2xl bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <div className="h-2 w-2 bg-purple-500 rounded-full animate-pulse" />
+                            <span className="text-sm font-medium text-gray-900 dark:text-white">
+                              Scraping Menu Data
+                            </span>
+                          </div>
+                          <span className="text-xs text-gray-500 dark:text-white/50">
+                            Step {loadingStatus.currentStep}/{loadingStatus.totalSteps}
+                          </span>
+                        </div>
+
+                        {/* Progress Bar */}
+                        <div className="w-full h-1.5 bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden mb-3">
+                          <div
+                            className="h-full bg-gradient-to-r from-purple-500 to-purple-600 transition-all duration-500 ease-out"
+                            style={{ width: `${(loadingStatus.currentStep / loadingStatus.totalSteps) * 100}%` }}
+                          />
+                        </div>
+
+                        {/* Status Details */}
+                        <div className="space-y-2">
+                          <p className="text-xs font-medium text-gray-700 dark:text-white/70">
+                            {loadingStatus.step}
+                          </p>
+                          {loadingStatus.details && (
+                            <p className="text-xs text-gray-500 dark:text-white/50 font-mono">
+                              {loadingStatus.details}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    )}
 
                     {/* Restaurant Name with elegant typography */}
                     <div className="mb-2 text-center">

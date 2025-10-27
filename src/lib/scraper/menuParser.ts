@@ -9,12 +9,15 @@ export interface MenuItem {
   description?: string;
   price?: string;
   category?: string;
+  tags?: string[];
 }
 
 export interface ParsedMenu {
   items: MenuItem[];
   categories?: string[];
   description?: string;
+  cuisine?: string;
+  tags?: string[];
 }
 
 function preprocessMenuContent(content: string): string {
@@ -75,6 +78,7 @@ Rules for Menu Items:
 - If a field is not available, use null (not empty string)
 - If no clear menu is found, return an empty items array
 - Do not make up items - only extract what you see in the text
+- Keep the category structure the same as it appears on the restaurant's website
 
 Rules for Restaurant Description:
 - Write a concise, appealing 2-3 sentence description of the restaurant
@@ -83,6 +87,26 @@ Rules for Restaurant Description:
 - If no restaurant information is found, create a brief description based on the menu items and restaurant name
 - Make it sound professional and inviting
 - Example: "Chiang Mai Thai Restaurant offers authentic Northern Thai cuisine in the heart of the city. Specializing in traditional curries and noodle dishes, they bring the flavors of Thailand to your table with fresh ingredients and family recipes."
+
+Rules for Cuisine Type:
+- Identify the PRIMARY cuisine type from this list: Italian, Japanese, Mexican, American, Indian, Chinese, French, Korean, Mediterranean, Thai, Vietnamese, Spanish, Pakistani, Persian, Greek, Turkish, Lebanese, Middle Eastern, Ethiopian, Moroccan, Brazilian, Caribbean, African, Fusion, International
+- Return ONLY ONE cuisine type that best matches the restaurant
+- If multiple cuisines apply, choose the most prominent one
+- If unclear, infer from the menu items
+- Be specific when possible (e.g., "Pakistani" instead of "Indian" if the menu clearly shows Pakistani dishes)
+
+Rules for Restaurant Tags:
+- Tag the restaurant with relevant dietary/religious tags from this list ONLY: vegetarian, vegan, gluten-free, nut-allergy, shellfish-allergy, lactose-free, halal, kosher
+- ONLY include tags if the restaurant clearly accommodates that dietary restriction (e.g., has dedicated vegetarian/vegan options, is certified halal/kosher, etc.)
+- Do NOT include a tag unless there's clear evidence in the menu or description
+- Multiple tags can be included if applicable
+- If none apply or unclear, return empty array
+
+Rules for Menu Item Tags:
+- Tag individual menu items with relevant dietary/religious tags from the same list
+- Only tag items that clearly match the restriction (e.g., tag "Veggie Burger" as vegetarian and possibly vegan)
+- Be conservative - only add tags when certain
+- Multiple tags can be applied to a single item if applicable
 
 IMPORTANT FORMATTING RULES:
 - Capitalize all item names properly using title case (e.g., "Chicken Caesar Salad" not "chicken caesar salad" or "CHICKEN CAESAR SALAD")
@@ -111,6 +135,18 @@ IMPORTANT FORMATTING RULES:
                 type: "string",
                 description: "A concise, professional 2-3 sentence description of the restaurant including cuisine type and specialties"
               },
+              cuisine: {
+                type: "string",
+                description: "Primary cuisine type: Italian, Japanese, Mexican, American, Indian, Chinese, French, Korean, Mediterranean, Thai, Vietnamese, Spanish, Pakistani, Persian, Greek, Turkish, Lebanese, Middle Eastern, Ethiopian, Moroccan, Brazilian, Caribbean, African, Fusion, or International"
+              },
+              tags: {
+                type: "array",
+                items: {
+                  type: "string",
+                  enum: ["vegetarian", "vegan", "gluten-free", "nut-allergy", "shellfish-allergy", "lactose-free", "halal", "kosher"]
+                },
+                description: "Restaurant-level dietary/religious accommodation tags"
+              },
               categories: {
                 type: "array",
                 items: { type: "string" }
@@ -123,14 +159,21 @@ IMPORTANT FORMATTING RULES:
                     name: { type: "string" },
                     description: { type: ["string", "null"] },
                     price: { type: ["string", "null"] },
-                    category: { type: ["string", "null"] }
+                    category: { type: ["string", "null"] },
+                    tags: {
+                      type: "array",
+                      items: {
+                        type: "string",
+                        enum: ["vegetarian", "vegan", "gluten-free", "nut-allergy", "shellfish-allergy", "lactose-free", "halal", "kosher"]
+                      }
+                    }
                   },
-                  required: ["name", "description", "price", "category"],
+                  required: ["name", "description", "price", "category", "tags"],
                   additionalProperties: false
                 }
               }
             },
-            required: ["description", "items", "categories"],
+            required: ["description", "cuisine", "tags", "items", "categories"],
             additionalProperties: false
           }
         }

@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database.types';
 
+// Track ongoing scrape jobs to prevent duplicates
+const ongoingScrapeJobs = new Map<string, { startTime: number; promise: Promise<unknown> }>();
+
+// Clean up stale jobs after 5 minutes
+const SCRAPE_TIMEOUT = 5 * 60 * 1000;
+
 // Create admin client with service role key to bypass RLS
 function createAdminClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -17,6 +23,17 @@ function createAdminClient() {
       persistSession: false,
     },
   });
+}
+
+// Clean up stale scrape jobs
+function cleanupStaleJobs() {
+  const now = Date.now();
+  for (const [placeId, job] of ongoingScrapeJobs.entries()) {
+    if (now - job.startTime > SCRAPE_TIMEOUT) {
+      console.log(`🧹 [CLEANUP] Removing stale scrape job for ${placeId}`);
+      ongoingScrapeJobs.delete(placeId);
+    }
+  }
 }
 
 function generateSlug(name: string): string {
@@ -46,6 +63,33 @@ export async function POST(request: NextRequest) {
         { error: 'placeId is required' },
         { status: 400 }
       );
+    }
+
+    // Clean up stale jobs first
+    cleanupStaleJobs();
+
+    // Check if there's an ongoing scrape job for this place
+    const existingJob = ongoingScrapeJobs.get(placeId);
+    if (existingJob) {
+      const elapsed = Date.now() - existingJob.startTime;
+      console.log(`⏳ [WAIT] Scrape job already in progress for ${placeId} (${elapsed}ms elapsed)`);
+      console.log('⏳ [WAIT] Waiting for existing job to complete...');
+
+      try {
+        // Wait for the existing job to complete
+        await existingJob.promise;
+        console.log('✅ [WAIT] Existing job completed, returning success');
+      } catch (error) {
+        console.log('⚠️  [WAIT] Existing job failed, will retry');
+        ongoingScrapeJobs.delete(placeId);
+      }
+
+      // Return in-progress status
+      return NextResponse.json({
+        success: true,
+        message: 'Scrape job in progress',
+        inProgress: true,
+      });
     }
 
     console.log('🔧 [STEP 1/5] Creating admin Supabase client...');
@@ -78,6 +122,52 @@ export async function POST(request: NextRequest) {
     }
     console.log('✅ [STEP 2/5] Restaurant does not exist, proceeding with scrape');
 
+    // Create a promise for this scrape job and store it
+    const scrapePromise = (async () => {
+      try {
+        return await performScrape(placeId, address, latitude, longitude, phone, rating, supabase, startTime);
+      } finally {
+        // Clean up the job from the map when done
+        ongoingScrapeJobs.delete(placeId);
+      }
+    })();
+
+    // Store the job
+    ongoingScrapeJobs.set(placeId, {
+      startTime,
+      promise: scrapePromise,
+    });
+
+    console.log(`📌 [TRACK] Registered scrape job for ${placeId}`);
+
+    // Wait for the scrape to complete and return the result
+    return await scrapePromise;
+
+  } catch (error) {
+    const duration = Date.now() - startTime;
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('❌ [FATAL ERROR] Scrape-and-save endpoint failed');
+    console.error('❌ [ERROR] Details:', error);
+    console.log(`⏱️  [ERROR] Failed after ${duration}ms`);
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    return NextResponse.json(
+      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 500 }
+    );
+  }
+}
+
+// Extract the actual scrape logic into a separate function
+async function performScrape(
+  placeId: string,
+  address: string | undefined,
+  latitude: number | null | undefined,
+  longitude: number | null | undefined,
+  phone: string | undefined,
+  rating: number | undefined,
+  supabase: ReturnType<typeof createAdminClient>,
+  startTime: number
+) {
     // 2. Call the scraper endpoint
     console.log('🕷️  [STEP 3/5] Starting menu scraper...');
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
@@ -385,16 +475,4 @@ export async function POST(request: NextRequest) {
       message: 'Restaurant and menu saved successfully',
       alreadyExists: false,
     });
-  } catch (error) {
-    const duration = Date.now() - startTime;
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('❌ [FATAL ERROR] Scrape-and-save endpoint failed');
-    console.error('❌ [ERROR] Details:', error);
-    console.log(`⏱️  [ERROR] Failed after ${duration}ms`);
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    return NextResponse.json(
-      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
-    );
-  }
 }
