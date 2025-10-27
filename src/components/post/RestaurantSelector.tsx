@@ -116,8 +116,12 @@ export function RestaurantSelector({ onSelectRestaurant, onMediaSelected }: Rest
   }, []);
 
   const fetchNearbyRestaurants = React.useCallback(async () => {
-    if (!userLocation || !apiKey) return;
+    if (!userLocation || !apiKey) {
+      console.log('Cannot fetch nearby restaurants:', { userLocation, hasApiKey: !!apiKey });
+      return;
+    }
 
+    console.log('Fetching nearby restaurants...');
     try {
       setIsLoading(true);
 
@@ -146,6 +150,8 @@ export function RestaurantSelector({ onSelectRestaurant, onMediaSelected }: Rest
 
       const data = await response.json();
 
+      console.log('Nearby restaurants API response:', data);
+
       if (data.places) {
         const restaurants = data.places.map((place: Place) => {
           const distanceKm = place.location && userLocation ? calculateDistanceKm(userLocation, place.location) : Number.POSITIVE_INFINITY;
@@ -162,6 +168,10 @@ export function RestaurantSelector({ onSelectRestaurant, onMediaSelected }: Rest
         })
         .sort((a: Restaurant & { _distanceKm: number }, b: Restaurant & { _distanceKm: number }) => a._distanceKm - b._distanceKm)
         .map(({ _distanceKm: _, ...rest }: Restaurant & { _distanceKm: number }) => rest as Restaurant);
+
+        console.log('=== NEARBY RESTAURANTS ===');
+        console.log(JSON.stringify(restaurants, null, 2));
+        console.log('=========================');
 
         setNearbyRestaurants(restaurants);
       }
@@ -257,6 +267,7 @@ export function RestaurantSelector({ onSelectRestaurant, onMediaSelected }: Rest
       return;
     }
 
+    console.log('Searching for:', query);
     try {
       setIsLoading(true);
 
@@ -326,6 +337,11 @@ export function RestaurantSelector({ onSelectRestaurant, onMediaSelected }: Rest
           .filter((r): r is (Restaurant & { _distanceKm?: number }) => r !== null)
           .sort((a, b) => (a._distanceKm ?? Number.POSITIVE_INFINITY) - (b._distanceKm ?? Number.POSITIVE_INFINITY))
           .map(({ _distanceKm: _, ...rest }) => rest as Restaurant);
+
+        console.log('=== SEARCH SUGGESTIONS ===');
+        console.log(JSON.stringify(restaurants, null, 2));
+        console.log('=========================');
+
         setSuggestions(restaurants);
       }
     } catch (error) {
