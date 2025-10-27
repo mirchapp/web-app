@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import type { MenuItem, ParsedMenu } from "./menuParser";
+import type { ParsedMenu } from "./menuParser";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,

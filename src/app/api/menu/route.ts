@@ -98,8 +98,12 @@ export async function GET(request: NextRequest) {
       return [null, null];
     });
 
-    let websiteContent = websiteData || '';
+    let websiteContent = typeof websiteData === 'string' ? websiteData : websiteData?.text || '';
+    let websiteLogo = typeof websiteData === 'object' ? websiteData?.logo : undefined;
+    let websiteColors = typeof websiteData === 'object' ? websiteData?.colors : undefined;
     const googleMapsContent = googleMapsData?.text || '';
+    const googleMapsLogo = googleMapsData?.logo;
+    const googleMapsColors = googleMapsData?.colors;
     const menuUrlFromGoogleMaps = googleMapsData?.menuUrl;
 
     // If Google Maps found an external menu URL and we don't have website data, scrape it
@@ -110,11 +114,13 @@ export async function GET(request: NextRequest) {
       try {
         const externalMenuData = await scrapeRestaurantMenuWithPuppeteer(menuUrlFromGoogleMaps);
         if (externalMenuData) {
-          websiteContent = externalMenuData;
+          websiteContent = typeof externalMenuData === 'string' ? externalMenuData : externalMenuData.text;
+          websiteLogo = typeof externalMenuData === 'object' ? externalMenuData.logo : undefined;
+          websiteColors = typeof externalMenuData === 'object' ? externalMenuData.colors : undefined;
           console.log('✅ Successfully scraped external menu:', websiteContent.length, 'chars');
         }
-      } catch (err: any) {
-        console.error('❌ Failed to scrape external menu URL:', err.message);
+      } catch (err) {
+        console.error('❌ Failed to scrape external menu URL:', err instanceof Error ? err.message : 'Unknown error');
       }
     }
 
@@ -142,17 +148,27 @@ ${googleMapsContent ? `${googleMapsContent}` : ''}
       menu = await parseMenuWithGPT(contentToSend, name, websiteContent.length > 0);
     }
 
+    // Determine best logo and colors (prefer website, fallback to Google Maps)
+    const logo = websiteLogo || googleMapsLogo || undefined;
+    const colors = websiteColors || googleMapsColors || undefined;
+
     const payload = {
       restaurant: {
         name,
         websiteUrl,
         city,
-        currency
+        currency,
+        logo,
+        colors
       },
       menu: menu || { items: [] },
       debug: {
         websiteScraperOutput: websiteContent,
         googleMapsScraperOutput: googleMapsContent,
+        websiteLogo,
+        googleMapsLogo,
+        websiteColors,
+        googleMapsColors,
         gptInput: gptInput,
         inputLength: gptInput.length
       }

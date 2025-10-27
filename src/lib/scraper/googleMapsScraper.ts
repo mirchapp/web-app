@@ -2,10 +2,20 @@ import puppeteer, { Page } from 'puppeteer';
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
+interface ColorPalette {
+  primary?: string;
+  secondary?: string;
+  accent?: string;
+  text?: string;
+  background?: string;
+}
+
 interface MenuData {
   text: string;
   images: string[];
   menuUrl?: string;
+  logo?: string;
+  colors?: ColorPalette;
 }
 
 /**
@@ -42,12 +52,18 @@ export async function scrapeGoogleMapsMenu(placeId: string): Promise<MenuData | 
     // Check for external menu link
     const menuUrl = await extractMenuLink(page);
 
+    // Extract logo and colors from Google Maps business profile
+    const logo = await extractGoogleMapsLogo(page);
+    const colors = await extractGoogleMapsColors(page);
+
     // Try to find and click Menu tab
     const menuTabFound = await findAndClickMenuTab(page);
 
     if (!menuTabFound) {
       await browser.close();
-      return menuUrl ? { text: '', images: [], menuUrl: menuUrl } : null;
+      return menuUrl
+        ? { text: '', images: [], menuUrl: menuUrl, logo: logo || undefined, colors: Object.keys(colors).length > 0 ? colors : undefined }
+        : null;
     }
 
     await delay(500);
@@ -82,9 +98,9 @@ export async function scrapeGoogleMapsMenu(placeId: string): Promise<MenuData | 
     await browser.close();
 
     return allMenuContent.length >= 100
-      ? { text: allMenuContent, images: [], menuUrl: menuUrl || undefined }
+      ? { text: allMenuContent, images: [], menuUrl: menuUrl || undefined, logo: logo || undefined, colors: Object.keys(colors).length > 0 ? colors : undefined }
       : null;
-  } catch (error) {
+  } catch {
     if (browser) {
       try {
         await browser.close();
@@ -239,4 +255,142 @@ async function extractGoogleMapsMenuText(page: Page): Promise<string> {
   });
 
   return menuContent;
+}
+
+/**
+ * Extract logo from Google Maps business profile
+ */
+async function extractGoogleMapsLogo(page: Page): Promise<string | null> {
+  try {
+    const logo = await page.evaluate(() => {
+      // Google Maps displays business logo/profile image
+      // Look for the main business image in the header area
+      const images = Array.from(document.querySelectorAll('img'));
+
+      for (const img of images) {
+        const src = img.src || '';
+        const alt = (img.alt || '').toLowerCase();
+
+        // Google Maps business profile images often have specific patterns
+        // They're usually in googleusercontent.com domain
+        if (src.includes('googleusercontent.com') || src.includes('gstatic.com')) {
+          const rect = img.getBoundingClientRect();
+          // Profile/logo images are usually larger (not tiny icons)
+          if (rect.width >= 80 && rect.height >= 80 && rect.width <= 500 && rect.height <= 500) {
+            // Avoid map tiles and UI elements
+            if (!src.includes('/vt/') && !src.includes('maps_api_') && !alt.includes('map')) {
+              return src;
+            }
+          }
+        }
+      }
+
+      // Fallback: Look for largest image in the side panel
+      const sidePanel = document.querySelector('[role="main"]');
+      if (sidePanel) {
+        const panelImages = Array.from(sidePanel.querySelectorAll('img'));
+        let largestImg: HTMLImageElement | null = null;
+        let largestArea = 0;
+
+        for (const img of panelImages) {
+          const rect = img.getBoundingClientRect();
+          const area = rect.width * rect.height;
+          const src = img.src || '';
+
+          if (
+            area > largestArea &&
+            area >= 6400 && // At least 80x80
+            area <= 250000 && // Max 500x500
+            src.startsWith('http') &&
+            !src.includes('/vt/') &&
+            !src.includes('maps_api_')
+          ) {
+            largestArea = area;
+            largestImg = img;
+          }
+        }
+
+        if (largestImg) return largestImg.src;
+      }
+
+      return null;
+    });
+
+    return logo;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Extract colors from Google Maps photos/images
+ * Returns minimal palette since Google Maps has limited custom branding
+ */
+async function extractGoogleMapsColors(page: Page): Promise<ColorPalette> {
+  try {
+    const palette = await page.evaluate(() => {
+      const bgColorMap = new Map<string, number>();
+      const textColorMap = new Map<string, number>();
+
+      function toHex(color: string): string | null {
+        if (!color || color === 'transparent' || color === 'inherit') return null;
+
+        if (color.startsWith('#')) {
+          return color.length === 7 ? color.toUpperCase() : null;
+        }
+
+        const rgbMatch = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+        if (rgbMatch) {
+          const r = parseInt(rgbMatch[1]);
+          const g = parseInt(rgbMatch[2]);
+          const b = parseInt(rgbMatch[3]);
+
+          if (r > 240 && g > 240 && b > 240) return null;
+          if (r < 15 && g < 15 && b < 15) return null;
+
+          return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('').toUpperCase();
+        }
+
+        return null;
+      }
+
+      // Check side panel elements for any custom colors
+      const sidePanel = document.querySelector('[role="main"]');
+      if (sidePanel) {
+        const elements = Array.from(sidePanel.querySelectorAll('*'));
+
+        for (const el of elements) {
+          if (el instanceof HTMLElement) {
+            const style = window.getComputedStyle(el);
+
+            const bgColor = toHex(style.backgroundColor);
+            if (bgColor) bgColorMap.set(bgColor, (bgColorMap.get(bgColor) || 0) + 1);
+
+            const textColor = toHex(style.color);
+            if (textColor) textColorMap.set(textColor, (textColorMap.get(textColor) || 0) + 1);
+          }
+        }
+      }
+
+      const palette: { primary?: string; secondary?: string; accent?: string; text?: string; background?: string } = {};
+
+      const bgColors = Array.from(bgColorMap.entries())
+        .sort((a, b) => b[1] - a[1])
+        .map(([color]) => color);
+
+      const textColors = Array.from(textColorMap.entries())
+        .sort((a, b) => b[1] - a[1])
+        .map(([color]) => color);
+
+      if (bgColors.length > 0) palette.primary = bgColors[0];
+      if (textColors.length > 0) palette.text = textColors[0];
+      if (bgColors.length > 1) palette.background = bgColors[1];
+
+      return palette;
+    });
+
+    return palette;
+  } catch {
+    return {};
+  }
 }

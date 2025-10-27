@@ -2,12 +2,26 @@ import puppeteer, { Page } from 'puppeteer';
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
+interface ColorPalette {
+  primary?: string;
+  secondary?: string;
+  accent?: string;
+  text?: string;
+  background?: string;
+}
+
+interface WebsiteData {
+  text: string;
+  logo?: string;
+  colors?: ColorPalette;
+}
+
 /**
  * Production-grade restaurant menu scraper
  * Handles: dropdowns, multi-location menus, lazy loading, popups, tabs
  * Optimized for speed and reliability
  */
-export async function scrapeRestaurantMenuWithPuppeteer(url: string): Promise<string | null> {
+export async function scrapeRestaurantMenuWithPuppeteer(url: string): Promise<WebsiteData | null> {
   let browser = null;
 
   try {
@@ -47,15 +61,23 @@ export async function scrapeRestaurantMenuWithPuppeteer(url: string): Promise<st
     // Click through categories and collect all text
     const allContent = await clickThroughCategoriesAndExtract(page);
 
+    // Extract logo and colors
+    const logo = await extractLogo(page);
+    const colors = await extractColorPalette(page);
+
     console.log('[Scraper] Extracted', allContent.length, 'characters total');
+    console.log('[Scraper] Logo found:', logo ? 'Yes' : 'No');
+    console.log('[Scraper] Colors found:', Object.keys(colors).length);
     console.log('[Scraper] Current URL:', await page.url());
     console.log('[Scraper] Waiting 3 seconds before closing...');
     await delay(3000);
 
     await browser.close();
 
-    return allContent.length >= 200 ? allContent : null;
-  } catch (error) {
+    return allContent.length >= 200
+      ? { text: allContent, logo: logo || undefined, colors: Object.keys(colors).length > 0 ? colors : undefined }
+      : null;
+  } catch {
     if (browser) {
       try {
         await browser.close();
@@ -539,4 +561,231 @@ async function scrollForLazyContent(page: Page): Promise<void> {
       scrollables.forEach(el => el.scrollTop = 0);
     });
   } catch {}
+}
+
+/**
+ * Extract logo from website
+ * Looks for logo in common locations and validates it
+ */
+async function extractLogo(page: Page): Promise<string | null> {
+  try {
+    const logo = await page.evaluate(() => {
+      // Strategy 1: Look for images with "logo" in src, alt, class, or id
+      const images = Array.from(document.querySelectorAll('img'));
+
+      for (const img of images) {
+        const src = img.src || '';
+        const alt = (img.alt || '').toLowerCase();
+        const className = (img.className || '').toLowerCase();
+        const id = (img.id || '').toLowerCase();
+
+        // Check if this looks like a logo
+        const isLogo =
+          alt.includes('logo') ||
+          className.includes('logo') ||
+          id.includes('logo') ||
+          src.toLowerCase().includes('logo');
+
+        if (isLogo && src && src.startsWith('http')) {
+          // Validate it's not too small (likely actual logo, not icon)
+          const rect = img.getBoundingClientRect();
+          if (rect.width >= 60 || rect.height >= 60) {
+            return src;
+          }
+        }
+      }
+
+      // Strategy 2: Look in header/nav for largest image
+      const header = document.querySelector('header, nav, [class*="header"], [class*="nav"]');
+      if (header) {
+        const headerImages = Array.from(header.querySelectorAll('img'));
+        let largestImg: HTMLImageElement | null = null;
+        let largestArea = 0;
+
+        for (const img of headerImages) {
+          const rect = img.getBoundingClientRect();
+          const area = rect.width * rect.height;
+          if (area > largestArea && area >= 3600 && img.src && img.src.startsWith('http')) {
+            largestArea = area;
+            largestImg = img;
+          }
+        }
+
+        if (largestImg) return largestImg.src;
+      }
+
+      // Strategy 3: Check for SVG logos
+      const svgs = Array.from(document.querySelectorAll('svg'));
+      for (const svg of svgs) {
+        const className = (svg.className.baseVal || '').toLowerCase();
+        const id = (svg.id || '').toLowerCase();
+
+        if (className.includes('logo') || id.includes('logo')) {
+          // Try to get parent link's href or convert SVG to data URL
+          const parent = svg.closest('a');
+          if (parent) {
+            const img = svg.querySelector('image');
+            if (img) {
+              const href = img.getAttribute('href') || img.getAttribute('xlink:href');
+              if (href && href.startsWith('http')) return href;
+            }
+          }
+        }
+      }
+
+      return null;
+    });
+
+    return logo;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Extract brand color palette from website
+ * Returns labeled color palette with primary, secondary, accent, text, and background colors
+ */
+async function extractColorPalette(page: Page): Promise<ColorPalette> {
+  try {
+    return await page.evaluate(() => {
+      const bgColorMap = new Map<string, number>();
+      const textColorMap = new Map<string, number>();
+      const brandColorMap = new Map<string, number>();
+
+      // Helper to convert any color to hex
+      function toHex(color: string): string | null {
+        if (!color || color === 'transparent' || color === 'inherit' || color === 'initial') return null;
+
+        // Already hex
+        if (color.startsWith('#')) {
+          return color.length === 7 ? color.toUpperCase() : null;
+        }
+
+        // RGB/RGBA
+        const rgbMatch = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+        if (rgbMatch) {
+          const r = parseInt(rgbMatch[1]);
+          const g = parseInt(rgbMatch[2]);
+          const b = parseInt(rgbMatch[3]);
+
+          // Ignore very light colors (likely backgrounds)
+          if (r > 240 && g > 240 && b > 240) return null;
+          // Ignore very dark colors close to black
+          if (r < 15 && g < 15 && b < 15) return null;
+
+          const hex = '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('').toUpperCase();
+          return hex;
+        }
+
+        return null;
+      }
+
+      // Collect colors from various sources
+      const elements = Array.from(document.querySelectorAll('*'));
+
+      for (const el of elements) {
+        if (el instanceof HTMLElement) {
+          const style = window.getComputedStyle(el);
+
+          // Background colors
+          const bgColor = toHex(style.backgroundColor);
+          if (bgColor) {
+            bgColorMap.set(bgColor, (bgColorMap.get(bgColor) || 0) + 1);
+          }
+
+          // Text colors
+          const textColor = toHex(style.color);
+          if (textColor) {
+            textColorMap.set(textColor, (textColorMap.get(textColor) || 0) + 1);
+          }
+
+          // Check for brand/important elements (header, nav, buttons, links)
+          const isBrandElement =
+            el.tagName === 'HEADER' ||
+            el.tagName === 'NAV' ||
+            el.tagName === 'BUTTON' ||
+            (el.tagName === 'A' && el.closest('header, nav')) ||
+            el.classList.contains('header') ||
+            el.classList.contains('nav') ||
+            el.classList.contains('button') ||
+            el.classList.contains('btn') ||
+            el.classList.contains('brand') ||
+            el.classList.contains('cta') ||
+            el.classList.contains('primary');
+
+          // Collect brand colors with extra weight
+          if (isBrandElement) {
+            if (bgColor) brandColorMap.set(bgColor, (brandColorMap.get(bgColor) || 0) + 10);
+            if (textColor) brandColorMap.set(textColor, (brandColorMap.get(textColor) || 0) + 5);
+
+            const borderColor = toHex(style.borderColor);
+            if (borderColor) brandColorMap.set(borderColor, (brandColorMap.get(borderColor) || 0) + 3);
+          }
+        }
+      }
+
+      // Helper to get distinct colors
+      function getDistinctColors(colorMap: Map<string, number>, excludeColors: string[] = []): string[] {
+        return Array.from(colorMap.entries())
+          .sort((a, b) => b[1] - a[1])
+          .map(([color]) => color)
+          .filter(color => {
+            // Exclude already selected colors
+            if (excludeColors.includes(color)) return false;
+
+            // Check if too similar to excluded colors
+            const rgb1 = color.match(/#(..)(..)(..)/)!.slice(1).map(x => parseInt(x, 16));
+
+            for (const excluded of excludeColors) {
+              const rgb2 = excluded.match(/#(..)(..)(..)/)!.slice(1).map(x => parseInt(x, 16));
+              const distance = Math.sqrt(
+                Math.pow(rgb1[0] - rgb2[0], 2) +
+                Math.pow(rgb1[1] - rgb2[1], 2) +
+                Math.pow(rgb1[2] - rgb2[2], 2)
+              );
+
+              if (distance < 30) return false;
+            }
+
+            return true;
+          });
+      }
+
+      // Build palette
+      const palette: { primary?: string; secondary?: string; accent?: string; text?: string; background?: string } = {};
+
+      // Primary: Most prominent brand color (from buttons, headers, nav)
+      const brandColors = getDistinctColors(brandColorMap);
+      if (brandColors.length > 0) {
+        palette.primary = brandColors[0];
+      }
+
+      // Secondary: Second most prominent brand color
+      if (brandColors.length > 1) {
+        palette.secondary = brandColors[1];
+      }
+
+      // Accent: Third brand color or a contrasting color
+      if (brandColors.length > 2) {
+        palette.accent = brandColors[2];
+      }
+
+      // Text: Most common text color (excluding black/near-black already filtered)
+      const textColors = getDistinctColors(textColorMap, [palette.primary, palette.secondary, palette.accent].filter(Boolean) as string[]);
+      if (textColors.length > 0) {
+        palette.text = textColors[0];
+      }
+
+      // Background: Most common background color
+      const bgColors = getDistinctColors(bgColorMap, [palette.primary, palette.secondary, palette.accent].filter(Boolean) as string[]);
+      if (bgColors.length > 0) {
+        palette.background = bgColors[0];
+      }
+
+      return palette;
+    });
+  } catch {
+    return {};
+  }
 }

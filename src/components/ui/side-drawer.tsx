@@ -24,7 +24,7 @@ export function SideDrawer({
   title,
   headerTopPadding,
   zIndex = 60,
-  fixedBackButton = true,
+  fixedBackButton: _fixedBackButton = true,
 }: SideDrawerProps) {
   const [isClosing, setIsClosing] = React.useState(false);
   const scrollRef = React.useRef<HTMLDivElement>(null);

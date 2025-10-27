@@ -19,7 +19,7 @@ export interface ParsedMenu {
 
 function preprocessMenuContent(content: string): string {
   // Remove common noise patterns to reduce content size while preserving menu data
-  let cleaned = content
+  const cleaned = content
     // Remove common non-menu sections (but preserve structure)
     .replace(/privacy policy[^\n]*/gi, '')
     .replace(/terms of service[^\n]*/gi, '')
