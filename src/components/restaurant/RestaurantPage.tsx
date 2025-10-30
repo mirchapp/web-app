@@ -7,7 +7,16 @@ import { Star, MapPin, Phone, Search, X, ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useSafeArea } from '@/hooks/useSafeArea';
 import { StreamingMenuSkeleton } from './StreamingMenuSkeleton';
+import { MenuItemDrawer } from './MenuItemDrawer';
 import type { Restaurant } from '@/types/video';
+
+interface MenuItem {
+  id: string;
+  name: string;
+  description?: string | null;
+  price?: string | null;
+  image?: string | null;
+}
 
 interface RestaurantPageProps {
   isOpen: boolean;
@@ -105,6 +114,8 @@ export function RestaurantPage({ isOpen, onClose, restaurant, isLoading = false,
   const touchCurrentY = React.useRef<number>(0);
   const isDraggingHorizontally = React.useRef<boolean | null>(null);
   const _safeAreaInsets = useSafeArea();
+  const [selectedMenuItem, setSelectedMenuItem] = React.useState<MenuItem | null>(null);
+  const [isMenuItemDrawerOpen, setIsMenuItemDrawerOpen] = React.useState(false);
 
   // Memoize star positions to prevent recalculation on every render
   const starPositions = React.useMemo(() => {
@@ -124,6 +135,19 @@ export function RestaurantPage({ isOpen, onClose, restaurant, isLoading = false,
       setIsClosing(false);
       onClose();
     }, 300);
+  };
+
+  const handleMenuItemClick = (item: MenuItem) => {
+    setSelectedMenuItem(item);
+    setIsMenuItemDrawerOpen(true);
+  };
+
+  const handleMenuItemDrawerClose = () => {
+    setIsMenuItemDrawerOpen(false);
+    // Clear selected item after drawer animation completes
+    setTimeout(() => {
+      setSelectedMenuItem(null);
+    }, 600);
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -275,24 +299,26 @@ export function RestaurantPage({ isOpen, onClose, restaurant, isLoading = false,
   // Modifying it here would interfere with VideoFeed's scroll prevention when closing
 
   return (
-    <AnimatePresence mode="wait">
-      {isOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: isClosing ? 0 : 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ type: 'tween', duration: 0.3, ease: 'easeOut' }}
-          className="fixed z-50 bg-black/50 backdrop-blur-sm touch-manipulation"
-          onClick={handleClose}
-          style={{ 
-            top: `calc(-1 * env(safe-area-inset-top))`,
-            left: `calc(-1 * env(safe-area-inset-left))`,
-            right: `calc(-1 * env(safe-area-inset-right))`,
-            bottom: `calc(-1 * env(safe-area-inset-bottom))`,
-            willChange: 'opacity', 
-            pointerEvents: isClosing ? 'none' : 'auto' 
-          }}
-        >
+    <>
+      <AnimatePresence mode="wait">
+        {isOpen && (
+          <motion.div
+            key="restaurant-page"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: isClosing ? 0 : 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ type: 'tween', duration: 0.3, ease: 'easeOut' }}
+            className="fixed z-50 bg-black/50 backdrop-blur-sm touch-manipulation"
+            onClick={handleClose}
+            style={{
+              top: `calc(-1 * env(safe-area-inset-top))`,
+              left: `calc(-1 * env(safe-area-inset-left))`,
+              right: `calc(-1 * env(safe-area-inset-right))`,
+              bottom: `calc(-1 * env(safe-area-inset-bottom))`,
+              willChange: 'opacity',
+              pointerEvents: isClosing ? 'none' : 'auto'
+            }}
+          >
           <motion.div
             ref={cardRef}
             initial={{ x: '100%' }}
@@ -628,7 +654,17 @@ export function RestaurantPage({ isOpen, onClose, restaurant, isLoading = false,
                         <h3 className="text-base font-light text-gray-500 dark:text-foreground/60 mb-5 tracking-wide">Popular Dishes</h3>
                         <div className="space-y-3">
                           {restaurant.popularDishes.map((dish, index) => (
-                            <div key={index} className="flex gap-3 p-4 rounded-[14px] bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/5 shadow-sm dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] hover:border-purple-200 dark:hover:border-purple-500/20 transition-all duration-200 hover:shadow-[0_4px_20px_rgba(138,66,214,0.15),0_0_0_1px_rgba(138,66,214,0.1)] hover:-translate-y-0.5">
+                            <button
+                              key={index}
+                              onClick={() => handleMenuItemClick({
+                                id: `popular-${index}`,
+                                name: dish.name,
+                                description: dish.description,
+                                price: `$${dish.price.toFixed(2)}`,
+                                image: dish.image,
+                              })}
+                              className="w-full text-left flex gap-3 p-4 rounded-[14px] bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/5 shadow-sm dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] hover:border-purple-200 dark:hover:border-purple-500/20 transition-all duration-200 hover:shadow-[0_4px_20px_rgba(138,66,214,0.15),0_0_0_1px_rgba(138,66,214,0.1)] hover:-translate-y-0.5 cursor-pointer active:scale-[0.98]"
+                            >
                               <div className="h-20 w-20 rounded-[12px] overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-muted ring-1 ring-gray-200 dark:ring-black/5">
                                 <Image
                                   src={dish.image}
@@ -671,7 +707,7 @@ export function RestaurantPage({ isOpen, onClose, restaurant, isLoading = false,
                                   <span className="text-xs text-gray-400 dark:text-white/35 font-light">{(23 + index * 5)} reviews</span>
                                 </div>
                               </div>
-                            </div>
+                            </button>
                           ))}
                         </div>
                       </div>
@@ -788,9 +824,10 @@ export function RestaurantPage({ isOpen, onClose, restaurant, isLoading = false,
                               </h4>
                               <div className="space-y-3">
                                 {category.Menu_Item.map((item) => (
-                                  <div
+                                  <button
                                     key={item.id}
-                                    className="flex gap-3 p-4 rounded-[14px] bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/5 shadow-sm dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] hover:border-purple-200 dark:hover:border-purple-500/20 transition-all duration-200"
+                                    onClick={() => handleMenuItemClick(item)}
+                                    className="w-full text-left flex gap-3 p-4 rounded-[14px] bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/5 shadow-sm dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] hover:border-purple-200 dark:hover:border-purple-500/20 transition-all duration-200 cursor-pointer active:scale-[0.98]"
                                     style={{
                                       borderColor: restaurant.accentColor ? `${restaurant.accentColor}20` : undefined,
                                     }}
@@ -818,7 +855,7 @@ export function RestaurantPage({ isOpen, onClose, restaurant, isLoading = false,
                                         <p className="text-sm text-gray-600 dark:text-white/50 mb-2 line-clamp-2 font-light">{item.description}</p>
                                       )}
                                     </div>
-                                  </div>
+                                  </button>
                                 ))}
                               </div>
                             </div>
@@ -833,7 +870,21 @@ export function RestaurantPage({ isOpen, onClose, restaurant, isLoading = false,
             </div>
           </motion.div>
         </motion.div>
-      )}
-    </AnimatePresence>
+        )}
+      </AnimatePresence>
+
+      {/* Menu Item Drawer */}
+      <MenuItemDrawer
+        isOpen={isMenuItemDrawerOpen}
+        onClose={handleMenuItemDrawerClose}
+        item={selectedMenuItem}
+        restaurantName={restaurant.name}
+        restaurantLogo={restaurant.logo || undefined}
+        primaryColor={restaurant.primaryColor || undefined}
+        secondaryColor={restaurant.secondaryColor || undefined}
+        accentColor={restaurant.accentColor || undefined}
+        zIndex={60}
+      />
+    </>
   );
 }
