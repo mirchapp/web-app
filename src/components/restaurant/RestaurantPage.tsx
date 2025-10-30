@@ -522,18 +522,18 @@ export function RestaurantPage({ isOpen, onClose, restaurant, isLoading = false,
                         Directions
                       </Button>
                       <Button
+                        asChild
                         className="flex-1 h-11 rounded-[14px] font-light transition-all duration-200 backdrop-blur-md border-0"
                         style={{
                           color: readableTextColor,
                           backgroundColor: `${restaurant.primaryColor || '#8A42D6'}15`,
                           boxShadow: `inset 0 0 0 1px ${readableTextColor}60`,
                         }}
-                        onClick={() => {
-                          window.open(`tel:${restaurant.phone}`);
-                        }}
                       >
-                        <Phone className="h-4 w-4 mr-2" />
-                        Call
+                        <a href={`tel:${restaurant.phone}`}>
+                          <Phone className="h-4 w-4 mr-2" />
+                          Call
+                        </a>
                       </Button>
                     </div>
 
