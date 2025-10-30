@@ -198,7 +198,7 @@ export function FollowersDrawer({
       headerTopPadding="calc(env(safe-area-inset-top, 0px) + 2rem)"
       zIndex={zIndex}
     >
-      <div className="px-5 sm:px-6 pb-8 max-w-md mx-auto relative z-10">
+      <div className="px-5 sm:px-6 pb-8 max-w-md mx-auto relative z-10 mt-4">
         {loading ? (
             <div className="space-y-3">
               {[...Array(5)].map((_, i) => (

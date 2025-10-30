@@ -183,54 +183,72 @@ export function FindHome() {
   const handleRestaurantClick = async (restaurant: Restaurant) => {
     console.log('🍽️  Restaurant clicked:', restaurant.name);
 
+    // IMMEDIATELY open the page with placeholder data for instant responsiveness
+    setSelectedRestaurant(restaurant);
+    setShowRestaurantPage(true);
+    setIsScraperLoading(true);
+    setScraperStatus({
+      step: 'Loading...',
+      details: '',
+      currentStep: 1,
+      totalSteps: 2,
+    });
+
     try {
-      // First, check if restaurant exists in database
+      // Check if restaurant exists in database (in background)
       console.log('🔍 Checking if restaurant exists in DB...');
       const checkResponse = await fetch(`/api/restaurant/get?placeId=${restaurant.id}`);
-      const checkData = await checkResponse.json();
 
-      if (checkData.exists && checkData.restaurant) {
-        console.log('✅ Restaurant found in DB, using stored data');
-        console.log('📊 Categories:', checkData.restaurant.Menu_Category?.length || 0);
-        console.log('📊 Logo:', checkData.restaurant.logo_url ? 'Yes' : 'No');
-        console.log('📊 Colors:', checkData.restaurant.primary_colour ? 'Yes' : 'No');
+      // Handle non-JSON responses
+      if (!checkResponse.ok) {
+        console.error('Failed to check restaurant in DB:', checkResponse.status);
+        // Continue to scraping if DB check fails
+        console.log('⚠️  DB check failed, proceeding to scraping...');
+      } else {
+        const checkData = await checkResponse.json();
 
-        // Use data from database - transform to Restaurant type
-        const dbRestaurant: Restaurant = {
-          id: checkData.restaurant.google_place_id,
-          name: checkData.restaurant.name,
-          logo: checkData.restaurant.logo_url || '',
-          verified: checkData.restaurant.verified || false,
-          rating: checkData.restaurant.rating || 0,
-          distance: restaurant.distance || '',
-          address: checkData.restaurant.address || '',
-          phone: checkData.restaurant.phone || '',
-          // Add DB-specific fields
-          slug: checkData.restaurant.slug,
-          description: checkData.restaurant.description,
-          primaryColor: checkData.restaurant.primary_colour,
-          secondaryColor: checkData.restaurant.secondary_colour,
-          accentColor: checkData.restaurant.accent_colour,
-          categories: checkData.restaurant.Menu_Category || [],
-          fromDatabase: true,
-        };
+        if (checkData.exists && checkData.restaurant) {
+          console.log('✅ Restaurant found in DB, using stored data');
+          console.log('📊 Categories:', checkData.restaurant.Menu_Category?.length || 0);
+          console.log('📊 Logo:', checkData.restaurant.logo_url ? 'Yes' : 'No');
+          console.log('📊 Colors:', checkData.restaurant.primary_colour ? 'Yes' : 'No');
 
-        setSelectedRestaurant(dbRestaurant);
-        setShowRestaurantPage(true);
-        return; // Don't scrape if we have data
+          // Use data from database - transform to Restaurant type
+          const dbRestaurant: Restaurant = {
+            id: checkData.restaurant.google_place_id,
+            name: checkData.restaurant.name,
+            logo: checkData.restaurant.logo_url || '',
+            verified: checkData.restaurant.verified || false,
+            rating: checkData.restaurant.rating || 0,
+            distance: restaurant.distance || '',
+            address: checkData.restaurant.address || '',
+            phone: checkData.restaurant.phone || '',
+            // Add DB-specific fields
+            slug: checkData.restaurant.slug,
+            description: checkData.restaurant.description,
+            primaryColor: checkData.restaurant.primary_colour,
+            secondaryColor: checkData.restaurant.secondary_colour,
+            accentColor: checkData.restaurant.accent_colour,
+            categories: checkData.restaurant.Menu_Category || [],
+            fromDatabase: true,
+          };
+
+          // Update with full data
+          setSelectedRestaurant(dbRestaurant);
+          setIsScraperLoading(false);
+          setScraperStatus(undefined);
+          return; // Don't scrape if we have data
+        }
       }
 
-      console.log('⚠️  Restaurant not in DB, opening page and triggering streaming scrape...');
+      console.log('⚠️  Restaurant not in DB, starting streaming scrape...');
 
-      // Open page with placeholder data and show loading state
-      setSelectedRestaurant(restaurant);
-      setShowRestaurantPage(true);
-      setIsScraperLoading(true);
+      // Update status for scraping
       setScraperStatus({
-        step: 'Initializing scraper...',
-        details: 'Preparing to fetch menu data',
+        step: 'Finding menu...',
+        details: '',
         currentStep: 1,
-        totalSteps: 6,
+        totalSteps: 2,
       });
 
       // Use EventSource for streaming
@@ -603,7 +621,7 @@ export function FindHome() {
                   Places
                 </h3>
               </div>
-              <div className="space-y-1">
+              <div className="space-y-3">
                 {restaurantResults.map((restaurant) => (
                   <RestaurantItem
                     key={restaurant.id}
@@ -611,12 +629,15 @@ export function FindHome() {
                     onClick={() => handleRestaurantClick({
                       id: restaurant.placeId,
                       name: restaurant.name,
-                      logo: restaurant.photo || '',
-                      verified: false,
+                      logo: restaurant.logo_url || restaurant.photo || '',
+                      verified: restaurant.verified || false,
                       rating: restaurant.rating || 0,
                       distance: restaurant.distance || '',
                       address: restaurant.address,
                       phone: '',
+                      primaryColor: restaurant.primaryColor,
+                      secondaryColor: restaurant.secondaryColor,
+                      accentColor: restaurant.accentColor,
                     })}
                   />
                 ))}
@@ -932,15 +953,31 @@ function RestaurantItem({ restaurant, onClick }: RestaurantItemProps) {
         )}
       >
         {displayImage ? (
-          <Image
-            src={displayImage}
-            alt={restaurant.name}
-            fill
+          <div
             className={cn(
-              "object-cover",
-              isInDatabase && "object-contain p-1 bg-white dark:bg-gray-900"
+              "w-full h-full",
+              // Add white background for PNG/SVG logos (likely transparent)
+              (() => {
+                const url = displayImage.toLowerCase();
+                const urlWithoutParams = url.split('?')[0];
+                const isPngOrSvg = urlWithoutParams.endsWith('.png') ||
+                                  urlWithoutParams.endsWith('.svg') ||
+                                  urlWithoutParams.includes('.png/') ||
+                                  urlWithoutParams.includes('.svg/');
+                return isPngOrSvg ? "bg-white dark:bg-white" : "";
+              })()
             )}
-          />
+          >
+            <Image
+              src={displayImage}
+              alt={restaurant.name}
+              fill
+              className={cn(
+                "object-cover",
+                isInDatabase && "object-contain p-1"
+              )}
+            />
+          </div>
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gray-50/50 dark:bg-white/[0.03]">
             <MapPin className="h-7 w-7 text-gray-300 dark:text-white/20" />
@@ -950,23 +987,16 @@ function RestaurantItem({ restaurant, onClick }: RestaurantItemProps) {
 
       {/* Restaurant Info */}
       <div className="flex-1 min-w-0 z-10">
-        <div className="flex items-center gap-2">
-          <p
-            className={cn(
-              "text-[15px] font-semibold truncate mb-0.5",
-              isInDatabase
-                ? "text-purple-900 dark:text-purple-200"
-                : "text-gray-900 dark:text-white"
-            )}
-          >
-            {restaurant.name}
-          </p>
-          {isInDatabase && (
-            <span className="flex-shrink-0 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide rounded-full bg-purple-500/20 dark:bg-purple-400/30 text-purple-700 dark:text-purple-300 border border-purple-400/50 dark:border-purple-300/30">
-              In Mirch
-            </span>
+        <p
+          className={cn(
+            "text-[15px] font-semibold truncate mb-0.5",
+            isInDatabase
+              ? "text-purple-900 dark:text-purple-200"
+              : "text-gray-900 dark:text-white"
           )}
-        </div>
+        >
+          {restaurant.name}
+        </p>
         {restaurant.address && (
           <p
             className={cn(

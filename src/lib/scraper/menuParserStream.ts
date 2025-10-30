@@ -32,204 +32,212 @@ export async function streamParseMenuWithGPT(
     const preprocessed = preprocessMenuContent(content);
     console.log(`[Menu Parser] Starting parse (${preprocessed.length} chars)...`);
 
-    const textPrompt = `Extract menu items and restaurant information from the following content. Be concise.
+    const textPrompt = `You will be given raw menu content for a restaurant. Stream newline-delimited JSON (NDJSON) events that describe the restaurant and its menu as soon as information becomes available.
 
 Restaurant: ${restaurantName}
+Has website data: ${hasWebsiteData ? "yes" : "no"}
 
-Text Content:
+Text Content (preprocessed):
 ${preprocessed}
 
-Rules for Menu Items:
-- Extract only food and drink items with their full details
-- For each item, include the name, description (if any text describes the item), and price
-- Descriptions may appear on the same line or nearby lines - capture any descriptive text about each menu item
-- Include prices if available (keep currency symbols like $)
-- Group items by category if possible
-- If a field is not available, use null (not empty string)
-- If no clear menu is found, return an empty items array
-- Do not make up items - only extract what you see in the text
-- Keep the category structure the same as it appears on the restaurant's website
+Output Specification:
+- Every line you emit MUST be a single JSON object with the shape {"type": string, "data": object}. Do not wrap the output in an array or include any extra commentary.
+- Valid event shapes (emit only these):
+  {"type":"description","data":{"description":"..."}}
+  {"type":"cuisine","data":{"cuisine":"..."}}
+  {"type":"tags","data":{"tags":["vegetarian","halal",...]}}
+  {"type":"category","data":{"categoryName":"..."}}
+  {"type":"item","data":{"item":{"name":"...","description":null,"price":null,"category":null,"tags":[]}}}
 
-CRITICAL - DEDUPLICATION RULES:
-- Remove duplicate menu items - items are duplicates if they have very similar names and the same price
-- When deduplicating, keep the version with the more descriptive/complete name
-- Examples of duplicates to remove:
-  * "Tikka Garlic Mayo Roll" and "Chicken Tikka Garlic Mayo Roll" with same price → Keep "Chicken Tikka Garlic Mayo Roll"
-  * "Caesar Salad" and "Caesar Salad" with same price → Keep only one
-  * "Cheeseburger" and "Burger with Cheese" with same price → Keep the first one encountered
-- Items with different prices are NOT duplicates even if names are similar
-- Items with significantly different names are NOT duplicates even if same price
+Streaming Rules:
+- Start streaming immediately. Emit each JSON object on its own line with a trailing newline. Never merge multiple objects onto one line.
+- Emit the restaurant description early. Provide a polished, inviting 2-3 sentence description. Whenever you refine it, emit another description event containing the full latest text.
+- Emit cuisine exactly once using this list: Italian, Japanese, Mexican, American, Indian, Chinese, French, Korean, Mediterranean, Thai, Vietnamese, Spanish, Pakistani, Persian, Greek, Turkish, Lebanese, Middle Eastern, Ethiopian, Moroccan, Brazilian, Caribbean, African, Fusion, International.
+- Emit restaurant tags only if the content clearly supports them. Use only: vegetarian, vegan, gluten-free, nut-allergy, shellfish-allergy, lactose-free, halal, kosher.
+- When you encounter a new menu section, emit a category event BEFORE emitting its items. Use title case for category names.
+- Emit an item event only when you have the full details for that item (name required, description/price/category/tags optional but use null when missing). Use title case for item names, preserve currency symbols, and only include dietary tags when certain.
+- Deduplicate menu items: treat items with the same name (case-insensitive) AND same price as duplicates—emit only the most descriptive version once.
+- Keep abbreviations capitalized (e.g., BBQ), fix grammar, and respect brand capitalization.
+- Do not hallucinate information. Base everything strictly on the provided content.
+- End the stream after emitting all relevant events. Do not output any non-JSON text.`;
 
-Rules for Restaurant Description:
-- Write a concise, appealing 2-3 sentence description of the restaurant
-- Include cuisine type, specialties, and what makes it unique
-- Base it ONLY on information found in the content (e.g., "about us", "our story", website text)
-- If no restaurant information is found, create a brief description based on the menu items and restaurant name
-- Make it sound professional and inviting
-
-Rules for Cuisine Type:
-- Identify the PRIMARY cuisine type from this list: Italian, Japanese, Mexican, American, Indian, Chinese, French, Korean, Mediterranean, Thai, Vietnamese, Spanish, Pakistani, Persian, Greek, Turkish, Lebanese, Middle Eastern, Ethiopian, Moroccan, Brazilian, Caribbean, African, Fusion, International
-- Return ONLY ONE cuisine type that best matches the restaurant
-- If multiple cuisines apply, choose the most prominent one
-- If unclear, infer from the menu items
-- Be specific when possible (e.g., "Pakistani" instead of "Indian" if the menu clearly shows Pakistani dishes)
-
-Rules for Restaurant Tags:
-- Tag the restaurant with relevant dietary/religious tags from this list ONLY: vegetarian, vegan, gluten-free, nut-allergy, shellfish-allergy, lactose-free, halal, kosher
-- ONLY include tags if the restaurant clearly accommodates that dietary restriction
-- Do NOT include a tag unless there's clear evidence in the menu or description
-- Multiple tags can be included if applicable
-- If none apply or unclear, return empty array
-
-Rules for Menu Item Tags:
-- Tag individual menu items with relevant dietary/religious tags from the same list
-- Only tag items that clearly match the restriction
-- Be conservative - only add tags when certain
-- Multiple tags can be applied to a single item if applicable
-
-IMPORTANT FORMATTING RULES:
-- Capitalize all item names properly using title case (e.g., "Chicken Caesar Salad")
-- Capitalize all category names using title case (e.g., "Main Courses")
-- Fix any grammar errors in descriptions
-- Ensure proper sentence structure and punctuation in descriptions
-- Keep abbreviations in proper case (e.g., "BBQ" not "bbq")
-- Preserve brand names in their proper capitalization`;
-
-    const response = await openai.responses.create({
+    const stream = await openai.responses.stream({
       model: "gpt-5",
       reasoning: { effort: "minimal" },
-      instructions: "You are a professional menu extraction expert. Extract menu items and write compelling descriptions. Ensure proper capitalization and grammar.",
+      instructions:
+        "You are a professional menu extraction expert. Follow the NDJSON event spec exactly and stream structured updates with proper grammar and capitalization.",
       input: textPrompt,
       text: {
         verbosity: "low",
-        format: {
-          type: "json_schema",
-          name: "menu_extraction",
-          strict: true,
-          schema: {
-            type: "object",
-            properties: {
-              description: { type: "string" },
-              cuisine: { type: "string" },
-              tags: {
-                type: "array",
-                items: {
-                  type: "string",
-                  enum: ["vegetarian", "vegan", "gluten-free", "nut-allergy", "shellfish-allergy", "lactose-free", "halal", "kosher"]
-                }
-              },
-              categories: {
-                type: "array",
-                items: { type: "string" }
-              },
-              items: {
-                type: "array",
-                items: {
-                  type: "object",
-                  properties: {
-                    name: { type: "string" },
-                    description: { type: ["string", "null"] },
-                    price: { type: ["string", "null"] },
-                    category: { type: ["string", "null"] },
-                    tags: {
-                      type: "array",
-                      items: {
-                        type: "string",
-                        enum: ["vegetarian", "vegan", "gluten-free", "nut-allergy", "shellfish-allergy", "lactose-free", "halal", "kosher"]
-                      }
-                    }
-                  },
-                  required: ["name", "description", "price", "category", "tags"],
-                  additionalProperties: false
-                }
-              }
-            },
-            required: ["description", "cuisine", "tags", "items", "categories"],
-            additionalProperties: false
-          }
-        }
       },
-      stream: true
     });
 
-    // Track what we've already sent to avoid duplicates
-    let sentDescription = false;
-    let sentCuisine = false;
-    let sentTags = false;
+    let buffer = "";
+    let lastDescription = "";
+    let cuisineSent = false;
+    let tagsSent = false;
+    const seenCategories = new Set<string>();
+    const seenItemKeys = new Set<string>();
     let sentCategoriesCount = 0;
     let sentItemsCount = 0;
 
-    // Buffer for accumulating the text delta
-    let accumulatedText = '';
+    const emitChunk = (chunk: MenuChunk) => {
+      if (!chunk || typeof chunk !== "object") {
+        return;
+      }
 
-    for await (const event of response) {
-      // Handle text deltas - accumulate them
-      if (event.type === 'response.output_text.delta' && event.delta) {
-        accumulatedText += event.delta;
-
-        // Try to parse the accumulated JSON incrementally
-        try {
-          const parsed = JSON.parse(accumulatedText);
-
-          // Send description if new and not sent
-          if (parsed.description && !sentDescription) {
-            sentDescription = true;
-            onChunk({
-              type: 'description',
-              data: { description: parsed.description }
-            });
+      switch (chunk.type) {
+        case "description": {
+          const description = chunk.data?.description?.trim();
+          if (!description || description === lastDescription) {
+            return;
           }
-
-          // Send cuisine if new and not sent
-          if (parsed.cuisine && !sentCuisine) {
-            sentCuisine = true;
-            onChunk({
-              type: 'cuisine',
-              data: { cuisine: parsed.cuisine }
-            });
+          lastDescription = description;
+          onChunk({
+            type: "description",
+            data: { description },
+          });
+          break;
+        }
+        case "cuisine": {
+          const cuisine = chunk.data?.cuisine?.trim();
+          if (!cuisine || cuisineSent) {
+            return;
           }
-
-          // Send tags if new and not sent
-          if (parsed.tags && !sentTags && Array.isArray(parsed.tags) && parsed.tags.length > 0) {
-            sentTags = true;
-            onChunk({
-              type: 'tags',
-              data: { tags: parsed.tags }
-            });
+          cuisineSent = true;
+          onChunk({
+            type: "cuisine",
+            data: { cuisine },
+          });
+          break;
+        }
+        case "tags": {
+          if (tagsSent) {
+            return;
           }
-
-          // Send new categories as they appear
-          if (parsed.categories && Array.isArray(parsed.categories)) {
-            const newCategories = parsed.categories.slice(sentCategoriesCount);
-            for (const category of newCategories) {
-              onChunk({
-                type: 'category',
-                data: { categoryName: category }
-              });
-            }
-            sentCategoriesCount = parsed.categories.length;
+          const tags = Array.isArray(chunk.data?.tags)
+            ? chunk.data.tags
+                .map((tag: string) => tag?.trim())
+                .filter((tag: string | undefined): tag is string => Boolean(tag))
+            : [];
+          if (tags.length === 0) {
+            return;
           }
-
-          // Send new items as they appear
-          if (parsed.items && Array.isArray(parsed.items)) {
-            const newItems = parsed.items.slice(sentItemsCount);
-            for (const item of newItems) {
-              onChunk({
-                type: 'item',
-                data: { item }
-              });
-            }
-            sentItemsCount = parsed.items.length;
+          tagsSent = true;
+          onChunk({
+            type: "tags",
+            data: { tags },
+          });
+          break;
+        }
+        case "category": {
+          const categoryName = chunk.data?.categoryName?.trim();
+          if (!categoryName) {
+            return;
           }
-        } catch (_e) {
-          // Incomplete JSON, continue buffering - this is expected during streaming
+          const normalized = categoryName.replace(/\s+/g, " ").trim();
+          const categoryKey = normalized.toLowerCase();
+          if (seenCategories.has(categoryKey)) {
+            return;
+          }
+          seenCategories.add(categoryKey);
+          sentCategoriesCount += 1;
+          onChunk({
+            type: "category",
+            data: { categoryName: normalized },
+          });
+          break;
+        }
+        case "item": {
+          const item = chunk.data?.item;
+          if (!item || typeof item !== "object") {
+            return;
+          }
+          const name = String(item.name ?? "").trim();
+          if (!name) {
+            return;
+          }
+          const price = item.price != null ? String(item.price).trim() : null;
+          const description = item.description != null ? String(item.description).trim() : null;
+          const category = item.category != null ? String(item.category).trim() : null;
+          const tags = Array.isArray(item.tags)
+            ? item.tags
+                .map((tag: string) => tag?.trim())
+                .filter((tag: string | undefined): tag is string => Boolean(tag))
+            : [];
+
+          const itemKey = `${name.toLowerCase()}|${price ?? ""}`;
+          if (seenItemKeys.has(itemKey)) {
+            return;
+          }
+          seenItemKeys.add(itemKey);
+          sentItemsCount += 1;
+
+          onChunk({
+            type: "item",
+            data: {
+              item: {
+                name,
+                description: description ?? null,
+                price: price ?? null,
+                category: category ?? null,
+                tags,
+              },
+            },
+          });
+          break;
+        }
+        default:
+          // Ignore unsupported event types gracefully
+          break;
+      }
+    };
+
+    const processLine = (line: string) => {
+      if (!line) {
+        return;
+      }
+
+      try {
+        const parsed = JSON.parse(line) as MenuChunk;
+        emitChunk(parsed);
+      } catch (error) {
+        console.warn("[Menu Parser] Skipping invalid JSON line:", line, error);
+      }
+    };
+
+    const flushBuffer = (final = false) => {
+      let newlineIndex: number;
+      while ((newlineIndex = buffer.indexOf("\n")) !== -1) {
+        const line = buffer.slice(0, newlineIndex).trim();
+        buffer = buffer.slice(newlineIndex + 1);
+        processLine(line);
+      }
+
+      if (final) {
+        const line = buffer.trim();
+        buffer = "";
+        if (line) {
+          processLine(line);
         }
       }
+    };
 
-      // Handle refusals
-      if (event.type === 'response.refusal.delta') {
-        console.error('[Menu Parser] Model refused:', event.delta);
+    stream.on("response.output_text.delta", (event) => {
+      if (event.delta) {
+        buffer += event.delta;
+        flushBuffer();
       }
+    });
+
+    stream.on("response.refusal.delta", (event) => {
+      console.error("[Menu Parser] Model refused:", event.delta);
+    });
+
+    try {
+      await stream.finalResponse();
+    } finally {
+      flushBuffer(true);
     }
 
     console.log(`[Menu Parser] ✅ Streamed ${sentItemsCount} items across ${sentCategoriesCount} categories`);

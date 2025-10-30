@@ -11,18 +11,131 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 const classificationCache = new Map<string, { score: number; confidence: number; timestamp: number }>();
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
+// Scoring constants
+const SCORING = {
+  PRICE_DENSITY: {
+    IDEAL_MIN: 5,
+    IDEAL_MAX: 20,
+    MINIMUM: 2,
+    IDEAL_SCORE: 40,
+    HIGH_SCORE: 20,
+    MINIMUM_SCORE: 15,
+  },
+  KEYWORDS: {
+    FOOD_BASE_SCORE: 2,
+    FOOD_MAX_OCCURRENCES: 3,
+    SPECIFIC_BASE_SCORE: 5,
+    SPECIFIC_MAX_OCCURRENCES: 3,
+    MAX_KEYWORD_SCORE: 30,
+    HIGH_DENSITY_THRESHOLD: 0.15,
+    HIGH_DENSITY_PENALTY: 0.5,
+  },
+  STRUCTURE: {
+    CATEGORIES_SCORE: 15,
+    ITEM_LISTS_SCORE: 10,
+    DESCRIPTIONS_SCORE: 10,
+    MIN_ITEMS: 3,
+  },
+  LENGTH: {
+    MIN_WORDS: 200,
+    MAX_WORDS: 2000,
+    BONUS: 10,
+    PENALTY: 10,
+  },
+  NON_MENU_PENALTY: 5,
+  MIN_SCORE: 0,
+  MAX_SCORE: 100,
+  GPT_MIN_WORDS: 50,
+  GPT_TRUNCATE_CHARS: 2000,
+  CACHE_HASH_CHARS: 1000,
+} as const;
+
+// Timing constants
+const TIMING = {
+  SPA_WAIT_TIMEOUT: 6000,
+  CONTENT_WAIT_TIMEOUT: 2000,
+  NAVIGATION_TIMEOUT: 10000,
+  MENU_SELECTOR_TIMEOUT: 3000,
+  IFRAME_TIMEOUT: 3000,
+  TAB_ANIMATION_DELAY: 1000,
+  TAB_CLICK_RACE_TIMEOUT: 5000,
+  POPUP_DISMISS_ATTEMPTS: 3,
+  POPUP_DISMISS_DELAY: 500,
+  RETRY_BASE_DELAY: 1000,
+  ORDERING_PLATFORM_DELAY: 1000,
+} as const;
+
+// Content validation constants
+const VALIDATION = {
+  MIN_CONTENT_LENGTH: 500,
+  MIN_GPT_SCORE: 60,
+  MIN_GPT_CONFIDENCE: 0.6,
+  MIN_LENGTH_SCORE: 40,
+  MIN_LENGTH_CONFIDENCE: 0.5,
+  MENU_SCORE_THRESHOLD: 50,
+} as const;
+
+// Scroll constants
+const SCROLL = {
+  MAX_ATTEMPTS_NORMAL: 20,
+  MAX_ATTEMPTS_LAZY: 15,
+  DELAY_NORMAL: 100,
+  DELAY_LAZY: 500,
+  BOTTOM_TOLERANCE: 50,
+  STABILITY_COUNT: 3,
+  FINAL_WAIT: 200,
+} as const;
+
+// Food keywords (consolidated)
+const FOOD_KEYWORDS = [
+  'appetizer', 'entree', 'entrée', 'main course', 'side dish', 'dessert',
+  'beverage', 'drink', 'wine', 'beer', 'cocktail', 'coffee', 'tea',
+  'sandwich', 'burger', 'pizza', 'salad', 'soup', 'pasta', 'rice', 'noodles',
+  'chicken', 'beef', 'fish', 'seafood', 'vegetarian', 'vegan', 'gluten-free'
+] as const;
+
+const SPECIFIC_MENU_KEYWORDS = ['menu', 'lunch', 'dinner', 'breakfast', 'daily specials'] as const;
+
+// Price regex patterns (consolidated)
+const PRICE_PATTERNS = [
+  // Currency symbol before number (with optional comma separators)
+  // Matches: $10, $10.99, €15, £9.50, ¥1,200, ₹250
+  /[$€£¥₹₽¢]\s?\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{1,2})?/g,
+  
+  // Common currency abbreviations after number
+  // Matches: 10.99 USD, 15 EUR, 9.50 GBP, 12 CAD
+  /\b\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{1,2})?\s?(?:USD|CAD|EUR|GBP|AUD|NZD|CHF|SEK|NOK|DKK|JPY|CNY|INR|MXN|BRL|ARS|CLP|COP|PEN)\b/gi,
+  
+  // Specific regional formats - Indian Rupees: Rs. 250, Rs 1,500
+  /\bRs\.?\s?\d{1,3}(?:,\d{3})*(?:\.\d{1,2})?/gi,
+  
+  // Written currency (English) - Matches: 10 dollars, 15.50 euros, 9 pounds
+  /\b\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{1,2})?\s?(?:dollars?|euros?|pounds?|pesos?|yen|yuan|rupees?|francs?)\b/gi,
+  
+  // Standalone decimal prices (2 decimal places) - Matches: 11.99, 15.00
+  /\b\d{1,3}\.\d{2}\b/g,
+  
+  // European format with comma as decimal separator - Matches: 10,99 €
+  /\b\d{1,3}(?:\.\d{3})*,\d{2}\s?[$€£]/g
+] as const;
+
 /**
- * Count prices in text - handles both currency symbols and standalone numbers
+ * Count prices in text - handles international currency formats
+ * Supports: $10, €15.50, £9, ¥1,200, Rs. 250, 10.99 USD, etc.
  */
 const countPrices = (text: string): number => {
-  // Match currency symbols followed by numbers: $11.99, €15, £9.50
-  const withCurrency = (text.match(/[$€£¥₹₽¢]\s?\d+\.?\d*/g) || []).length;
+  const foundPrices = new Set<string>(); // Avoid double counting
+  
+  PRICE_PATTERNS.forEach(pattern => {
+    const matches = text.match(pattern) || [];
+    matches.forEach(match => {
+      // Normalize to avoid counting same price with different patterns
+      const normalized = match.replace(/\s+/g, '').toLowerCase();
+      foundPrices.add(normalized);
+    });
+  });
 
-  // Match standalone price-like numbers: 11.99, 15.00, 9.50
-  // Must have exactly 2 decimal places to avoid false positives (years, counts, etc.)
-  const withoutCurrency = (text.match(/\b\d+\.\d{2}\b/g) || []).length;
-
-  return withCurrency + withoutCurrency;
+  return foundPrices.size;
 };
 
 /**
@@ -32,7 +145,7 @@ const countPrices = (text: string): number => {
 async function classifyContentWithGPT(content: string): Promise<{ score: number; confidence: number; isMenu: boolean }> {
   try {
     // Create cache key from content hash
-    const contentHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(content.slice(0, 1000)));
+    const contentHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(content.slice(0, SCORING.CACHE_HASH_CHARS)));
     const cacheKey = Array.from(new Uint8Array(contentHash)).map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 16);
 
     // Check cache first
@@ -42,18 +155,18 @@ async function classifyContentWithGPT(content: string): Promise<{ score: number;
       return {
         score: cached.score,
         confidence: cached.confidence,
-        isMenu: cached.score > 50
+        isMenu: cached.score > VALIDATION.MENU_SCORE_THRESHOLD
       };
     }
 
-    // Truncate content for API efficiency (first 2000 chars usually enough)
-    const truncatedContent = content.slice(0, 2000);
+    // Truncate content for API efficiency
+    const truncatedContent = content.slice(0, SCORING.GPT_TRUNCATE_CHARS);
     const wordCount = truncatedContent.split(/\s+/).length;
 
-    if (wordCount < 50) {
+    if (wordCount < SCORING.GPT_MIN_WORDS) {
       console.log('[GPT Classification] Content too short, using fallback scoring');
       const fallbackScore = scoreMenuContent(content);
-      return { score: fallbackScore, confidence: 0.5, isMenu: fallbackScore > 50 };
+      return { score: fallbackScore, confidence: 0.5, isMenu: fallbackScore > VALIDATION.MENU_SCORE_THRESHOLD };
     }
 
     console.log(`[GPT Classification] Analyzing ${wordCount} words...`);
@@ -118,7 +231,7 @@ Return your confidence in this rating (0.0-1.0).`,
     const classification = {
       score: result.score,
       confidence: result.confidence,
-      isMenu: result.score > 50
+      isMenu: result.score > VALIDATION.MENU_SCORE_THRESHOLD
     };
 
     // Cache the result
@@ -136,7 +249,7 @@ Return your confidence in this rating (0.0-1.0).`,
     console.warn('[GPT Classification] Failed, falling back to heuristic scoring:', error);
     // Fallback to heuristic scoring if GPT fails
     const fallbackScore = scoreMenuContent(content);
-    return { score: fallbackScore, confidence: 0.3, isMenu: fallbackScore > 50 };
+    return { score: fallbackScore, confidence: 0.3, isMenu: fallbackScore > VALIDATION.MENU_SCORE_THRESHOLD };
   }
 }
 
@@ -148,57 +261,97 @@ const scoreMenuContent = (text: string): number => {
   let score = 0;
   const lowerText = text.toLowerCase();
 
-  // Price scoring (but more nuanced)
+  // Price scoring (more nuanced)
   const priceCount = countPrices(text);
   const priceDensity = priceCount / Math.max(text.length / 1000, 1); // prices per 1000 chars
 
-  // Good: 5-20 prices per 1000 chars suggests menu content
-  if (priceDensity >= 5 && priceDensity <= 20) score += 40;
-  else if (priceDensity > 20) score += 20; // Too many might be non-menu
-  else if (priceDensity >= 2) score += 15; // Some prices, might be menu
+  if (priceDensity >= SCORING.PRICE_DENSITY.IDEAL_MIN && priceDensity <= SCORING.PRICE_DENSITY.IDEAL_MAX) {
+    score += SCORING.PRICE_DENSITY.IDEAL_SCORE;
+  } else if (priceDensity > SCORING.PRICE_DENSITY.IDEAL_MAX) {
+    score += SCORING.PRICE_DENSITY.HIGH_SCORE; // Too many might be non-menu
+  } else if (priceDensity >= SCORING.PRICE_DENSITY.MINIMUM) {
+    score += SCORING.PRICE_DENSITY.MINIMUM_SCORE; // Some prices, might be menu
+  }
 
-  // Menu keywords (weighted by specificity)
-  const foodKeywords = [
-    'appetizer', 'entree', 'entrée', 'main course', 'side dish', 'dessert',
-    'beverage', 'drink', 'wine', 'beer', 'cocktail', 'coffee', 'tea',
-    'sandwich', 'burger', 'pizza', 'salad', 'soup', 'pasta', 'rice', 'noodles',
-    'chicken', 'beef', 'fish', 'seafood', 'vegetarian', 'vegan', 'gluten-free'
-  ];
-  const specificKeywords = ['menu', 'lunch', 'dinner', 'breakfast', 'daily specials'];
-
+  // Menu keywords with frequency normalization (prevents inflation from repeated words)
   let keywordScore = 0;
-  foodKeywords.forEach(keyword => {
-    if (lowerText.includes(keyword)) keywordScore += 2;
+  let totalKeywordCount = 0;
+  const totalWordCount = text.split(/\s+/).length;
+  
+  // Count unique keywords and their frequencies
+  const keywordFrequencies = new Map<string, number>();
+  
+  FOOD_KEYWORDS.forEach(keyword => {
+    const regex = new RegExp(`\\b${keyword}\\b`, 'gi');
+    const matches = lowerText.match(regex);
+    if (matches) {
+      const frequency = matches.length;
+      keywordFrequencies.set(keyword, frequency);
+      totalKeywordCount += frequency;
+      
+      // Score based on presence and frequency (with diminishing returns)
+      if (frequency === 1) {
+        keywordScore += SCORING.KEYWORDS.FOOD_BASE_SCORE;
+      } else if (frequency <= SCORING.KEYWORDS.FOOD_MAX_OCCURRENCES) {
+        keywordScore += SCORING.KEYWORDS.FOOD_BASE_SCORE + Math.log2(frequency);
+      } else {
+        keywordScore += SCORING.KEYWORDS.FOOD_BASE_SCORE + Math.log2(SCORING.KEYWORDS.FOOD_MAX_OCCURRENCES);
+      }
+    }
   });
-  specificKeywords.forEach(keyword => {
-    if (lowerText.includes(keyword)) keywordScore += 5;
+  
+  SPECIFIC_MENU_KEYWORDS.forEach(keyword => {
+    const regex = new RegExp(`\\b${keyword}\\b`, 'gi');
+    const matches = lowerText.match(regex);
+    if (matches) {
+      const frequency = matches.length;
+      totalKeywordCount += frequency;
+      
+      // Higher value keywords get more points
+      if (frequency === 1) {
+        keywordScore += SCORING.KEYWORDS.SPECIFIC_BASE_SCORE;
+      } else if (frequency <= SCORING.KEYWORDS.SPECIFIC_MAX_OCCURRENCES) {
+        keywordScore += SCORING.KEYWORDS.SPECIFIC_BASE_SCORE + Math.log2(frequency) * 2;
+      } else {
+        keywordScore += SCORING.KEYWORDS.SPECIFIC_BASE_SCORE + Math.log2(SCORING.KEYWORDS.SPECIFIC_MAX_OCCURRENCES) * 2;
+      }
+    }
   });
+  
+  // Penalize if keyword density is suspiciously high (likely spam or blog)
+  const keywordDensity = totalKeywordCount / Math.max(totalWordCount, 1);
+  if (keywordDensity > SCORING.KEYWORDS.HIGH_DENSITY_THRESHOLD) {
+    keywordScore *= SCORING.KEYWORDS.HIGH_DENSITY_PENALTY;
+  }
 
-  score += Math.min(keywordScore, 30); // Cap at 30 points
+  score += Math.min(keywordScore, SCORING.KEYWORDS.MAX_KEYWORD_SCORE);
 
   // Structure indicators
   const hasCategories = /\b(appetizers|entrees|desserts|beverages|mains|sides)\b/i.test(text);
-  const hasItemLists = (text.match(/\$\d+\.?\d*/g) || []).length > 3;
+  const hasItemLists = (text.match(/\$\d+\.?\d*/g) || []).length > SCORING.STRUCTURE.MIN_ITEMS;
   const hasDescriptions = text.split('\n').filter(line =>
     line.length > 20 && line.length < 200 && /\$\d+\.?\d*/.test(line)
   ).length;
 
-  if (hasCategories) score += 15;
-  if (hasItemLists) score += 10;
-  if (hasDescriptions) score += 10;
+  if (hasCategories) score += SCORING.STRUCTURE.CATEGORIES_SCORE;
+  if (hasItemLists) score += SCORING.STRUCTURE.ITEM_LISTS_SCORE;
+  if (hasDescriptions) score += SCORING.STRUCTURE.DESCRIPTIONS_SCORE;
 
   // Penalties for non-menu content
   const nonMenuIndicators = ['privacy policy', 'terms of service', 'contact us', 'directions', 'about us'];
   nonMenuIndicators.forEach(indicator => {
-    if (lowerText.includes(indicator)) score -= 5;
+    if (lowerText.includes(indicator)) score -= SCORING.NON_MENU_PENALTY;
   });
 
   // Length bonus (but not too long - might be entire site)
   const wordCount = text.split(/\s+/).length;
-  if (wordCount > 200 && wordCount < 2000) score += 10;
-  else if (wordCount > 2000) score -= 10; // Too much content, probably not focused menu
+  if (wordCount > SCORING.LENGTH.MIN_WORDS && wordCount < SCORING.LENGTH.MAX_WORDS) {
+    score += SCORING.LENGTH.BONUS;
+  } else if (wordCount > SCORING.LENGTH.MAX_WORDS) {
+    score -= SCORING.LENGTH.PENALTY;
+  }
 
-  return Math.max(0, Math.min(100, score));
+  return Math.max(SCORING.MIN_SCORE, Math.min(SCORING.MAX_SCORE, score));
 };
 
 interface ColorPalette {
@@ -249,7 +402,7 @@ export async function scrapeRestaurantMenuWithPuppeteer(
     try {
       if (attempt > 0) {
         console.log(`[Scraper] Retry attempt ${attempt + 1}/${maxRetries}`);
-        await delay(1000 * attempt);
+        await delay(TIMING.RETRY_BASE_DELAY * attempt);
       }
 
       browser = await puppeteer.launch({
@@ -293,9 +446,34 @@ export async function scrapeRestaurantMenuWithPuppeteer(
         await page.goto(url, { waitUntil: 'domcontentloaded', timeout: timeout / 2 });
       }
 
-      // Detect if it's a SPA (React, Vue, etc.)
+      // Detect if it's a SPA (React, Vue, Angular, Svelte, Next.js, Nuxt, etc.)
       const isSPA = await page.evaluate(() => {
-        return !!(document.querySelector('#root, #app, [id*="react"], [id*="vue"]'));
+        // React/Next.js
+        if (document.querySelector('#root, #__next, [id*="react"], #react-root')) return true;
+
+        // Vue/Nuxt
+        if (document.querySelector('#app, #__nuxt, [id*="vue"]')) return true;
+
+        // Angular
+        if (document.querySelector('[ng-app], [ng-controller], [data-ng-app]')) return true;
+
+        // Svelte/SvelteKit
+        if (document.querySelector('#svelte, [data-svelte]')) return true;
+
+        // Modern frameworks with data attributes
+        if (document.querySelector('[data-reactroot], [data-vue-router]')) return true;
+
+        // Check for framework scripts in head
+        const scripts = Array.from(document.querySelectorAll('script[src]'));
+        const frameworkScripts = scripts.some(script => {
+          const src = script.getAttribute('src') || '';
+          return src.includes('react') || src.includes('vue') || src.includes('angular') ||
+                 src.includes('svelte') || src.includes('next') || src.includes('nuxt');
+        });
+
+        if (frameworkScripts) return true;
+
+        return false;
       });
 
       if (isSPA) {
@@ -305,7 +483,7 @@ export async function scrapeRestaurantMenuWithPuppeteer(
         const initialContent = await page.evaluate(() => document.body.innerText || '');
         const initialClassification = await classifyContentWithGPT(initialContent);
 
-        if (initialClassification.score < 40 || initialClassification.confidence < 0.6) {
+        if (initialClassification.score < VALIDATION.MIN_LENGTH_SCORE || initialClassification.confidence < VALIDATION.MIN_GPT_CONFIDENCE) {
           // Wait for content to improve or stabilize
           console.log('[Scraper] SPA content poor, waiting for better content...');
           await page.waitForFunction(() => {
@@ -314,7 +492,7 @@ export async function scrapeRestaurantMenuWithPuppeteer(
             const withoutCurrency = (text.match(/\b\d+\.\d{2}\b/g) || []).length;
             const priceCount = withCurrency + withoutCurrency;
             return text.length > 500 || priceCount > 5;
-          }, { timeout: 6000 });
+          }, { timeout: TIMING.SPA_WAIT_TIMEOUT });
           console.log('[Scraper] SPA content loaded');
         } else {
           console.log(`[Scraper] SPA already has good content (score: ${initialClassification.score}), proceeding quickly`);
@@ -323,7 +501,7 @@ export async function scrapeRestaurantMenuWithPuppeteer(
       } else {
         // Quick content check for static sites
         try {
-          await page.waitForFunction(() => document.body.innerText.length > 100, { timeout: 2000 });
+          await page.waitForFunction(() => document.body.innerText.length > 100, { timeout: TIMING.CONTENT_WAIT_TIMEOUT });
         } catch {
           console.log('[Scraper] Content loaded quickly or minimal content');
         }
@@ -335,14 +513,26 @@ export async function scrapeRestaurantMenuWithPuppeteer(
       // Extract logo and colors from ORIGINAL page before navigating
       console.log('[Scraper] Extracting logo and colors from original page');
 
-      const [logo, colors] = await Promise.all([
-        extractLogo(page),
-        extractColorPalette(page)
-      ]);
-
+      const logo = await extractLogo(page);
       console.log('[Scraper] Logo:', logo || 'None');
-      console.log('[Scraper] Colors extracted:', JSON.stringify(colors, null, 2));
 
+      // Capture screenshot once and start AI color analysis without blocking scraping
+      const screenshotBuffer = await page.screenshot({
+        fullPage: true,
+        type: 'png'
+      });
+      const base64Screenshot = (screenshotBuffer as Buffer).toString('base64');
+
+      const colorPalettePromise = extractColorPalette(page, base64Screenshot).catch((error) => {
+        console.error('[Scraper] Color extraction failed:', error);
+        return {} as ColorPalette;
+      });
+
+      console.log('[Scraper] Color extraction kicked off asynchronously');
+
+      // Check for iframes first (ordering platforms often use them)
+      const hasIframe = await checkForMenuIframes(page);
+      
       // Now navigate to menu (might go to ordering platform)
       await navigateToMenu(page);
       await dismissPopups(page);
@@ -350,9 +540,22 @@ export async function scrapeRestaurantMenuWithPuppeteer(
       await expandSections(page);
 
       // Click through categories and collect all text
-      const allContent = await clickThroughCategoriesAndExtract(page);
+      let allContent = await clickThroughCategoriesAndExtract(page);
+      
+      // If main page content is poor, try extracting from iframes
+      if (allContent.length < VALIDATION.MIN_CONTENT_LENGTH && hasIframe) {
+        console.log('[Scraper] Main content insufficient, checking iframes...');
+        const iframeContent = await extractFromIframes(page);
+        if (iframeContent.length > allContent.length) {
+          console.log('[Scraper] Using iframe content:', iframeContent.length, 'characters');
+          allContent = iframeContent;
+        }
+      }
 
       console.log('[Scraper] Extracted', allContent.length, 'characters');
+
+      const colors = await colorPalettePromise;
+      console.log('[Scraper] Colors extracted:', JSON.stringify(colors, null, 2));
       console.log('[Scraper] Final logo:', logo ? 'Yes' : 'No', '| Colors:', Object.keys(colors).length);
 
       await browser.close();
@@ -364,8 +567,8 @@ export async function scrapeRestaurantMenuWithPuppeteer(
       console.log(`[Final Validation] Length: ${allContent.length}, Score: ${contentClassification.score}/100, Confidence: ${contentClassification.confidence}`);
 
       // Accept if content is good quality with decent confidence, OR meets minimum length with reasonable quality
-      const isAcceptable = (contentClassification.score > 60 && contentClassification.confidence > 0.6) ||
-                          (meetsMinLength && contentClassification.score > 40 && contentClassification.confidence > 0.5);
+      const isAcceptable = (contentClassification.score > VALIDATION.MIN_GPT_SCORE && contentClassification.confidence > VALIDATION.MIN_GPT_CONFIDENCE) ||
+                          (meetsMinLength && contentClassification.score > VALIDATION.MIN_LENGTH_SCORE && contentClassification.confidence > VALIDATION.MIN_LENGTH_CONFIDENCE);
 
       if (!isAcceptable) {
         console.warn(`[Scraper] Content quality too low (score: ${contentClassification.score}, confidence: ${contentClassification.confidence}), rejecting`);
@@ -408,8 +611,27 @@ export async function scrapeRestaurantMenuWithPuppeteer(
 async function dismissPopups(page: Page): Promise<void> {
   try {
     const result = await page.evaluate(() => {
-      // First priority: Look for X/close buttons in modals
-      const modals = Array.from(document.querySelectorAll('[role="dialog"], [class*="modal"], [class*="popup"], [id*="modal"], [id*="popup"]'));
+      // First priority: Look for X/close buttons in modals (expanded selectors)
+      const modals = Array.from(document.querySelectorAll(`
+        [role="dialog"],
+        [class*="modal"],
+        [class*="popup"],
+        [id*="modal"],
+        [id*="popup"],
+        [class*="overlay"],
+        [class*="backdrop"],
+        [data-modal],
+        [data-popup],
+        .MuiModal-root,
+        .MuiDialog-root,
+        .chakra-modal,
+        .antd-modal,
+        .swal2-modal,
+        .fancybox-container,
+        .lightbox,
+        [class*="toast"],
+        [class*="notification"]
+      `));
 
       for (const modal of modals) {
         // Look for close button with common patterns
@@ -423,13 +645,17 @@ async function dismissPopups(page: Page): Promise<void> {
 
           if (rect.width === 0 || rect.height === 0) continue;
 
-          // Check for X button patterns
+          // Check for X button patterns (expanded)
           const isCloseButton =
-            text === '×' || text === 'x' || text === '✕' ||
+            text === '×' || text === 'x' || text === '✕' || text === '×' || text === '❌' ||
             ariaLabel.includes('close') || ariaLabel.includes('dismiss') ||
             className.includes('close') || className.includes('dismiss') ||
+            className.includes('modal-close') || className.includes('popup-close') ||
+            className.includes('btn-close') || className.includes('close-btn') ||
             (btn as HTMLElement).innerHTML.includes('×') ||
-            (btn as HTMLElement).innerHTML.includes('✕');
+            (btn as HTMLElement).innerHTML.includes('✕') ||
+            (btn as HTMLElement).innerHTML.includes('❌') ||
+            btn.matches('[data-dismiss], [data-close], [data-bs-dismiss]');
 
           if (isCloseButton) {
             console.log('[Popup] Clicking close button:', text || ariaLabel || 'X icon');
@@ -439,9 +665,14 @@ async function dismissPopups(page: Page): Promise<void> {
         }
       }
 
-      // Second priority: General accept/dismiss keywords
-      const acceptKeywords = ['accept', 'allow', 'agree', 'continue', 'got it', 'close', 'dismiss', 'no thanks', '×', 'x'];
-      const exactKeywords = ['ok', 'yes', 'no']; // These must be exact word matches
+      // Second priority: General accept/dismiss keywords (expanded)
+      const acceptKeywords = [
+        'accept', 'allow', 'agree', 'continue', 'got it', 'close', 'dismiss', 'no thanks',
+        '×', 'x', 'ok', 'okay', 'yes', 'no', 'cancel', 'decline', 'reject',
+        'confirm', 'submit', 'save', 'done', 'finish', 'complete', 'proceed',
+        'understand', 'acknowledge', 'skip', 'later', 'remind me later'
+      ];
+      const exactKeywords = ['ok', 'yes', 'no', 'okay']; // These must be exact word matches
       const buttons = Array.from(document.querySelectorAll('button, a, [role="button"], [class*="modal"] button, [class*="popup"] button'));
 
       for (const btn of buttons) {
@@ -496,10 +727,10 @@ async function dismissPopups(page: Page): Promise<void> {
     });
 
     if (result && result.clicked) {
-      await delay(200);
+      await delay(TIMING.POPUP_DISMISS_DELAY);
     }
-  } catch (_error) {
-    // Ignore popup errors
+  } catch (error) {
+    console.warn('[Scraper] Popup dismissal error (non-critical):', error instanceof Error ? error.message : 'Unknown error');
   }
 }
 
@@ -626,9 +857,16 @@ async function navigateToMenu(page: Page): Promise<void> {
       return;
     }
 
-    // Look for menu button
+    // Look for menu button (expanded detection)
     const buttonInfo = await page.evaluate(() => {
-      const buttons = Array.from(document.querySelectorAll('a, button, [role="button"]'));
+      const buttons = Array.from(document.querySelectorAll('a, button, [role="button"], [data-toggle], [data-target]'));
+
+      // Priority 1: Direct menu buttons
+      const menuKeywords = [
+        'menu', 'view menu', 'see menu', 'full menu', 'our menu', 'menu page',
+        'food menu', 'drink menu', 'wine menu', 'dinner menu', 'lunch menu',
+        'breakfast menu', 'carta', 'la carte', 'carta de comidas' // Multi-language support
+      ];
 
       for (const btn of buttons) {
         const text = (btn.textContent || '').trim();
@@ -639,12 +877,18 @@ async function navigateToMenu(page: Page): Promise<void> {
         if (!text || text.length > 60 || rect.width === 0 || rect.height === 0) continue;
         if (textLower.includes('cart') || textLower.includes('checkout') || textLower.includes('account') || textLower.includes('login')) continue;
 
-        if (textLower.includes('menu') || textLower === 'menu' || textLower.includes('view menu')) {
+        if (menuKeywords.some(keyword => textLower.includes(keyword))) {
           return { buttonText: text, href: href };
         }
       }
 
-      // Fallback to order button
+      // Priority 2: Order buttons (often lead to menu)
+      const orderKeywords = [
+        'order now', 'order online', 'start order', 'place order', 'order food',
+        'online ordering', 'order here', 'get started', 'begin order',
+        'pedir comida', 'ordenar ahora' // Spanish support
+      ];
+
       for (const btn of buttons) {
         const text = (btn.textContent || '').trim();
         const textLower = text.toLowerCase();
@@ -653,7 +897,21 @@ async function navigateToMenu(page: Page): Promise<void> {
 
         if (!text || text.length > 60 || rect.width === 0 || rect.height === 0) continue;
 
-        if (textLower.includes('order now') || textLower.includes('order online') || textLower.includes('start order')) {
+        if (orderKeywords.some(keyword => textLower.includes(keyword))) {
+          return { buttonText: text, href: href };
+        }
+      }
+
+      // Priority 3: Check href patterns for menu pages
+      for (const btn of buttons) {
+        const href = (btn as HTMLAnchorElement).href || '';
+        const text = (btn.textContent || '').trim();
+        const rect = (btn as HTMLElement).getBoundingClientRect();
+
+        if (!text || text.length > 60 || rect.width === 0 || rect.height === 0) continue;
+
+        // Look for menu in URL path
+        if (href && (href.includes('/menu') || href.includes('/carta') || href.includes('/food'))) {
           return { buttonText: text, href: href };
         }
       }
@@ -954,8 +1212,8 @@ async function navigateToMenu(page: Page): Promise<void> {
     } catch {
       // Continue anyway
     }
-  } catch (_error) {
-    // Ignore navigation errors
+  } catch (error) {
+    console.warn('[Scraper] Menu navigation error (non-critical):', error instanceof Error ? error.message : 'Unknown error');
   }
 }
 
@@ -1007,7 +1265,8 @@ async function handleDropdownMenu(page: Page): Promise<boolean> {
       await delay(500);
     }
     return result;
-  } catch (_error) {
+  } catch (error) {
+    console.warn('[Scraper] Dropdown menu error (non-critical):', error instanceof Error ? error.message : 'Unknown error');
     return false;
   }
 }
@@ -1067,14 +1326,128 @@ async function handleLocationBasedMenus(page: Page): Promise<void> {
     }, target);
 
     await delay(500);
-  } catch (_error) {
-    // Ignore
+  } catch (error) {
+    console.warn('[Scraper] Location selection error (non-critical):', error instanceof Error ? error.message : 'Unknown error');
   }
 }
 
 /**
  * Expand accordion sections - OPTIMIZED (faster, less iterations)
  */
+/**
+ * Check if page contains menu-related iframes
+ */
+async function checkForMenuIframes(page: Page): Promise<boolean> {
+  try {
+    const hasMenuIframe = await page.evaluate(() => {
+      const iframes = Array.from(document.querySelectorAll('iframe'));
+      
+      for (const iframe of iframes) {
+        const src = iframe.src?.toLowerCase() || '';
+        const id = iframe.id?.toLowerCase() || '';
+        const className = iframe.className?.toLowerCase() || '';
+        
+        // Check for ordering platform iframes
+        const orderingPlatforms = [
+          'clover', 'toast', 'square', 'chownow', 'bentobox',
+          'doordash', 'ubereats', 'grubhub', 'postmates',
+          'order', 'menu', 'ordering', 'online-order'
+        ];
+        
+        const isMenuIframe = orderingPlatforms.some(platform =>
+          src.includes(platform) || id.includes(platform) || className.includes(platform)
+        );
+        
+        if (isMenuIframe) {
+          // Check if iframe is visible
+          const rect = iframe.getBoundingClientRect();
+          if (rect.width > 100 && rect.height > 100) {
+            return true;
+          }
+        }
+      }
+      
+      return false;
+    });
+    
+    if (hasMenuIframe) {
+      console.log('[Iframe] Menu iframe detected on page');
+    }
+    
+    return hasMenuIframe;
+  } catch (error) {
+    console.warn('[Iframe] Error checking for iframes:', error);
+    return false;
+  }
+}
+
+/**
+ * Extract menu content from iframes
+ */
+async function extractFromIframes(page: Page): Promise<string> {
+  try {
+    console.log('[Iframe] Attempting to extract content from iframes...');
+    
+    const frames = page.frames();
+    let bestContent = '';
+    let bestScore = 0;
+    
+    for (const frame of frames) {
+      try {
+        // Skip the main frame
+        if (frame === page.mainFrame()) continue;
+        
+        // Get frame URL to identify it
+        const frameUrl = frame.url();
+        console.log('[Iframe] Checking frame:', frameUrl.substring(0, 100));
+        
+        // Wait for frame content to load
+        await frame.waitForSelector('body', { timeout: 3000 }).catch(() => {});
+        
+        // Extract text content from iframe
+        const frameContent = await frame.evaluate(() => {
+          const body = document.body;
+          if (!body) return '';
+          
+          // Remove scripts, styles, and navigation
+          const clone = body.cloneNode(true) as HTMLElement;
+          clone.querySelectorAll('script, style, nav, header, footer').forEach(el => el.remove());
+          
+          return clone.innerText || '';
+        });
+        
+        if (frameContent.length > 200) {
+          // Score the content quality
+          const priceCount = countPrices(frameContent);
+          const hasMenuKeywords = /menu|food|order|appetizer|entree|dessert|beverage/i.test(frameContent);
+          const contentScore = priceCount * 10 + (hasMenuKeywords ? 20 : 0) + frameContent.length / 100;
+          
+          console.log('[Iframe] Frame content:', frameContent.length, 'chars, score:', contentScore);
+          
+          if (contentScore > bestScore) {
+            bestScore = contentScore;
+            bestContent = frameContent;
+          }
+        }
+      } catch (error) {
+        console.warn('[Iframe] Error extracting from frame:', error);
+        continue;
+      }
+    }
+    
+    if (bestContent.length > 0) {
+      console.log('[Iframe] ✅ Extracted', bestContent.length, 'characters from iframe (score:', bestScore, ')');
+    } else {
+      console.log('[Iframe] No usable content found in iframes');
+    }
+    
+    return bestContent;
+  } catch (error) {
+    console.error('[Iframe] Failed to extract from iframes:', error);
+    return '';
+  }
+}
+
 async function expandSections(page: Page): Promise<void> {
   try {
     await page.evaluate(async () => {
@@ -1128,8 +1501,8 @@ async function expandSections(page: Page): Promise<void> {
     });
 
     await delay(150);
-  } catch (_error) {
-    // Ignore
+  } catch (error) {
+    console.warn('[Scraper] Section expansion error (non-critical):', error instanceof Error ? error.message : 'Unknown error');
   }
 }
 
@@ -1263,6 +1636,42 @@ async function clickThroughCategoriesAndExtract(page: Page): Promise<string> {
         }
       }
 
+      // Modern UI library tabs (React Tabs, Vue Tabs, Ant Design, Material-UI, Chakra UI)
+      if (extracted.length === 0) {
+        const modernTabContainers = Array.from(document.querySelectorAll('.react-tabs, .vue-tabs, .ant-tabs, .MuiTabs-root, .chakra-tabs')).filter(container => !container.closest('header, nav, footer'));
+
+        for (const container of modernTabContainers) {
+          const tabs = Array.from(container.querySelectorAll('.react-tabs__tab, .vue-tabs__tab, .ant-tabs-tab, .MuiTab-root, .chakra-tabs__tab'));
+          const panels = Array.from(container.querySelectorAll('.react-tabs__tab-panel, .vue-tabs__panel, .ant-tabs-content, [role="tabpanel"]'));
+
+          if (tabs.length > 0 && panels.length > 0) {
+            let tempExtracted = '';
+            for (let i = 0; i < Math.min(tabs.length, panels.length); i++) {
+              const categoryName = (tabs[i] as HTMLElement).innerText?.trim() || '';
+              const categoryContent = (panels[i] as HTMLElement).innerText?.trim() || '';
+
+              if (categoryName && categoryContent && categoryContent.length > 50) {
+                tempExtracted += `\n\n=== ${categoryName.toUpperCase()} ===\n\n${categoryContent}`;
+              }
+            }
+
+            // Validate content looks like menu
+            if (tempExtracted.length > 0) {
+              const lowerTemp = tempExtracted.toLowerCase();
+              const withCurrency = (tempExtracted.match(/[$€£¥₹₽¢]\s?\d+\.?\d*/g) || []).length;
+              const withoutCurrency = (tempExtracted.match(/\b\d+\.\d{2}\b/g) || []).length;
+              const hasPrices = (withCurrency + withoutCurrency) > 3;
+              const foodKeywords = ['appetizer', 'entree', 'entrée', 'dessert', 'burger', 'pizza', 'salad', 'sandwich'];
+              const hasFoodKeywords = foodKeywords.some(kw => lowerTemp.includes(kw));
+
+              if (hasPrices || hasFoodKeywords) {
+                extracted = tempExtracted;
+              }
+            }
+          }
+        }
+      }
+
       return extracted;
     });
 
@@ -1324,11 +1733,7 @@ async function clickThroughCategoriesAndExtract(page: Page): Promise<string> {
     const initialClassification = await classifyContentWithGPT(initialText);
     console.log(`[Content Quality] Initial content: score ${initialClassification.score}/100, confidence ${initialClassification.confidence}`);
 
-    // If we already got truly excellent menu content (>85) with high confidence, skip all category clicking
-    if (initialClassification.score > 85 && initialClassification.confidence > 0.8) {
-      console.log('[Scraper] ✅ Excellent menu content found, skipping category navigation');
-      return allText;
-    }
+    const shouldEarlyExit = initialClassification.score > 85 && initialClassification.confidence > 0.8;
 
     // Be less conservative - only use conservative mode for very good content
     const conservativeMode = initialClassification.score > 70 && initialClassification.confidence > 0.7;
@@ -1482,11 +1887,15 @@ async function clickThroughCategoriesAndExtract(page: Page): Promise<string> {
             const isTabElement =
               el.hasAttribute('role') && el.getAttribute('role') === 'tab' ||
               el.hasAttribute('data-filter') ||
+              el.hasAttribute('data-tab') ||
+              el.hasAttribute('data-toggle') ||
               el.classList.contains('lte-tab') ||
               el.classList.contains('jet-tabs__control') ||
               el.classList.contains('eael-tab-item-trigger') ||
-              el.matches('[class*="tab-"]') ||
-              el.matches('[class*="jet-tab"]');
+              el.matches('[class*="tab"]') ||
+              el.matches('[class*="nav"]') ||
+              el.matches('[onclick]') ||
+              el.matches('[data-target]');
 
             const minSize = isTabElement ? 10 : 50; // Tabs can be smaller
             const minHeight = isTabElement ? 10 : 20;
@@ -1552,6 +1961,11 @@ async function clickThroughCategoriesAndExtract(page: Page): Promise<string> {
 
     const navLinks = filteredCategories.filter(c => c.isNavLink && c.href);
     const inPageTabs = filteredCategories.filter(c => !c.isNavLink);
+
+    if (shouldEarlyExit && navLinks.length === 0 && inPageTabs.length <= 1) {
+      console.log('[Scraper] ✅ Excellent menu content found and no additional categories detected, skipping category navigation');
+      return allText;
+    }
 
     const menuBaseUrl = page.url();
 
@@ -1664,18 +2078,39 @@ async function clickThroughCategoriesAndExtract(page: Page): Promise<string> {
             }
           }
 
-          // Strategy 2: Try other tab/category selectors (prioritize specific selectors)
+          // Strategy 2: Try other tab/category selectors (expanded for modern frameworks)
           const selectors = [
+            // Popular tab libraries
             '.eael-tab-item-trigger',
             '.jet-tabs__control',
             '[role="tab"]',
+            '.nav-tabs .nav-link',
+            '.tabs .tab',
+            '.tab-list [role="tab"]',
+            '.react-tabs__tab',
+            '.vue-tabs__tab',
+            '.ant-tabs-tab',
+            '.MuiTab-root',
+            '.chakra-tabs__tab',
+
+            // Generic tab patterns
             'span[class*="tab"]',
             'button[class*="tab"]',
             'li[class*="tab"]',
+            'div[class*="tab"]',
+            '[data-tab]',
+            '[data-toggle="tab"]',
+            '[data-bs-toggle="tab"]',
+
+            // Interactive elements
             '[onclick]',
             '[class*="card"], [class*="tile"], [class*="item"]',
             'div[class*="MuiGrid"], div[class*="category"]',
+
+            // Anchor links (often used for tabs)
             'a[href^="#"]',
+
+            // Fallback
             'a, button, [role="button"]'
           ];
 
@@ -1706,36 +2141,55 @@ async function clickThroughCategoriesAndExtract(page: Page): Promise<string> {
 
         if (clicked) {
           const urlBeforeClick = page.url();
-          await delay(600); // Initial wait for click to register
+          
+          // Wait for either navigation or content change (not fixed delay)
+          await Promise.race([
+            // Check if URL changed (navigation)
+            page.waitForFunction((oldUrl) => window.location.href !== oldUrl, 
+              { timeout: 2000 }, 
+              urlBeforeClick
+            ).then(() => 'navigation'),
+            
+            // Check if content appeared/changed (in-page tab)
+            page.waitForFunction(
+              () => {
+                // Check if active content is visible and has meaningful text
+                const elementorTab = document.querySelector('.eael-tab-content-item.active, .eael-tab-content-item[style*="display: block"]');
+                const jetTab = document.querySelector('.jet-tabs__content.active-content');
+                const tabPanel = document.querySelector('[role="tabpanel"]:not([aria-hidden="true"])');
+                const genericTabContent = document.querySelector(`
+                  .tab-content.active,
+                  .tab-pane.active,
+                  .menu-tab.active,
+                  [class*="tab-content"][class*="active"],
+                  [class*="tab-pane"][class*="active"],
+                  [id*="tab"][style*="display: block"],
+                  [class*="menu"][class*="active"]:not([class*="control"]):not([class*="trigger"]):not(nav):not(header)
+                `);
+
+                const activeContent = elementorTab || jetTab || tabPanel || genericTabContent;
+                if (activeContent) {
+                  const text = (activeContent as HTMLElement).innerText || '';
+                  return text.trim().length > 50; // Has meaningful content
+                }
+                return false;
+              },
+              { timeout: 2000 }
+            ).then(() => 'content')
+          ]).catch(() => 'timeout');
+
           const urlAfterClick = page.url();
 
           if (urlAfterClick !== urlBeforeClick) {
-            await delay(800); // Navigation detected
+            // Navigation occurred - wait for page to settle
+            await Promise.race([
+              page.waitForNavigation({ waitUntil: 'networkidle2' }).catch(() => {}),
+              delay(1500) // Max wait
+            ]);
             await scrollForLazyContent(page);
           } else {
-            // In-page tab change - wait for content to stabilize (smarter than fixed delay)
-            try {
-              await page.waitForFunction(
-                () => {
-                  // Check if active content is visible and has meaningful text
-                  const elementorTab = document.querySelector('.eael-tab-content-item.active, .eael-tab-content-item[style*="display: block"]');
-                  const jetTab = document.querySelector('.jet-tabs__content.active-content');
-                  const tabPanel = document.querySelector('[role="tabpanel"]:not([aria-hidden="true"])');
-
-                  const activeContent = elementorTab || jetTab || tabPanel;
-                  if (activeContent) {
-                    const text = (activeContent as HTMLElement).innerText || '';
-                    return text.trim().length > 50; // Has meaningful content
-                  }
-                  return false;
-                },
-                { timeout: 1500 }
-              );
-              await delay(200); // Small buffer after content appears
-            } catch {
-              // Timeout - fallback to fixed delay
-              await delay(1000);
-            }
+            // In-page tab change - give content a moment to fully render
+            await delay(200);
           }
 
           const categoryContent = await page.evaluate(() => {
@@ -1782,7 +2236,25 @@ async function clickThroughCategoriesAndExtract(page: Page): Promise<string> {
               }
             }
 
-            // Strategy 5: Look for tab panels with aria-hidden="false" or role="tabpanel"
+            // Strategy 5: Generic tabbed content - look for active/visible tab panels
+            const activeTabContent = document.querySelector(`
+              .tab-content.active,
+              .tab-pane.active,
+              .menu-tab.active,
+              [role="tabpanel"]:not([aria-hidden="true"]),
+              [class*="tab-content"][class*="active"],
+              [class*="tab-pane"][class*="active"],
+              [id*="tab"][style*="display: block"],
+              [class*="menu"][class*="active"]:not([class*="control"]):not([class*="trigger"]):not(nav):not(header)
+            `);
+            if (activeTabContent) {
+              const text = (activeTabContent as HTMLElement).innerText || '';
+              if (text.trim().length > 50) {
+                return text;
+              }
+            }
+
+            // Strategy 6: Look for tab panels with aria-hidden="false" or role="tabpanel"
             const visibleTabPanel = document.querySelector('[role="tabpanel"]:not([aria-hidden="true"]), [role="tabpanel"][style*="display: block"]');
             if (visibleTabPanel) {
               const text = (visibleTabPanel as HTMLElement).innerText || '';
@@ -1816,26 +2288,30 @@ async function clickThroughCategoriesAndExtract(page: Page): Promise<string> {
 
           processedTabs++;
 
-          // Early exit check: if we have substantial content and processed enough tabs, stop
-          if (processedTabs >= 3 && allText.length > 2000) {
+          const tabCoverage = inPageTabs.length > 0 ? processedTabs / inPageTabs.length : 1;
+          const coveragePct = Math.round(tabCoverage * 100);
+          const hasCoveredMostTabs = inPageTabs.length === 0 ? true : tabCoverage >= 0.95 || processedTabs >= inPageTabs.length;
+
+          // Early exit check: only allow if we've effectively covered the full tab set
+          if (hasCoveredMostTabs && processedTabs >= Math.min(3, inPageTabs.length) && allText.length > 2000) {
             const currentClassification = await classifyContentWithGPT(allText);
             if (currentClassification.score > 70 && currentClassification.confidence > 0.7) {
-              console.log(`[Early Exit] Good content found after ${processedTabs} tabs (score: ${currentClassification.score}, confidence: ${currentClassification.confidence}), stopping category navigation`);
+              console.log(`[Early Exit] Good content after ${processedTabs} tabs (~${coveragePct}% coverage, score: ${currentClassification.score}, confidence: ${currentClassification.confidence}), stopping category navigation`);
               break;
             }
           }
 
-          // More aggressive early exit: stop after 6 tabs even with decent content
-          if (processedTabs >= 6) {
+          // More aggressive early exit: require near-complete coverage as well
+          if (hasCoveredMostTabs && processedTabs >= Math.min(6, inPageTabs.length)) {
             const currentClassification = await classifyContentWithGPT(allText);
             if (currentClassification.score > 60 && currentClassification.confidence > 0.6) {
-              console.log(`[Early Exit] Decent content found after ${processedTabs} tabs (score: ${currentClassification.score}), stopping to avoid over-processing`);
+              console.log(`[Early Exit] Decent content after ${processedTabs} tabs (~${coveragePct}% coverage, score: ${currentClassification.score}), stopping to avoid over-processing`);
               break;
             }
           }
         }
-      } catch (_error) {
-        // Continue
+      } catch (error) {
+        console.warn(`[Scraper] Navigation link error for ${navLinks[i]?.text || 'unknown'} (non-critical):`, error instanceof Error ? error.message : 'Unknown error');
       }
     }
 
@@ -1883,19 +2359,100 @@ async function clickThroughCategoriesAndExtract(page: Page): Promise<string> {
  */
 async function scrollForLazyContent(page: Page): Promise<void> {
   try {
+    // Try to click "Load More" buttons first (more reliable than scrolling)
+    let loadMoreClicked = false;
+    try {
+      const loadMoreButton = await page.evaluate(() => {
+        const keywords = ['load more', 'show more', 'view more', 'see more', 'load all', 'show all'];
+        const buttons = Array.from(document.querySelectorAll('button, a, [role="button"]'));
+        
+        for (const btn of buttons) {
+          const text = (btn.textContent || '').toLowerCase().trim();
+          if (keywords.some(kw => text.includes(kw))) {
+            const rect = (btn as HTMLElement).getBoundingClientRect();
+            if (rect.width > 0 && rect.height > 0 && !(btn as HTMLButtonElement).disabled) {
+              (btn as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'center' });
+              return true;
+            }
+          }
+        }
+        return false;
+      });
+
+      if (loadMoreButton) {
+        // Click the button (outside evaluate to handle navigation)
+        const buttonSelector = await page.evaluate(() => {
+          const keywords = ['load more', 'show more', 'view more', 'see more', 'load all', 'show all'];
+          const buttons = Array.from(document.querySelectorAll('button, a, [role="button"]'));
+          
+          for (const btn of buttons) {
+            const text = (btn.textContent || '').toLowerCase().trim();
+            if (keywords.some(kw => text.includes(kw))) {
+              const rect = (btn as HTMLElement).getBoundingClientRect();
+              if (rect.width > 0 && rect.height > 0) {
+                // Create unique selector
+                const tag = btn.tagName.toLowerCase();
+                const id = (btn as HTMLElement).id ? `#${(btn as HTMLElement).id}` : '';
+                const classes = Array.from(btn.classList).slice(0, 2).map(c => `.${c}`).join('');
+                return `${tag}${id}${classes}`;
+              }
+            }
+          }
+          return null;
+        });
+
+        if (buttonSelector) {
+          await page.click(buttonSelector).catch(() => {});
+          await delay(1000); // Wait for content to load
+          loadMoreClicked = true;
+          console.log('[Scraper] Clicked "Load More" button');
+        }
+      }
+    } catch (error) {
+      console.log('[Scraper] No "Load More" button found or click failed');
+    }
+
     // Detect if we're on a SPA that might need more aggressive scrolling
     const isSPA = await page.evaluate(() => {
       return !!(document.querySelector('#root, #app, [id*="react"], [id*="vue"]'));
     });
 
-    console.log(`[Scraper] Scrolling (SPA mode: ${isSPA})...`);
+    // Check for lazy loading indicators and infinite scroll (more conservative)
+    const hasLazyLoading = await page.evaluate(() => {
+      // Check for explicit lazy loading attributes
+      if (document.querySelector('[data-infinite-scroll], [data-lazy-load], .infinite-scroll, .lazy-load')) {
+        return true;
+      }
 
-    const scrollStats = await page.evaluate(async (needsSlowScroll) => {
+      // Check for scroll-based infinite scroll (stricter detection)
+      const scripts = Array.from(document.querySelectorAll('script'));
+      const hasInfiniteScroll = scripts.some(script => {
+        const content = script.innerHTML || '';
+        
+        // Must have BOTH IntersectionObserver AND specific loading patterns
+        const hasScrollObserver = content.includes('IntersectionObserver');
+        const hasLoadingLogic = (content.includes('loadMore') || content.includes('nextPage')) && 
+                                (content.includes('hasMore') || content.includes('loading'));
+        
+        // Or explicit infinite scroll library usage
+        const hasInfiniteScrollLib = content.includes('react-infinite-scroll-component') || 
+                                      content.includes('vue-infinite-loading') ||
+                                      content.includes('ngx-infinite-scroll');
+        
+        return (hasScrollObserver && hasLoadingLogic) || hasInfiniteScrollLib;
+      });
+
+      return hasInfiniteScroll;
+    });
+
+    console.log(`[Scraper] Scrolling (SPA mode: ${isSPA}, lazy loading: ${hasLazyLoading}, Load More clicked: ${loadMoreClicked})...`);
+
+    const scrollStats = await page.evaluate(async (needsSlowScroll, hasLazyLoading, SCROLL_CONFIG) => {
       // Window scrolling - more aggressive for SPAs
       const scrollStep = window.innerHeight;
       let scrollAttempts = 0;
-      const maxScrollAttempts = needsSlowScroll ? 15 : 20; // Increased limits - prioritize completeness over speed
-      const scrollDelay = needsSlowScroll ? 500 : 100; // Longer delays for SPAs to load content
+      const maxScrollAttempts = (needsSlowScroll || hasLazyLoading) ? SCROLL_CONFIG.MAX_ATTEMPTS_LAZY : SCROLL_CONFIG.MAX_ATTEMPTS_NORMAL;
+      const scrollDelay = (needsSlowScroll || hasLazyLoading) ? SCROLL_CONFIG.DELAY_LAZY : SCROLL_CONFIG.DELAY_NORMAL;
       let lastHeight = document.body.scrollHeight;
       let stableCount = 0;
 
@@ -1914,9 +2471,9 @@ async function scrollForLazyContent(page: Page): Promise<void> {
         const afterScrollHeight = document.body.scrollHeight;
         console.log(`[Scroll] After scroll: position=${afterScrollPos}, bodyHeight=${afterScrollHeight}`);
 
-        // Check if we've reached the bottom (with a small tolerance)
+        // Check if we've reached the bottom (with tolerance)
         const distanceFromBottom = afterScrollHeight - afterScrollPos - window.innerHeight;
-        const reachedBottom = distanceFromBottom <= 50; // 50px tolerance
+        const reachedBottom = distanceFromBottom <= SCROLL_CONFIG.BOTTOM_TOLERANCE;
 
         if (reachedBottom) {
           console.log(`[Scroll] Reached bottom (distance: ${distanceFromBottom}px)`);
@@ -1942,10 +2499,10 @@ async function scrollForLazyContent(page: Page): Promise<void> {
           const newHeight = afterScrollHeight;
           if (newHeight === lastHeight) {
             stableCount++;
-            console.log(`[Scroll] Height stable (${stableCount}/3)`);
-            // If height hasn't changed for 3 scrolls and we're near bottom, we're done
-            if (stableCount >= 3 && reachedBottom) {
-              console.log('[Scroll] Height stable for 3 attempts and at bottom, stopping');
+            console.log(`[Scroll] Height stable (${stableCount}/${SCROLL_CONFIG.STABILITY_COUNT})`);
+            // If height hasn't changed for STABILITY_COUNT scrolls and we're near bottom, we're done
+            if (stableCount >= SCROLL_CONFIG.STABILITY_COUNT && reachedBottom) {
+              console.log(`[Scroll] Height stable for ${SCROLL_CONFIG.STABILITY_COUNT} attempts and at bottom, stopping`);
               break;
             }
           } else {
@@ -1960,7 +2517,7 @@ async function scrollForLazyContent(page: Page): Promise<void> {
 
       // Final scroll to absolute bottom to ensure we got everything
       window.scrollTo(0, document.body.scrollHeight);
-      await new Promise(r => setTimeout(r, 200));
+      await new Promise(r => setTimeout(r, SCROLL_CONFIG.FINAL_WAIT));
       console.log(`[Scroll] Final position: ${window.scrollY}/${document.body.scrollHeight}`);
 
       return {
@@ -1968,11 +2525,11 @@ async function scrollForLazyContent(page: Page): Promise<void> {
         finalHeight: document.body.scrollHeight,
         finalPosition: window.scrollY
       };
-    }, isSPA);
+    }, isSPA, hasLazyLoading, SCROLL);
 
     console.log(`[Scraper] Scrolled ${scrollStats.attempts} times, final height: ${scrollStats.finalHeight}, final position: ${scrollStats.finalPosition}`);
-  } catch (_error) {
-    // Ignore scroll errors
+  } catch (error) {
+    console.warn('[Scraper] Scroll error (non-critical):', error instanceof Error ? error.message : 'Unknown error');
   }
 }
 
@@ -2189,7 +2746,8 @@ async function extractLogo(page: Page): Promise<string | null> {
     });
 
     return logo;
-  } catch (_error) {
+  } catch (error) {
+    console.warn('[Scraper] Logo extraction error (non-critical):', error instanceof Error ? error.message : 'Unknown error');
     return null;
   }
 }
@@ -2197,18 +2755,22 @@ async function extractLogo(page: Page): Promise<string | null> {
 /**
  * Extract color palette using AI vision analysis of homepage screenshot
  */
-async function extractColorPalette(page: Page): Promise<ColorPalette> {
+async function extractColorPalette(page: Page, base64Image?: string): Promise<ColorPalette> {
   try {
-    console.log('[AI Color Extraction] Taking screenshot for AI analysis...');
+    let imageForAnalysis = base64Image;
+    if (!imageForAnalysis) {
+      console.log('[AI Color Extraction] Taking screenshot for AI analysis...');
 
-    // Take a full-page screenshot
-    const screenshotBuffer = await page.screenshot({
-      fullPage: true,
-      type: 'png'
-    });
+      // Take a full-page screenshot
+      const screenshotBuffer = await page.screenshot({
+        fullPage: true,
+        type: 'png'
+      });
 
-    // Convert to base64 for OpenAI API
-    const base64Image = (screenshotBuffer as Buffer).toString('base64');
+      imageForAnalysis = (screenshotBuffer as Buffer).toString('base64');
+    } else {
+      console.log('[AI Color Extraction] Using pre-captured screenshot for AI analysis...');
+    }
 
     console.log('[AI Color Extraction] Analyzing screenshot with OpenAI Vision API...');
 
@@ -2245,7 +2807,7 @@ Only return valid hex color codes. If you cannot determine a color for a categor
             {
               type: "image_url",
               image_url: {
-                url: `data:image/png;base64,${base64Image}`
+                url: `data:image/png;base64,${imageForAnalysis}`
               }
             }
           ]
@@ -3099,28 +3661,52 @@ async function handleOrderingPlatform(page: Page): Promise<boolean> {
 
       if (bestButton) {
         bestButton.element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        setTimeout(() => bestButton.element.click(), 150);
-        return { clicked: true, text: bestButton.text, score: bestButton.score, details: bestButton.details, inspected: inspectedButtons.slice(0, 12) };
+        // Don't click here - return button info to click outside evaluate
+        return { 
+          clicked: true, 
+          text: bestButton.text, 
+          score: bestButton.score, 
+          details: bestButton.details, 
+          inspected: inspectedButtons.slice(0, 12),
+          // Create a reliable selector for the button
+          selector: (() => {
+            const id = bestButton.element.id;
+            if (id) return `#${id}`;
+            
+            const classes = Array.from(bestButton.element.classList).slice(0, 3).map(c => `.${c}`).join('');
+            const tag = bestButton.element.tagName.toLowerCase();
+            return `${tag}${classes}`;
+          })()
+        };
       }
 
       return { clicked: false, inspected: inspectedButtons.slice(0, 12), total: buttons.length };
     });
 
-    if (result?.clicked) {
-      console.log(`[Ordering Platform] Clicked follow-up button: "${result.text}" (score: ${result.score})`);
+    if (result?.clicked && result.selector) {
+      console.log(`[Ordering Platform] Found button: "${result.text}" (score: ${result.score})`);
       if (result.details) {
         console.log('[Ordering Platform] Button details:', result.details);
       }
       if (result.inspected) {
         console.log('[Ordering Platform] Top inspected candidates:', JSON.stringify(result.inspected, null, 2));
       }
-      await delay(1000);
-      return true;
+      
+      // Click outside evaluate context for more reliability
+      try {
+        await page.click(result.selector);
+        await delay(TIMING.ORDERING_PLATFORM_DELAY);
+        console.log(`[Ordering Platform] Successfully clicked: "${result.text}"`);
+        return true;
+      } catch (clickError) {
+        console.warn(`[Ordering Platform] Failed to click button: ${clickError instanceof Error ? clickError.message : 'Unknown error'}`);
+        return false;
+      }
     }
 
-    console.log('[Ordering Platform] No button clicked. Inspect summary:', JSON.stringify(result, null, 2));
+    console.log('[Ordering Platform] No suitable button found. Inspect summary:', JSON.stringify(result, null, 2));
   } catch (error) {
-    console.warn('[Ordering Platform] Error while handling platform:', error);
+    console.warn('[Ordering Platform] Error while handling platform:', error instanceof Error ? error.message : 'Unknown error');
   }
 
   return false;

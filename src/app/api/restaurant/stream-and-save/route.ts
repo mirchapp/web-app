@@ -49,13 +49,13 @@ export async function POST(request: NextRequest) {
       try {
         const supabase = createAdminClient();
 
-        // Check if restaurant exists
+        // Step 1: Finding menu (scraping)
         controller.enqueue(
           encoder.encode(`data: ${JSON.stringify({
             type: 'status',
-            message: 'Checking if restaurant exists...',
+            message: 'Finding menu...',
             step: 1,
-            totalSteps: 6
+            totalSteps: 2
           })}\n\n`)
         );
 
@@ -78,15 +78,6 @@ export async function POST(request: NextRequest) {
           return;
         }
 
-        // Fetch restaurant details
-        controller.enqueue(
-          encoder.encode(`data: ${JSON.stringify({
-            type: 'status',
-            message: 'Fetching restaurant details...',
-            step: 2,
-            totalSteps: 6
-          })}\n\n`)
-        );
 
         const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
         if (!apiKey) {
@@ -99,7 +90,7 @@ export async function POST(request: NextRequest) {
             headers: {
               'Content-Type': 'application/json',
               'X-Goog-Api-Key': apiKey,
-              'X-Goog-FieldMask': 'id,displayName,formattedAddress,websiteUri,addressComponents',
+              'X-Goog-FieldMask': 'id,displayName,formattedAddress,websiteUri,addressComponents,nationalPhoneNumber,internationalPhoneNumber',
             },
           }
         );
@@ -121,15 +112,9 @@ export async function POST(request: NextRequest) {
         const city = cityComponent?.longText || cityComponent?.shortText || null;
         const websiteUrl = data.websiteUri || null;
 
-        // Start scraping
-        controller.enqueue(
-          encoder.encode(`data: ${JSON.stringify({
-            type: 'status',
-            message: 'Scraping website and menu data...',
-            step: 3,
-            totalSteps: 6
-          })}\n\n`)
-        );
+        // Get phone number from Google Places (prefer international format for tel: links)
+        const phoneNumber = data.internationalPhoneNumber || data.nationalPhoneNumber || phone || null;
+
 
         const websitePromise = websiteUrl
           ? scrapeRestaurantMenuWithPuppeteer(websiteUrl).catch(() => null)
@@ -166,13 +151,13 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        // Start GPT parsing with streaming
+        // Step 2: Crafting menu (AI parsing)
         controller.enqueue(
           encoder.encode(`data: ${JSON.stringify({
             type: 'status',
-            message: 'Parsing menu with AI...',
-            step: 4,
-            totalSteps: 6
+            message: 'Crafting menu...',
+            step: 2,
+            totalSteps: 2
           })}\n\n`)
         );
 
@@ -223,15 +208,6 @@ ${googleMapsContent ? `${googleMapsContent}` : ''}
           }
         );
 
-        // Save to database
-        controller.enqueue(
-          encoder.encode(`data: ${JSON.stringify({
-            type: 'status',
-            message: 'Saving to database...',
-            step: 5,
-            totalSteps: 6
-          })}\n\n`)
-        );
 
         const slug = generateSlug(restaurantName);
         const restaurantInsert: Database['public']['Tables']['Restaurant']['Insert'] = {
@@ -249,7 +225,7 @@ ${googleMapsContent ? `${googleMapsContent}` : ''}
           accent_colour: colors?.accent || null,
           latitude: latitude || null,
           longitude: longitude || null,
-          phone: phone || null,
+          phone: phoneNumber,
           rating: rating || null,
           verified: false,
         };
@@ -337,8 +313,6 @@ ${googleMapsContent ? `${googleMapsContent}` : ''}
           encoder.encode(`data: ${JSON.stringify({
             type: 'complete',
             message: 'Restaurant saved successfully!',
-            step: 6,
-            totalSteps: 6,
             restaurantId: restaurant.id,
             restaurantSlug: restaurant.slug,
             totalCategories: categories.length,

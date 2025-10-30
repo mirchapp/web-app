@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
-import { Star, MapPin, Phone } from 'lucide-react';
+import { Star, MapPin, Phone, Search, X, ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useSafeArea } from '@/hooks/useSafeArea';
 import { StreamingMenuSkeleton } from './StreamingMenuSkeleton';
@@ -22,13 +22,92 @@ interface RestaurantPageProps {
   };
 }
 
+// Helper function to calculate luminance and determine if color is dark
+function isColorDark(color: string): boolean {
+  // Convert hex to RGB
+  let r = 0, g = 0, b = 0;
+
+  // Handle different color formats
+  if (color.startsWith('#')) {
+    const hex = color.replace('#', '');
+    if (hex.length === 3) {
+      r = parseInt(hex[0] + hex[0], 16);
+      g = parseInt(hex[1] + hex[1], 16);
+      b = parseInt(hex[2] + hex[2], 16);
+    } else {
+      r = parseInt(hex.substring(0, 2), 16);
+      g = parseInt(hex.substring(2, 4), 16);
+      b = parseInt(hex.substring(4, 6), 16);
+    }
+  } else if (color.startsWith('rgb')) {
+    const matches = color.match(/\d+/g);
+    if (matches && matches.length >= 3) {
+      r = parseInt(matches[0]);
+      g = parseInt(matches[1]);
+      b = parseInt(matches[2]);
+    }
+  }
+
+  // Calculate relative luminance
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance < 0.5;
+}
+
+// Helper function to lighten a color
+function lightenColor(color: string, percent: number): string {
+  // If color is already light enough, return it
+  if (!isColorDark(color)) return color;
+
+  // Convert to RGB and lighten
+  let r = 0, g = 0, b = 0;
+
+  if (color.startsWith('#')) {
+    const hex = color.replace('#', '');
+    if (hex.length === 3) {
+      r = parseInt(hex[0] + hex[0], 16);
+      g = parseInt(hex[1] + hex[1], 16);
+      b = parseInt(hex[2] + hex[2], 16);
+    } else {
+      r = parseInt(hex.substring(0, 2), 16);
+      g = parseInt(hex.substring(2, 4), 16);
+      b = parseInt(hex.substring(4, 6), 16);
+    }
+  } else if (color.startsWith('rgb')) {
+    const matches = color.match(/\d+/g);
+    if (matches && matches.length >= 3) {
+      r = parseInt(matches[0]);
+      g = parseInt(matches[1]);
+      b = parseInt(matches[2]);
+    }
+  }
+
+  // Lighten by mixing with white
+  r = Math.min(255, Math.floor(r + (255 - r) * percent));
+  g = Math.min(255, Math.floor(g + (255 - g) * percent));
+  b = Math.min(255, Math.floor(b + (255 - b) * percent));
+
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
 export function RestaurantPage({ isOpen, onClose, restaurant, isLoading = false, loadingStatus }: RestaurantPageProps) {
   const scrollRef = React.useRef<HTMLDivElement>(null);
+  const cardRef = React.useRef<HTMLDivElement>(null);
   const [isClosing, setIsClosing] = React.useState(false);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = React.useState(false);
+  const [hasTransparentBackground, setHasTransparentBackground] = React.useState(false);
+  const [searchQuery, setSearchQuery] = React.useState('');
+  const [selectedCategory, setSelectedCategory] = React.useState<string | null>(null);
+  const [dragOffset, setDragOffset] = React.useState<number>(0);
+  const [isHorizontalDrag, setIsHorizontalDrag] = React.useState<boolean>(false);
+  const touchStartX = React.useRef<number>(0);
+  const touchStartY = React.useRef<number>(0);
+  const touchCurrentX = React.useRef<number>(0);
+  const touchCurrentY = React.useRef<number>(0);
+  const isDraggingHorizontally = React.useRef<boolean | null>(null);
   const _safeAreaInsets = useSafeArea();
 
   const handleClose = () => {
+    setDragOffset(0);
     setIsClosing(true);
     // Wait for animation to complete before actually closing
     setTimeout(() => {
@@ -37,9 +116,102 @@ export function RestaurantPage({ isOpen, onClose, restaurant, isLoading = false,
     }, 300);
   };
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+    touchCurrentX.current = e.touches[0].clientX;
+    touchCurrentY.current = e.touches[0].clientY;
+    isDraggingHorizontally.current = null;
+    setIsHorizontalDrag(false);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    const currentX = e.touches[0].clientX;
+    const currentY = e.touches[0].clientY;
+
+    const diffX = currentX - touchStartX.current;
+    const diffY = currentY - touchStartY.current;
+    const absX = Math.abs(diffX);
+    const absY = Math.abs(diffY);
+
+    // Lock direction immediately on first movement
+    if (isDraggingHorizontally.current === null && (absX > 3 || absY > 3)) {
+      const isHorizontal = absY <= 3 && absX > absY;
+      isDraggingHorizontally.current = isHorizontal;
+      setIsHorizontalDrag(isHorizontal);
+    }
+
+    // Handle based on locked direction
+    if (isDraggingHorizontally.current === true) {
+      // Prevent scrolling when dragging card horizontally
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (diffX > 0) {
+        setDragOffset(diffX);
+      }
+    } else if (isDraggingHorizontally.current === false) {
+      // Allow normal scrolling
+      setDragOffset(0);
+    }
+
+    touchCurrentX.current = currentX;
+    touchCurrentY.current = currentY;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    e.stopPropagation();
+
+    const swipeDistance = touchCurrentX.current - touchStartX.current;
+
+    // Only close if it was a horizontal drag to the right (swipe right to close)
+    if (isDraggingHorizontally.current === true && swipeDistance > 100) {
+      handleClose();
+    } else {
+      // Snap back to position
+      setDragOffset(0);
+    }
+
+    // Reset touch tracking
+    touchStartX.current = 0;
+    touchStartY.current = 0;
+    touchCurrentX.current = 0;
+    touchCurrentY.current = 0;
+    isDraggingHorizontally.current = null;
+    setIsHorizontalDrag(false);
+  };
+
+  // Check if logo likely has transparent background
+  // Since we can't use canvas due to CORS, we'll use file extension as a heuristic
+  // PNG and SVG files typically have transparency, JPG/JPEG do not
+  React.useEffect(() => {
+    if (!restaurant.logo) {
+      setHasTransparentBackground(false);
+      return;
+    }
+
+    // Extract file extension from URL (handle query params)
+    const url = restaurant.logo.toLowerCase();
+    const urlWithoutParams = url.split('?')[0];
+
+    // Check if it's a PNG or SVG (likely has transparency)
+    const hasTransparency = urlWithoutParams.endsWith('.png') ||
+                           urlWithoutParams.endsWith('.svg') ||
+                           urlWithoutParams.includes('.png/') || // Some CDNs format like this
+                           urlWithoutParams.includes('.svg/');
+
+    console.log('Transparency assumed for:', restaurant.logo, '=', hasTransparency);
+    setHasTransparentBackground(hasTransparency);
+  }, [restaurant.logo]);
+
   // Extract colors from restaurant data, fallback to purple
   const primaryColor = restaurant.primaryColor || 'rgba(138, 66, 214, 0.4)';
   const accentColor = restaurant.accentColor || 'rgba(168, 85, 247, 0.3)';
+
+  // Get readable text color (lighten if too dark)
+  const readableTextColor = React.useMemo(() => {
+    return lightenColor(primaryColor, 0.4);
+  }, [primaryColor]);
 
   // Check if we have database categories/items
   const hasDbMenu = restaurant.fromDatabase && restaurant.categories && restaurant.categories.length > 0;
@@ -47,6 +219,47 @@ export function RestaurantPage({ isOpen, onClose, restaurant, isLoading = false,
   // Check if description is long (more than 200 characters)
   const description = restaurant.description || restaurant.about || '';
   const isLongDescription = description.length > 200;
+
+  // Filter menu items based on search and category
+  const filteredCategories = React.useMemo(() => {
+    if (!hasDbMenu || !restaurant.categories) return [];
+
+    let categories = restaurant.categories;
+
+    // Filter by selected category
+    if (selectedCategory) {
+      categories = categories.filter(cat => cat.id === selectedCategory);
+    }
+
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      categories = categories
+        .map(category => ({
+          ...category,
+          Menu_Item: category.Menu_Item.filter(item =>
+            item.name.toLowerCase().includes(query) ||
+            item.description?.toLowerCase().includes(query)
+          )
+        }))
+        .filter(category => category.Menu_Item.length > 0);
+    }
+
+    return categories;
+  }, [hasDbMenu, restaurant.categories, selectedCategory, searchQuery]);
+
+  // Get unique categories for filter
+  const menuCategories = React.useMemo(() => {
+    if (!hasDbMenu || !restaurant.categories) return [];
+    return restaurant.categories.map(cat => ({ id: cat.id, name: cat.name }));
+  }, [hasDbMenu, restaurant.categories]);
+
+  // Reset to 'All' category when menu loads or changes
+  React.useEffect(() => {
+    if (hasDbMenu && restaurant.categories) {
+      setSelectedCategory(null); // null = "All" category
+    }
+  }, [hasDbMenu, restaurant.categories]);
 
   // Note: We don't modify body overflow here because VideoFeed already handles it
   // Modifying it here would interfere with VideoFeed's scroll prevention when closing
@@ -71,16 +284,20 @@ export function RestaurantPage({ isOpen, onClose, restaurant, isLoading = false,
           }}
         >
           <motion.div
-            initial={{ y: '100%' }}
-            animate={{ y: isClosing ? '100%' : 0 }}
-            exit={{ y: '100%' }}
-            transition={{
-              type: 'spring',
-              stiffness: isClosing ? 500 : 400,
-              damping: isClosing ? 45 : 40,
-              mass: isClosing ? 0.7 : 0.8,
-              restDelta: 0.001,
-              restSpeed: 0.001
+            ref={cardRef}
+            initial={{ x: '100%' }}
+            animate={{
+              x: isClosing ? '100%' : (dragOffset > 0 ? dragOffset : 0),
+              transition: {
+                type: 'tween',
+                duration: dragOffset > 0 ? 0 : (isClosing ? 0.6 : 0.5),
+                ease: dragOffset > 0 ? 'linear' : [0.16, 1, 0.3, 1],
+                delay: 0,
+              }
+            }}
+            exit={{
+              x: '100%',
+              transition: { type: 'tween', duration: 0.6, ease: [0.16, 1, 0.3, 1] }
             }}
             className="absolute bottom-0 left-0 right-0 h-full w-full bg-white dark:bg-[#0A0A0F] shadow-2xl"
             onClick={(e) => e.stopPropagation()}
@@ -90,30 +307,32 @@ export function RestaurantPage({ isOpen, onClose, restaurant, isLoading = false,
               WebkitBackfaceVisibility: 'hidden',
               transform: 'translateZ(0)',
               WebkitTransform: 'translateZ(0)',
+              touchAction: 'none',
             }}
           >
-            {/* Close Button */}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleClose}
-              className="absolute z-30 h-10 w-10 rounded-full bg-muted/80 hover:bg-muted backdrop-blur-sm shadow-lg ring-1 ring-black/5 dark:ring-white/10 transition-all duration-200 touch-manipulation"
-              style={{ top: 'calc(var(--overlay-card-top-padding-safe) + 1rem)', right: '1rem' }}
-            >
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </Button>
-
             {/* Restaurant Page Content */}
             <div
               ref={scrollRef}
               className="h-full overflow-y-auto relative bg-white dark:bg-[#0A0A0F]"
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
               style={{
                 WebkitOverflowScrolling: 'touch',
-                overscrollBehavior: 'contain'
+                overscrollBehavior: 'contain',
+                touchAction: isHorizontalDrag ? 'none' : 'pan-y',
+                overflowY: isHorizontalDrag ? 'hidden' : 'auto',
               }}
             >
+              {/* Back Button - Inside scroll container */}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleClose}
+                className="absolute z-30 top-6 left-4 h-8 w-8 rounded-full hover:bg-muted/50 bg-background/80 backdrop-blur-sm"
+              >
+                <ChevronLeft className="h-4 w-4" strokeWidth={2} />
+              </Button>
               {/* Animated wave background - uses restaurant colors */}
               <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 {/* Wave gradient with restaurant branding colors */}
@@ -162,13 +381,17 @@ export function RestaurantPage({ isOpen, onClose, restaurant, isLoading = false,
                   >
                     {/* Restaurant Logo with enhanced glow effect */}
                     <div className="relative mb-8 flex items-center justify-center">
-                      {isLoading ? (
+                      {isLoading && !restaurant.logo ? (
                         <div className="h-32 w-64 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-white/5 dark:to-white/10 animate-pulse rounded-2xl" />
-                      ) : (
-                        <div className="relative h-32 w-64 rounded-2xl overflow-hidden ring-1 ring-gray-200 dark:ring-white/10"
+                      ) : restaurant.logo ? (
+                        <div
+                          className={`relative h-32 w-64 rounded-2xl overflow-hidden ${!hasTransparentBackground ? 'ring-1 ring-gray-200 dark:ring-white/10' : ''}`}
                           style={{
-                            boxShadow: `0 10px 40px ${restaurant.primaryColor ? `${restaurant.primaryColor}30` : 'rgba(138,66,214,0.2)'}`,
-                          }}>
+                            ...(!hasTransparentBackground ? {
+                              boxShadow: `0 10px 40px ${restaurant.primaryColor ? `${restaurant.primaryColor}30` : 'rgba(138,66,214,0.2)'}`,
+                            } : {})
+                          }}
+                        >
                           <Image
                             src={restaurant.logo}
                             alt={restaurant.name}
@@ -177,45 +400,8 @@ export function RestaurantPage({ isOpen, onClose, restaurant, isLoading = false,
                             sizes="256px"
                           />
                         </div>
-                      )}
+                      ) : null}
                     </div>
-
-                    {/* Loading Status Debug Info */}
-                    {isLoading && loadingStatus && (
-                      <div className="w-full max-w-md mb-8 p-4 rounded-2xl bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10">
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-2">
-                            <div className="h-2 w-2 bg-purple-500 rounded-full animate-pulse" />
-                            <span className="text-sm font-medium text-gray-900 dark:text-white">
-                              Scraping Menu Data
-                            </span>
-                          </div>
-                          <span className="text-xs text-gray-500 dark:text-white/50">
-                            Step {loadingStatus.currentStep}/{loadingStatus.totalSteps}
-                          </span>
-                        </div>
-
-                        {/* Progress Bar */}
-                        <div className="w-full h-1.5 bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden mb-3">
-                          <div
-                            className="h-full bg-gradient-to-r from-purple-500 to-purple-600 transition-all duration-500 ease-out"
-                            style={{ width: `${(loadingStatus.currentStep / loadingStatus.totalSteps) * 100}%` }}
-                          />
-                        </div>
-
-                        {/* Status Details */}
-                        <div className="space-y-2">
-                          <p className="text-xs font-medium text-gray-700 dark:text-white/70">
-                            {loadingStatus.step}
-                          </p>
-                          {loadingStatus.details && (
-                            <p className="text-xs text-gray-500 dark:text-white/50 font-mono">
-                              {loadingStatus.details}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    )}
 
                     {/* Restaurant Name with elegant typography */}
                     <div className="mb-2 text-center">
@@ -244,8 +430,8 @@ export function RestaurantPage({ isOpen, onClose, restaurant, isLoading = false,
                         {isLongDescription && (
                           <button
                             onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
-                            className="text-xs mt-2 font-light transition-colors"
-                            style={{ color: restaurant.primaryColor || '#8A42D6' }}
+                            className="text-xs mt-2 font-medium transition-colors hover:opacity-80"
+                            style={{ color: readableTextColor }}
                           >
                             {isDescriptionExpanded ? 'Show less' : 'Read more'}
                           </button>
@@ -278,7 +464,7 @@ export function RestaurantPage({ isOpen, onClose, restaurant, isLoading = false,
                     </div>
 
                     {/* Action Buttons - uses restaurant brand colors */}
-                    <div className="flex gap-3 w-full max-w-xs mb-10">
+                    <div className="flex gap-3 w-full max-w-xs mb-6">
                       <Button
                         className="flex-1 h-11 rounded-[14px] font-light transition-all duration-200 border-0"
                         style={{
@@ -287,7 +473,23 @@ export function RestaurantPage({ isOpen, onClose, restaurant, isLoading = false,
                           boxShadow: `0 4px 20px ${restaurant.primaryColor ? `${restaurant.primaryColor}55` : 'rgba(138,66,214,0.35)'}`,
                         }}
                         onClick={() => {
-                          console.log('Open in map');
+                          // Encode address for URL
+                          const encodedAddress = encodeURIComponent(restaurant.address);
+
+                          // Detect platform and open appropriate maps app
+                          const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+                          const isAndroid = /Android/.test(navigator.userAgent);
+
+                          if (isIOS) {
+                            // iOS: Try Apple Maps first, fallback to Google Maps
+                            window.open(`maps://maps.apple.com/?daddr=${encodedAddress}&dirflg=d`);
+                          } else if (isAndroid) {
+                            // Android: Use Google Maps
+                            window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodedAddress}`);
+                          } else {
+                            // Desktop/Web: Open Google Maps in browser
+                            window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodedAddress}`, '_blank');
+                          }
                         }}
                       >
                         <MapPin className="h-4 w-4 mr-2" />
@@ -296,9 +498,9 @@ export function RestaurantPage({ isOpen, onClose, restaurant, isLoading = false,
                       <Button
                         className="flex-1 h-11 rounded-[14px] font-light transition-all duration-200 backdrop-blur-md border-0"
                         style={{
-                          color: restaurant.primaryColor || '#8A42D6',
+                          color: readableTextColor,
                           backgroundColor: `${restaurant.primaryColor || '#8A42D6'}15`,
-                          boxShadow: `inset 0 0 0 1px ${restaurant.primaryColor || '#8A42D6'}80`,
+                          boxShadow: `inset 0 0 0 1px ${readableTextColor}60`,
                         }}
                         onClick={() => {
                           window.open(`tel:${restaurant.phone}`);
@@ -308,6 +510,64 @@ export function RestaurantPage({ isOpen, onClose, restaurant, isLoading = false,
                         Call
                       </Button>
                     </div>
+
+                    {/* Loading Status - Below Action Buttons */}
+                    {isLoading && loadingStatus && loadingStatus.step !== 'Loading...' && (
+                      <div
+                        className="w-full max-w-xs mb-10 p-4 rounded-2xl backdrop-blur-xl border shadow-lg"
+                        style={{
+                          background: `linear-gradient(135deg, ${primaryColor}08, ${accentColor}08)`,
+                          borderColor: `${primaryColor}25`,
+                          boxShadow: `0 4px 20px ${primaryColor}15`
+                        }}
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2.5">
+                            <motion.div
+                              className="h-2.5 w-2.5 rounded-full"
+                              style={{ backgroundColor: primaryColor }}
+                              animate={{
+                                scale: [1, 1.2, 1],
+                                opacity: [0.6, 1, 0.6]
+                              }}
+                              transition={{
+                                duration: 1.5,
+                                repeat: Infinity,
+                                ease: "easeInOut"
+                              }}
+                            />
+                            <span className="text-sm font-light text-gray-900 dark:text-white">
+                              {loadingStatus.currentStep === 1 ? 'Finding menu' : 'Crafting menu'}
+                            </span>
+                          </div>
+                          <span
+                            className="text-xs font-medium px-2 py-1 rounded-full"
+                            style={{
+                              backgroundColor: `${primaryColor}15`,
+                              color: readableTextColor
+                            }}
+                          >
+                            {loadingStatus.currentStep}/2
+                          </span>
+                        </div>
+
+                        {/* Progress Bar */}
+                        <div
+                          className="w-full h-1 rounded-full overflow-hidden"
+                          style={{ backgroundColor: `${primaryColor}10` }}
+                        >
+                          <motion.div
+                            className="h-full rounded-full"
+                            style={{
+                              background: `linear-gradient(to right, ${primaryColor}, ${accentColor})`
+                            }}
+                            initial={{ width: 0 }}
+                            animate={{ width: `${(loadingStatus.currentStep / 2) * 100}%` }}
+                            transition={{ duration: 0.5, ease: "easeOut" }}
+                          />
+                        </div>
+                      </div>
+                    )}
 
                     {/* About Section */}
                     {restaurant.about && (
@@ -395,6 +655,72 @@ export function RestaurantPage({ isOpen, onClose, restaurant, isLoading = false,
                     <div className="w-full mt-6">
                       <h3 className="text-base font-light text-gray-500 dark:text-foreground/60 mb-6 tracking-wide">Full Menu</h3>
 
+                      {/* Search and Filter - Only show when menu is loaded */}
+                      {hasDbMenu && (
+                        <div className="mb-6 space-y-3">
+                          {/* Search Bar */}
+                          <div className="relative">
+                            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-white/40" />
+                            <input
+                              type="text"
+                              placeholder="Search dishes..."
+                              value={searchQuery}
+                              onChange={(e) => setSearchQuery(e.target.value)}
+                              className="w-full h-11 pl-10 pr-10 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/40 focus:outline-none focus:ring-2 transition-all"
+                            />
+                            {searchQuery && (
+                              <button
+                                onClick={() => setSearchQuery('')}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition-colors"
+                              >
+                                <X className="h-3.5 w-3.5 text-gray-400 dark:text-white/40" />
+                              </button>
+                            )}
+                          </div>
+
+                          {/* Category Pills */}
+                          {menuCategories.length > 1 && (
+                            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                              <button
+                                onClick={() => setSelectedCategory(null)}
+                                className={`flex-shrink-0 px-4 py-1.5 text-xs font-medium rounded-full transition-all duration-200 ${
+                                  !selectedCategory
+                                    ? 'text-white'
+                                    : 'text-gray-600 dark:text-white/60 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10'
+                                }`}
+                                style={{
+                                  ...((!selectedCategory) && {
+                                    backgroundColor: primaryColor,
+                                    boxShadow: `0 2px 8px ${primaryColor}40`
+                                  })
+                                }}
+                              >
+                                All
+                              </button>
+                              {menuCategories.map((category) => (
+                                <button
+                                  key={category.id}
+                                  onClick={() => setSelectedCategory(selectedCategory === category.id ? null : category.id)}
+                                  className={`flex-shrink-0 px-4 py-1.5 text-xs font-medium rounded-full transition-all duration-200 ${
+                                    selectedCategory === category.id
+                                      ? 'text-white'
+                                      : 'text-gray-600 dark:text-white/60 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10'
+                                  }`}
+                                  style={{
+                                    ...((selectedCategory === category.id) && {
+                                      backgroundColor: primaryColor,
+                                      boxShadow: `0 2px 8px ${primaryColor}40`
+                                    })
+                                  }}
+                                >
+                                  {category.name}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
                       {/* Show streaming menu while loading OR when no DB menu */}
                       {(isLoading || !hasDbMenu) ? (
                         <StreamingMenuSkeleton
@@ -407,7 +733,25 @@ export function RestaurantPage({ isOpen, onClose, restaurant, isLoading = false,
                       ) : (
                         /* Render database categories if available */
                         <>
-                          {restaurant.categories?.map((category) => (
+                          {filteredCategories.length === 0 ? (
+                            <div className="text-center py-12">
+                              <Search className="h-12 w-12 mx-auto mb-3 text-gray-300 dark:text-white/20" />
+                              <p className="text-sm text-gray-500 dark:text-white/50">No dishes found</p>
+                              <button
+                                onClick={() => {
+                                  setSearchQuery('');
+                                  setSelectedCategory(null);
+                                }}
+                                className="mt-3 text-xs font-medium hover:underline"
+                                style={{ color: readableTextColor }}
+                              >
+                                Clear filters
+                              </button>
+                            </div>
+                          ) : (
+                            filteredCategories
+                              .filter(category => category.Menu_Item && category.Menu_Item.length > 0)
+                              .map((category) => (
                             <div key={category.id} className="mb-8">
                               <h4 className="text-base font-light text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                                 <span
@@ -452,7 +796,8 @@ export function RestaurantPage({ isOpen, onClose, restaurant, isLoading = false,
                                 ))}
                               </div>
                             </div>
-                          ))}
+                          ))
+                          )}
                         </>
                       )}
                     </div>

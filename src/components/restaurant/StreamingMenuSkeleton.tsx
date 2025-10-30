@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Skeleton } from '@/components/ui/skeleton';
 
 interface StreamingMenuSkeletonProps {
   description?: string;
@@ -12,59 +11,10 @@ interface StreamingMenuSkeletonProps {
   primaryColor?: string;
 }
 
-export function StreamingMenuSkeleton({ description, cuisine, tags, categories = [], primaryColor = '#8A42D6' }: StreamingMenuSkeletonProps) {
-  const totalItems = categories.reduce((sum, cat) => sum + cat.items.length, 0);
+export function StreamingMenuSkeleton({ cuisine, tags, categories = [], primaryColor = '#8A42D6' }: StreamingMenuSkeletonProps) {
 
   return (
     <div className="w-full space-y-8 animate-in fade-in duration-500">
-      {/* Streaming Indicator Badge */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20 w-fit"
-      >
-        <motion.div
-          className="w-2 h-2 rounded-full"
-          style={{ backgroundColor: primaryColor }}
-          animate={{
-            scale: [1, 1.3, 1],
-            opacity: [0.5, 1, 0.5]
-          }}
-          transition={{
-            duration: 1.5,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        />
-        <span className="text-xs font-medium" style={{ color: primaryColor }}>
-          Streaming menu data... {totalItems > 0 && `(${categories.length} categories, ${totalItems} items)`}
-        </span>
-      </motion.div>
-
-      {/* Description Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="space-y-3"
-      >
-        <h3 className="text-base font-light text-gray-500 dark:text-foreground/60 tracking-wide">About</h3>
-        {description ? (
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-sm text-gray-600 dark:text-white/50 leading-loose font-light"
-          >
-            {description}
-          </motion.p>
-        ) : (
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-4/5" />
-          </div>
-        )}
-      </motion.div>
-
       {/* Cuisine and Tags */}
       {(cuisine || tags && tags.length > 0) && (
         <motion.div
@@ -141,9 +91,9 @@ export function StreamingMenuSkeleton({ description, cuisine, tags, categories =
                         stiffness: 300,
                         damping: 30
                       }}
-                      className="flex gap-3 p-4 rounded-[14px] bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/5 shadow-sm hover:border-purple-200 dark:hover:border-purple-500/20 transition-all duration-200"
+                      className="flex gap-3 p-4 rounded-[14px] bg-white dark:bg-white/[0.02] border shadow-sm transition-all duration-200"
                       style={{
-                        borderColor: `${primaryColor}10`
+                        borderColor: `${primaryColor}20`
                       }}
                     >
                       {/* Item Logo Placeholder */}
@@ -204,17 +154,7 @@ export function StreamingMenuSkeleton({ description, cuisine, tags, categories =
                           >
                             {item.description}
                           </motion.p>
-                        ) : (
-                          <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: itemIndex * 0.05 + 0.2 }}
-                            className="space-y-1"
-                          >
-                            <Skeleton className="h-3 w-full" />
-                            <Skeleton className="h-3 w-3/4" />
-                          </motion.div>
-                        )}
+                        ) : null}
                       </div>
                     </motion.div>
                   ))}
@@ -230,20 +170,47 @@ export function StreamingMenuSkeleton({ description, cuisine, tags, categories =
             {[1, 2, 3].map((i) => (
               <div key={i} className="space-y-4">
                 <div className="flex items-center gap-2">
-                  <Skeleton className="h-1 w-8 rounded-full" />
-                  <Skeleton className="h-5 w-32" />
+                  <div
+                    className="h-1 w-8 rounded-full animate-pulse"
+                    style={{ backgroundColor: `${primaryColor}40` }}
+                  />
+                  <div
+                    className="h-5 w-32 rounded animate-pulse"
+                    style={{ backgroundColor: `${primaryColor}15` }}
+                  />
                 </div>
                 <div className="space-y-3">
                   {[1, 2, 3].map((j) => (
-                    <div key={j} className="flex gap-3 p-4 rounded-[14px] bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/5">
-                      <Skeleton className="h-20 w-20 rounded-[12px]" />
+                    <div
+                      key={j}
+                      className="flex gap-3 p-4 rounded-[14px] bg-white dark:bg-white/[0.02] border"
+                      style={{ borderColor: `${primaryColor}20` }}
+                    >
+                      <div
+                        className="h-20 w-20 rounded-[12px] animate-pulse"
+                        style={{
+                          background: `linear-gradient(135deg, ${primaryColor}15, ${primaryColor}05)`
+                        }}
+                      />
                       <div className="flex-1 space-y-2">
                         <div className="flex justify-between">
-                          <Skeleton className="h-4 w-32" />
-                          <Skeleton className="h-4 w-12" />
+                          <div
+                            className="h-4 w-32 rounded animate-pulse"
+                            style={{ backgroundColor: `${primaryColor}15` }}
+                          />
+                          <div
+                            className="h-4 w-12 rounded animate-pulse"
+                            style={{ backgroundColor: `${primaryColor}15` }}
+                          />
                         </div>
-                        <Skeleton className="h-3 w-full" />
-                        <Skeleton className="h-3 w-3/4" />
+                        <div
+                          className="h-3 w-full rounded animate-pulse"
+                          style={{ backgroundColor: `${primaryColor}10` }}
+                        />
+                        <div
+                          className="h-3 w-3/4 rounded animate-pulse"
+                          style={{ backgroundColor: `${primaryColor}10` }}
+                        />
                       </div>
                     </div>
                   ))}
