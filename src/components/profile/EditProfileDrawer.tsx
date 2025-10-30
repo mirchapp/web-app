@@ -477,7 +477,7 @@ export function EditProfileDrawer({
         <div
           className="container mx-auto px-5 sm:px-6 pb-8 relative z-10"
           style={{
-            paddingTop: "0.25rem",
+            paddingTop: "2rem",
           }}
         >
           <div className="max-w-md mx-auto space-y-8">

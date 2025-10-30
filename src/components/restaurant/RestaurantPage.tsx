@@ -106,6 +106,16 @@ export function RestaurantPage({ isOpen, onClose, restaurant, isLoading = false,
   const isDraggingHorizontally = React.useRef<boolean | null>(null);
   const _safeAreaInsets = useSafeArea();
 
+  // Memoize star positions to prevent recalculation on every render
+  const starPositions = React.useMemo(() => {
+    return Array.from({ length: 20 }, () => ({
+      top: Math.random() * 100,
+      left: Math.random() * 100,
+      duration: 2 + Math.random() * 3,
+      delay: Math.random() * 2,
+    }));
+  }, []);
+
   const handleClose = () => {
     setDragOffset(0);
     setIsClosing(true);
@@ -324,15 +334,6 @@ export function RestaurantPage({ isOpen, onClose, restaurant, isLoading = false,
                 overflowY: isHorizontalDrag ? 'hidden' : 'auto',
               }}
             >
-              {/* Back Button - Inside scroll container */}
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleClose}
-                className="absolute z-30 top-6 left-4 h-8 w-8 rounded-full hover:bg-muted/50 bg-background/80 backdrop-blur-sm"
-              >
-                <ChevronLeft className="h-4 w-4" strokeWidth={2} />
-              </Button>
               {/* Animated wave background - uses restaurant colors */}
               <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 {/* Wave gradient with restaurant branding colors */}
@@ -349,30 +350,36 @@ export function RestaurantPage({ isOpen, onClose, restaurant, isLoading = false,
 
                 {/* Subtle stars/particles */}
                 <div className="absolute inset-0 opacity-15 dark:opacity-30">
-                  {Array.from({ length: 20 }).map((_, i) => {
-                    const top = Math.random() * 100;
-                    const left = Math.random() * 100;
-                    const duration = 2 + Math.random() * 3;
-                    const delay = Math.random() * 2;
-                    return (
-                      <div
-                        key={i}
-                        className="absolute w-1 h-1 bg-purple-500/30 dark:bg-white/20 rounded-full"
-                        style={{
-                          top: `${top}%`,
-                          left: `${left}%`,
-                          animation: `twinkle ${duration}s ease-in-out infinite`,
-                          animationDelay: `${delay}s`,
-                          willChange: 'opacity',
-                        }}
-                      />
-                    );
-                  })}
+                  {starPositions.map((star, i) => (
+                    <div
+                      key={i}
+                      className="absolute w-1 h-1 bg-purple-500/30 dark:bg-white/20 rounded-full"
+                      style={{
+                        top: `${star.top}%`,
+                        left: `${star.left}%`,
+                        animation: `twinkle ${star.duration}s ease-in-out infinite`,
+                        animationDelay: `${star.delay}s`,
+                        willChange: 'opacity',
+                      }}
+                    />
+                  ))}
                 </div>
               </div>
 
               <div className="container mx-auto px-4 pb-32 relative z-10" style={{ paddingTop: 'var(--overlay-card-top-padding-safe)' }}>
                 <div className="max-w-md mx-auto">
+                  {/* Back Button */}
+                  <div className="flex items-center justify-center relative mb-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={handleClose}
+                      className="absolute left-0 h-8 w-8 rounded-full hover:bg-muted/50 bg-background/80 backdrop-blur-sm"
+                    >
+                      <ChevronLeft className="h-4 w-4" strokeWidth={2} />
+                    </Button>
+                  </div>
+
                   <div
                     className="flex flex-col items-center justify-center animate-fade-in"
                     style={{
@@ -419,6 +426,25 @@ export function RestaurantPage({ isOpen, onClose, restaurant, isLoading = false,
                           </svg>
                         )}
                       </div>
+
+                      {/* Restaurant labels - cuisine & price range */}
+                      {(restaurant.cuisine || restaurant.priceRange) && (
+                        <div className="flex items-center justify-center gap-2 mt-2">
+                          {restaurant.cuisine && (
+                            <span className="text-xs font-light text-gray-500 dark:text-white/40 tracking-wide">
+                              {restaurant.cuisine}
+                            </span>
+                          )}
+                          {restaurant.cuisine && restaurant.priceRange && (
+                            <span className="text-gray-300 dark:text-white/20">•</span>
+                          )}
+                          {restaurant.priceRange && (
+                            <span className="text-xs font-light text-gray-500 dark:text-white/40">
+                              {restaurant.priceRange}
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     {/* Restaurant Bio with refined typography - from DB or default */}
