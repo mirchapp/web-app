@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { Star, MapPin, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useSafeArea } from '@/hooks/useSafeArea';
+import { StreamingMenuSkeleton } from './StreamingMenuSkeleton';
 import type { Restaurant } from '@/types/video';
 
 interface RestaurantPageProps {
@@ -161,24 +162,22 @@ export function RestaurantPage({ isOpen, onClose, restaurant, isLoading = false,
                   >
                     {/* Restaurant Logo with enhanced glow effect */}
                     <div className="relative mb-8 flex items-center justify-center">
-                      <div
-                        className="relative h-32 w-64 rounded-2xl overflow-hidden ring-1 ring-gray-200 dark:ring-white/10 shadow-lg"
-                        style={{
-                          boxShadow: `0 10px 40px ${restaurant.primaryColor ? `${restaurant.primaryColor}30` : 'rgba(138,66,214,0.2)'}`,
-                        }}
-                      >
-                        {isLoading ? (
-                          <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-white/5 dark:to-white/10 animate-pulse rounded-2xl" />
-                        ) : (
+                      {isLoading ? (
+                        <div className="h-32 w-64 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-white/5 dark:to-white/10 animate-pulse rounded-2xl" />
+                      ) : (
+                        <div className="relative h-32 w-64 rounded-2xl overflow-hidden ring-1 ring-gray-200 dark:ring-white/10"
+                          style={{
+                            boxShadow: `0 10px 40px ${restaurant.primaryColor ? `${restaurant.primaryColor}30` : 'rgba(138,66,214,0.2)'}`,
+                          }}>
                           <Image
                             src={restaurant.logo}
                             alt={restaurant.name}
                             fill
-                            className="object-contain rounded-2xl"
+                            className="object-contain"
                             sizes="256px"
                           />
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* Loading Status Debug Info */}
@@ -396,8 +395,17 @@ export function RestaurantPage({ isOpen, onClose, restaurant, isLoading = false,
                     <div className="w-full mt-6">
                       <h3 className="text-base font-light text-gray-500 dark:text-foreground/60 mb-6 tracking-wide">Full Menu</h3>
 
-                      {/* Render database categories if available */}
-                      {hasDbMenu ? (
+                      {/* Show streaming menu while loading OR when no DB menu */}
+                      {(isLoading || !hasDbMenu) ? (
+                        <StreamingMenuSkeleton
+                          description={restaurant.streamingMenu?.description}
+                          cuisine={restaurant.streamingMenu?.cuisine}
+                          tags={restaurant.streamingMenu?.tags}
+                          categories={restaurant.streamingMenu?.categories || []}
+                          primaryColor={restaurant.primaryColor || '#8A42D6'}
+                        />
+                      ) : (
+                        /* Render database categories if available */
                         <>
                           {restaurant.categories?.map((category) => (
                             <div key={category.id} className="mb-8">
@@ -445,245 +453,6 @@ export function RestaurantPage({ isOpen, onClose, restaurant, isLoading = false,
                               </div>
                             </div>
                           ))}
-                        </>
-                      ) : (
-                        /* Fallback to hardcoded menu if no database data */
-                        <>
-                          {/* Appetizers */}
-                          <div className="mb-8">
-                        <h4 className="text-base font-light text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                          <span className="h-1 w-8 bg-primary rounded-full"></span>
-                          Appetizers
-                        </h4>
-                        <div className="space-y-3">
-                          {[
-                            { name: "Spring Rolls", description: "Fresh vegetables wrapped in rice paper with peanut sauce", price: 8.99, rating: 4.6, reviews: 42, labels: ["Vegetarian", "Fresh"], image: "https://images.unsplash.com/photo-1544025162-d76694265947?w=200&h=200&fit=crop" },
-                            { name: "Chicken Satay", description: "Grilled chicken skewers with coconut curry sauce", price: 12.99, rating: 4.8, reviews: 67, labels: ["Popular", "Grilled"], image: "https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?w=200&h=200&fit=crop" },
-                            { name: "Tom Yum Soup", description: "Spicy and sour soup with shrimp and mushrooms", price: 10.99, rating: 4.5, reviews: 89, labels: ["Spicy", "Soup"], image: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=200&h=200&fit=crop" }
-                          ].map((dish, index) => (
-                            <div key={index} className="flex gap-3 p-4 rounded-[14px] bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/5 shadow-sm dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] hover:border-purple-200 dark:hover:border-purple-500/20 transition-all duration-200 hover:shadow-[0_4px_20px_rgba(138,66,214,0.15),0_0_0_1px_rgba(138,66,214,0.1)] hover:-translate-y-0.5">
-                              <div className="h-20 w-20 rounded-[12px] overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-muted ring-1 ring-gray-200 dark:ring-black/5">
-                                <Image
-                                  src={dish.image}
-                                  alt={dish.name}
-                                  width={80}
-                                  height={80}
-                                  className="object-cover"
-                                 
-                                />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-start justify-between mb-1">
-                                  <p className="font-light text-base text-gray-900 dark:text-white">{dish.name}</p>
-                                  <div className="flex items-center gap-1 ml-2">
-                                    <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                                    <span className="text-xs text-gray-600 dark:text-white/50 font-light">{dish.rating}</span>
-                                  </div>
-                                </div>
-                                <p className="text-sm text-gray-600 dark:text-white/50 mb-2 line-clamp-2 font-light">{dish.description}</p>
-                                
-                                {/* Dish Labels */}
-                                <div className="flex flex-wrap gap-1 mb-2">
-                                  {dish.labels.map((label, labelIndex) => (
-                                    <span key={labelIndex} className={`px-2 py-0.5 text-xs rounded-full ${
-                                      label === 'Popular' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-                                      label === 'Spicy' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
-                                      label === 'Vegetarian' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
-                                      'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
-                                    }`}>
-                                      {label}
-                                    </span>
-                                  ))}
-                                </div>
-
-                                <div className="flex items-center justify-between">
-                                  <p className="text-base font-light text-gray-900 dark:text-white">${dish.price.toFixed(2)}</p>
-                                  <span className="text-xs text-gray-400 dark:text-white/35 font-light">{dish.reviews} reviews</span>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Main Courses */}
-                      <div className="mb-8">
-                        <h4 className="text-base font-light text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                          <span className="h-1 w-8 bg-primary rounded-full"></span>
-                          Main Courses
-                        </h4>
-                        <div className="space-y-3">
-                          {[
-                            { name: "Massaman Curry", description: "Rich and creamy curry with tender beef, potatoes, and peanuts", price: 19.99, rating: 4.7, reviews: 156, labels: ["Popular", "Curry"], image: "https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=200&h=200&fit=crop" },
-                            { name: "Green Curry", description: "Traditional green curry with chicken, eggplant, and basil", price: 17.99, rating: 4.4, reviews: 98, labels: ["Spicy", "Traditional"], image: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=200&h=200&fit=crop" },
-                            { name: "Pad See Ew", description: "Wide rice noodles stir-fried with Chinese broccoli and soy sauce", price: 15.99, rating: 4.3, reviews: 73, labels: ["Vegetarian", "Noodles"], image: "https://images.unsplash.com/photo-1552611052-33e04de081de?w=200&h=200&fit=crop" },
-                            { name: "Crispy Duck", description: "Half duck with crispy skin served with plum sauce", price: 24.99, rating: 4.9, reviews: 45, labels: ["Premium", "Specialty"], image: "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=200&h=200&fit=crop" }
-                          ].map((dish, index) => (
-                            <div key={index} className="flex gap-3 p-4 rounded-[14px] bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/5 shadow-sm dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] hover:border-purple-200 dark:hover:border-purple-500/20 transition-all duration-200 hover:shadow-[0_4px_20px_rgba(138,66,214,0.15),0_0_0_1px_rgba(138,66,214,0.1)] hover:-translate-y-0.5">
-                              <div className="h-20 w-20 rounded-[12px] overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-muted ring-1 ring-gray-200 dark:ring-black/5">
-                                <Image
-                                  src={dish.image}
-                                  alt={dish.name}
-                                  width={80}
-                                  height={80}
-                                  className="object-cover"
-                                 
-                                />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-start justify-between mb-1">
-                                  <p className="font-light text-base text-gray-900 dark:text-white">{dish.name}</p>
-                                  <div className="flex items-center gap-1 ml-2">
-                                    <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                                    <span className="text-xs text-gray-600 dark:text-white/50 font-light">{dish.rating}</span>
-                                  </div>
-                                </div>
-                                <p className="text-sm text-gray-600 dark:text-white/50 mb-2 line-clamp-2 font-light">{dish.description}</p>
-                                
-                                {/* Dish Labels */}
-                                <div className="flex flex-wrap gap-1 mb-2">
-                                  {dish.labels.map((label, labelIndex) => (
-                                    <span key={labelIndex} className={`px-2 py-0.5 text-xs rounded-full ${
-                                      label === 'Popular' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-                                      label === 'Spicy' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
-                                      label === 'Vegetarian' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
-                                      label === 'Premium' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' :
-                                      label === 'Specialty' ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' :
-                                      'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
-                                    }`}>
-                                      {label}
-                                    </span>
-                                  ))}
-                                </div>
-
-                                <div className="flex items-center justify-between">
-                                  <p className="text-base font-light text-gray-900 dark:text-white">${dish.price.toFixed(2)}</p>
-                                  <span className="text-xs text-gray-400 dark:text-white/35 font-light">{dish.reviews} reviews</span>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Desserts */}
-                      <div className="mb-8">
-                        <h4 className="text-base font-light text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                          <span className="h-1 w-8 bg-primary rounded-full"></span>
-                          Desserts
-                        </h4>
-                        <div className="space-y-3">
-                          {[
-                            { name: "Mango Sticky Rice", description: "Sweet sticky rice with fresh mango and coconut cream", price: 8.99, rating: 4.8, reviews: 124, labels: ["Traditional", "Sweet"], image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=200&h=200&fit=crop" },
-                            { name: "Thai Tea Ice Cream", description: "Creamy ice cream flavored with authentic Thai tea", price: 6.99, rating: 4.5, reviews: 87, labels: ["Cold", "Popular"], image: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=200&h=200&fit=crop" },
-                            { name: "Fried Banana", description: "Crispy fried banana with honey and sesame seeds", price: 7.99, rating: 4.2, reviews: 56, labels: ["Fried", "Traditional"], image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=200&h=200&fit=crop" }
-                          ].map((dish, index) => (
-                            <div key={index} className="flex gap-3 p-4 rounded-[14px] bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/5 shadow-sm dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] hover:border-purple-200 dark:hover:border-purple-500/20 transition-all duration-200 hover:shadow-[0_4px_20px_rgba(138,66,214,0.15),0_0_0_1px_rgba(138,66,214,0.1)] hover:-translate-y-0.5">
-                              <div className="h-20 w-20 rounded-[12px] overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-muted ring-1 ring-gray-200 dark:ring-black/5">
-                                <Image
-                                  src={dish.image}
-                                  alt={dish.name}
-                                  width={80}
-                                  height={80}
-                                  className="object-cover"
-                                 
-                                />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-start justify-between mb-1">
-                                  <p className="font-light text-base text-gray-900 dark:text-white">{dish.name}</p>
-                                  <div className="flex items-center gap-1 ml-2">
-                                    <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                                    <span className="text-xs text-gray-600 dark:text-white/50 font-light">{dish.rating}</span>
-                                  </div>
-                                </div>
-                                <p className="text-sm text-gray-600 dark:text-white/50 mb-2 line-clamp-2 font-light">{dish.description}</p>
-                                
-                                {/* Dish Labels */}
-                                <div className="flex flex-wrap gap-1 mb-2">
-                                  {dish.labels.map((label, labelIndex) => (
-                                    <span key={labelIndex} className={`px-2 py-0.5 text-xs rounded-full ${
-                                      label === 'Popular' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-                                      label === 'Traditional' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
-                                      label === 'Sweet' ? 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400' :
-                                      label === 'Cold' ? 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400' :
-                                      label === 'Fried' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' :
-                                      'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
-                                    }`}>
-                                      {label}
-                                    </span>
-                                  ))}
-                                </div>
-
-                                <div className="flex items-center justify-between">
-                                  <p className="text-base font-light text-gray-900 dark:text-white">${dish.price.toFixed(2)}</p>
-                                  <span className="text-xs text-gray-400 dark:text-white/35 font-light">{dish.reviews} reviews</span>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Beverages */}
-                      <div className="mb-8">
-                        <h4 className="text-base font-light text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                          <span className="h-1 w-8 bg-primary rounded-full"></span>
-                          Beverages
-                        </h4>
-                        <div className="space-y-3">
-                          {[
-                            { name: "Thai Iced Tea", description: "Traditional sweet tea with condensed milk", price: 4.99, rating: 4.6, reviews: 203, labels: ["Traditional", "Cold"], image: "https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=200&h=200&fit=crop" },
-                            { name: "Fresh Coconut Water", description: "Refreshing natural coconut water", price: 5.99, rating: 4.4, reviews: 78, labels: ["Fresh", "Healthy"], image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=200&h=200&fit=crop" },
-                            { name: "Lemongrass Ginger Tea", description: "Hot herbal tea with fresh lemongrass and ginger", price: 3.99, rating: 4.7, reviews: 45, labels: ["Hot", "Herbal"], image: "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=200&h=200&fit=crop" }
-                          ].map((dish, index) => (
-                            <div key={index} className="flex gap-3 p-4 rounded-[14px] bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/5 shadow-sm dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] hover:border-purple-200 dark:hover:border-purple-500/20 transition-all duration-200 hover:shadow-[0_4px_20px_rgba(138,66,214,0.15),0_0_0_1px_rgba(138,66,214,0.1)] hover:-translate-y-0.5">
-                              <div className="h-20 w-20 rounded-[12px] overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-muted ring-1 ring-gray-200 dark:ring-black/5">
-                                <Image
-                                  src={dish.image}
-                                  alt={dish.name}
-                                  width={80}
-                                  height={80}
-                                  className="object-cover"
-                                 
-                                />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-start justify-between mb-1">
-                                  <p className="font-light text-base text-gray-900 dark:text-white">{dish.name}</p>
-                                  <div className="flex items-center gap-1 ml-2">
-                                    <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                                    <span className="text-xs text-gray-600 dark:text-white/50 font-light">{dish.rating}</span>
-                                  </div>
-                                </div>
-                                <p className="text-sm text-gray-600 dark:text-white/50 mb-2 line-clamp-2 font-light">{dish.description}</p>
-                                
-                                {/* Dish Labels */}
-                                <div className="flex flex-wrap gap-1 mb-2">
-                                  {dish.labels.map((label, labelIndex) => (
-                                    <span key={labelIndex} className={`px-2 py-0.5 text-xs rounded-full ${
-                                      label === 'Traditional' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
-                                      label === 'Cold' ? 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400' :
-                                      label === 'Fresh' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-                                      label === 'Healthy' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
-                                      label === 'Hot' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
-                                      label === 'Herbal' ? 'bg-lime-100 text-lime-700 dark:bg-lime-900/30 dark:text-lime-400' :
-                                      'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
-                                    }`}>
-                                      {label}
-                                    </span>
-                                  ))}
-                                </div>
-
-                                <div className="flex items-center justify-between">
-                                  <p className="text-base font-light text-gray-900 dark:text-white">${dish.price.toFixed(2)}</p>
-                                  <span className="text-xs text-gray-400 dark:text-white/35 font-light">{dish.reviews} reviews</span>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
                         </>
                       )}
                     </div>

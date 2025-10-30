@@ -220,7 +220,7 @@ export function FindHome() {
         return; // Don't scrape if we have data
       }
 
-      console.log('⚠️  Restaurant not in DB, opening page and triggering scrape...');
+      console.log('⚠️  Restaurant not in DB, opening page and triggering streaming scrape...');
 
       // Open page with placeholder data and show loading state
       setSelectedRestaurant(restaurant);
@@ -230,25 +230,19 @@ export function FindHome() {
         step: 'Initializing scraper...',
         details: 'Preparing to fetch menu data',
         currentStep: 1,
-        totalSteps: 5,
+        totalSteps: 6,
       });
 
-      // Trigger scraping and saving in the background
+      // Use EventSource for streaming
       try {
-        setScraperStatus({
-          step: 'Checking if restaurant exists...',
-          details: `Place ID: ${restaurant.id}`,
-          currentStep: 2,
-          totalSteps: 5,
-        });
-
-        const response = await fetch('/api/restaurant/scrape-and-save', {
+        const response = await fetch('/api/restaurant/stream-and-save', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
             placeId: restaurant.id,
+            restaurantName: restaurant.name,
             address: restaurant.address,
             latitude: null,
             longitude: null,
@@ -257,128 +251,174 @@ export function FindHome() {
           }),
         });
 
-        setScraperStatus({
-          step: 'Scraping menu data...',
-          details: 'Extracting categories, items, and branding',
-          currentStep: 3,
-          totalSteps: 5,
-        });
-
-        const data = await response.json();
-
-        // If scrape is in progress (another request is already processing), wait and poll
-        if (data.inProgress) {
-          console.log('⏳ Scrape job already in progress, polling for completion...');
-          setScraperStatus({
-            step: 'Waiting for ongoing scrape...',
-            details: 'Another request is already processing this restaurant',
-            currentStep: 3,
-            totalSteps: 5,
-          });
-
-          // Poll the database until the restaurant is available
-          let pollAttempts = 0;
-          const maxPollAttempts = 30; // 30 attempts = up to 30 seconds
-
-          while (pollAttempts < maxPollAttempts) {
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
-
-            const pollResponse = await fetch(`/api/restaurant/get?placeId=${restaurant.id}`);
-            const pollData = await pollResponse.json();
-
-            if (pollData.exists && pollData.restaurant && pollData.restaurant.Menu_Category) {
-              console.log('✅ Restaurant is now available from ongoing scrape');
-
-              // Update with the complete data
-              const updatedRestaurant: Restaurant = {
-                id: pollData.restaurant.google_place_id,
-                name: pollData.restaurant.name,
-                logo: pollData.restaurant.logo_url || '',
-                verified: pollData.restaurant.verified || false,
-                rating: pollData.restaurant.rating || 0,
-                distance: restaurant.distance || '',
-                address: pollData.restaurant.address || '',
-                phone: pollData.restaurant.phone || '',
-                slug: pollData.restaurant.slug,
-                description: pollData.restaurant.description,
-                primaryColor: pollData.restaurant.primary_colour,
-                secondaryColor: pollData.restaurant.secondary_colour,
-                accentColor: pollData.restaurant.accent_colour,
-                categories: pollData.restaurant.Menu_Category || [],
-                fromDatabase: true,
-              };
-
-              setSelectedRestaurant(updatedRestaurant);
-              setIsScraperLoading(false);
-              setScraperStatus(undefined);
-              return;
-            }
-
-            pollAttempts++;
-            setScraperStatus({
-              step: 'Waiting for ongoing scrape...',
-              details: `Checking database... (${pollAttempts}/${maxPollAttempts})`,
-              currentStep: 3,
-              totalSteps: 5,
-            });
-          }
-
-          // Timeout - show basic data
-          console.log('⚠️  Polling timeout, showing basic data');
-          setIsScraperLoading(false);
-          setScraperStatus(undefined);
-          return;
+        if (!response.body) {
+          throw new Error('No response body');
         }
 
-        setScraperStatus({
-          step: 'Saving to database...',
-          details: `Categories: ${data.totalCategories || 0}, Items: ${data.totalItems || 0}`,
-          currentStep: 4,
-          totalSteps: 5,
-        });
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
 
-        if (data.success) {
-          console.log('✅ Restaurant scraped and saved:', data);
+        const streamingData: {
+          description?: string;
+          cuisine?: string;
+          tags?: string[];
+          logo?: string;
+          colors?: { primary?: string; secondary?: string; accent?: string };
+          categories: Array<{ name: string; items: Array<{ name: string; description?: string | null; price?: string | null }> }>;
+        } = {
+          categories: []
+        };
 
-          setScraperStatus({
-            step: 'Loading restaurant data...',
-            details: 'Refreshing with complete menu information',
-            currentStep: 5,
-            totalSteps: 5,
-          });
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
 
-          // Refresh data from database after scraping
-          const refreshResponse = await fetch(`/api/restaurant/get?placeId=${restaurant.id}`);
-          const refreshData = await refreshResponse.json();
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n');
 
-          if (refreshData.exists && refreshData.restaurant) {
-            console.log('🔄 Refreshing restaurant page with scraped data');
-            const updatedRestaurant: Restaurant = {
-              id: refreshData.restaurant.google_place_id,
-              name: refreshData.restaurant.name,
-              logo: refreshData.restaurant.logo_url || '',
-              verified: refreshData.restaurant.verified || false,
-              rating: refreshData.restaurant.rating || 0,
-              distance: restaurant.distance || '',
-              address: refreshData.restaurant.address || '',
-              phone: refreshData.restaurant.phone || '',
-              slug: refreshData.restaurant.slug,
-              description: refreshData.restaurant.description,
-              primaryColor: refreshData.restaurant.primary_colour,
-              secondaryColor: refreshData.restaurant.secondary_colour,
-              accentColor: refreshData.restaurant.accent_colour,
-              categories: refreshData.restaurant.Menu_Category || [],
-              fromDatabase: true,
-            };
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              try {
+                const data = JSON.parse(line.slice(6));
 
-            setSelectedRestaurant(updatedRestaurant);
-            setIsScraperLoading(false);
-            setScraperStatus(undefined);
+                // Handle different event types
+                if (data.type === 'status') {
+                  console.log(`[FindHome] 📊 Status: ${data.message} (${data.step}/${data.totalSteps})`);
+                  setScraperStatus({
+                    step: data.message,
+                    details: '',
+                    currentStep: data.step,
+                    totalSteps: data.totalSteps,
+                  });
+                } else if (data.type === 'branding') {
+                  console.log('[FindHome] 🎨 Received branding data:', { logo: !!data.data.logo, colors: !!data.data.colors });
+                  // Update logo and colors immediately
+                  if (data.data.logo) {
+                    streamingData.logo = data.data.logo;
+                  }
+                  if (data.data.colors) {
+                    streamingData.colors = data.data.colors;
+                  }
+
+                  setSelectedRestaurant(prev => ({
+                    ...prev!,
+                    logo: data.data.logo || prev!.logo,
+                    primaryColor: data.data.colors?.primary || prev!.primaryColor,
+                    secondaryColor: data.data.colors?.secondary || prev!.secondaryColor,
+                    accentColor: data.data.colors?.accent || prev!.accentColor,
+                  }));
+                } else if (data.type === 'menu_chunk') {
+                  const chunk = data.data;
+
+                  if (chunk.type === 'description') {
+                    console.log('[FindHome] 📝 Received description chunk');
+                    streamingData.description = chunk.data.description;
+                    setSelectedRestaurant(prev => ({
+                      ...prev!,
+                      description: chunk.data.description,
+                    }));
+                  } else if (chunk.type === 'cuisine') {
+                    console.log(`[FindHome] 🍽️  Received cuisine: ${chunk.data.cuisine}`);
+                    streamingData.cuisine = chunk.data.cuisine;
+                  } else if (chunk.type === 'tags') {
+                    console.log(`[FindHome] 🏷️  Received tags: ${chunk.data.tags?.join(', ')}`);
+                    streamingData.tags = chunk.data.tags;
+                  } else if (chunk.type === 'category') {
+                    console.log(`[FindHome] 📂 Received category: ${chunk.data.categoryName}`);
+                    // Add new category
+                    const newCategory = {
+                      name: chunk.data.categoryName!,
+                      items: []
+                    };
+                    streamingData.categories.push(newCategory);
+                  } else if (chunk.type === 'item') {
+                    console.log(`[FindHome] 🍴 Received item: ${chunk.data.item?.name} → ${chunk.data.item?.category}`);
+                    // Add item to the last category
+                    const item = chunk.data.item!;
+                    const categoryName = item.category || 'Menu';
+                    let category = streamingData.categories.find(c => c.name === categoryName);
+
+                    if (!category) {
+                      category = { name: categoryName, items: [] };
+                      streamingData.categories.push(category);
+                    }
+
+                    category.items.push(item);
+                  }
+
+                  // Update restaurant with streaming data
+                  setSelectedRestaurant(prev => ({
+                    ...prev!,
+                    streamingMenu: streamingData,
+                  }));
+                } else if (data.type === 'complete') {
+                  console.log('✅ [FindHome] Streaming complete! Categories:', streamingData.categories.length, 'Total items:', streamingData.categories.reduce((sum, cat) => sum + cat.items.length, 0));
+
+                  if (data.alreadyExists && data.restaurant) {
+                    // Already existed, refresh with DB data
+                    const dbRestaurant: Restaurant = {
+                      id: data.restaurant.google_place_id,
+                      name: data.restaurant.name,
+                      logo: data.restaurant.logo_url || '',
+                      verified: data.restaurant.verified || false,
+                      rating: data.restaurant.rating || 0,
+                      distance: restaurant.distance || '',
+                      address: data.restaurant.address || '',
+                      phone: data.restaurant.phone || '',
+                      slug: data.restaurant.slug,
+                      description: data.restaurant.description,
+                      primaryColor: data.restaurant.primary_colour,
+                      secondaryColor: data.restaurant.secondary_colour,
+                      accentColor: data.restaurant.accent_colour,
+                      categories: data.restaurant.Menu_Category || [],
+                      fromDatabase: true,
+                    };
+
+                    setSelectedRestaurant(dbRestaurant);
+                    setIsScraperLoading(false);
+                    setScraperStatus(undefined);
+                    return;
+                  }
+
+                  // Refresh from database
+                  const refreshResponse = await fetch(`/api/restaurant/get?placeId=${restaurant.id}`);
+                  const refreshData = await refreshResponse.json();
+
+                  if (refreshData.exists && refreshData.restaurant) {
+                    console.log('🔄 Refreshing restaurant page with DB data');
+                    const updatedRestaurant: Restaurant = {
+                      id: refreshData.restaurant.google_place_id,
+                      name: refreshData.restaurant.name,
+                      logo: refreshData.restaurant.logo_url || '',
+                      verified: refreshData.restaurant.verified || false,
+                      rating: refreshData.restaurant.rating || 0,
+                      distance: restaurant.distance || '',
+                      address: refreshData.restaurant.address || '',
+                      phone: refreshData.restaurant.phone || '',
+                      slug: refreshData.restaurant.slug,
+                      description: refreshData.restaurant.description,
+                      primaryColor: refreshData.restaurant.primary_colour,
+                      secondaryColor: refreshData.restaurant.secondary_colour,
+                      accentColor: refreshData.restaurant.accent_colour,
+                      categories: refreshData.restaurant.Menu_Category || [],
+                      fromDatabase: true,
+                    };
+
+                    setSelectedRestaurant(updatedRestaurant);
+                  }
+
+                  setIsScraperLoading(false);
+                  setScraperStatus(undefined);
+                } else if (data.type === 'error') {
+                  console.error('Stream error:', data.message);
+                  setIsScraperLoading(false);
+                  setScraperStatus(undefined);
+                }
+              } catch (err) {
+                console.error('Failed to parse SSE data:', err);
+              }
+            }
           }
-        } else {
-          console.error('Failed to save restaurant:', data.error);
-          setIsScraperLoading(false);
-          setScraperStatus(undefined);
         }
       } catch (scrapeError) {
         console.error('Error during scraping:', scrapeError);
@@ -823,36 +863,83 @@ interface RestaurantItemProps {
     rating?: number;
     photo?: string;
     distance?: string;
+    inDatabase?: boolean;
+    logo_url?: string;
+    primaryColor?: string;
+    verified?: boolean;
   };
   onClick: () => void;
 }
 
 function RestaurantItem({ restaurant, onClick }: RestaurantItemProps) {
+  const isInDatabase = restaurant.inDatabase;
+  const displayImage = isInDatabase && restaurant.logo_url ? restaurant.logo_url : restaurant.photo;
+
   return (
     <div
       className={cn(
-        "w-full flex items-center gap-3 px-4 py-3.5",
-        "bg-card/30 dark:bg-white/[0.01] backdrop-blur-xl",
-        "border border-gray-200/50 dark:border-white/[0.06]",
-        "hover:bg-card/50 dark:hover:bg-white/[0.02]",
-        "hover:border-gray-300/50 dark:hover:border-white/[0.10]",
-        "hover:shadow-[0_2px_16px_rgba(0,0,0,0.04)] dark:hover:shadow-[0_2px_16px_rgba(138,66,214,0.08)]",
+        "w-full flex items-center gap-3 px-4 py-3.5 relative overflow-hidden",
+        "backdrop-blur-xl",
         "transition-all duration-300",
-        "rounded-2xl cursor-pointer group"
+        "rounded-2xl cursor-pointer group",
+        isInDatabase
+          ? [
+              "bg-gradient-to-r from-purple-50/80 via-white/90 to-purple-50/80 dark:from-purple-950/20 dark:via-purple-900/10 dark:to-purple-950/20",
+              "border-2 border-purple-300/60 dark:border-purple-500/40",
+              "hover:border-purple-400/80 dark:hover:border-purple-400/60",
+              "hover:shadow-[0_4px_24px_rgba(168,85,247,0.25)] dark:hover:shadow-[0_4px_24px_rgba(168,85,247,0.4)]",
+              "shadow-[0_2px_12px_rgba(138,66,214,0.15)] dark:shadow-[0_2px_12px_rgba(138,66,214,0.3)]",
+            ]
+          : [
+              "bg-card/30 dark:bg-white/[0.01]",
+              "border border-gray-200/50 dark:border-white/[0.06]",
+              "hover:bg-card/50 dark:hover:bg-white/[0.02]",
+              "hover:border-gray-300/50 dark:hover:border-white/[0.10]",
+              "hover:shadow-[0_2px_16px_rgba(0,0,0,0.04)] dark:hover:shadow-[0_2px_16px_rgba(138,66,214,0.08)]",
+            ]
       )}
-      style={{
-        boxShadow: "0 1px 3px rgba(0,0,0,0.02), inset 0 1px 0 rgba(255,255,255,0.05)",
-      }}
+      style={
+        isInDatabase
+          ? {
+              background: restaurant.primaryColor
+                ? `linear-gradient(135deg, ${restaurant.primaryColor}15 0%, transparent 50%, ${restaurant.primaryColor}15 100%)`
+                : undefined,
+            }
+          : {
+              boxShadow: "0 1px 3px rgba(0,0,0,0.02), inset 0 1px 0 rgba(255,255,255,0.05)",
+            }
+      }
       onClick={onClick}
     >
+      {/* Shimmer effect for database restaurants */}
+      {isInDatabase && (
+        <div
+          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+          style={{
+            background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%)',
+            animation: 'shimmer 2s infinite',
+          }}
+        />
+      )}
+
       {/* Restaurant Image/Icon */}
-      <div className="relative flex-shrink-0 w-14 h-14 rounded-full overflow-hidden ring-1 ring-gray-200/60 dark:ring-white/[0.08] shadow-sm group-hover:ring-gray-300/60 dark:group-hover:ring-white/[0.12] transition-all duration-300">
-        {restaurant.photo ? (
+      <div
+        className={cn(
+          "relative flex-shrink-0 w-14 h-14 rounded-full overflow-hidden shadow-sm transition-all duration-300 z-10",
+          isInDatabase
+            ? "ring-2 ring-purple-400/70 dark:ring-purple-400/50 group-hover:ring-purple-500 dark:group-hover:ring-purple-300 group-hover:scale-105"
+            : "ring-1 ring-gray-200/60 dark:ring-white/[0.08] group-hover:ring-gray-300/60 dark:group-hover:ring-white/[0.12]"
+        )}
+      >
+        {displayImage ? (
           <Image
-            src={restaurant.photo}
+            src={displayImage}
             alt={restaurant.name}
             fill
-            className="object-cover"
+            className={cn(
+              "object-cover",
+              isInDatabase && "object-contain p-1 bg-white dark:bg-gray-900"
+            )}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gray-50/50 dark:bg-white/[0.03]">
@@ -862,17 +949,45 @@ function RestaurantItem({ restaurant, onClick }: RestaurantItemProps) {
       </div>
 
       {/* Restaurant Info */}
-      <div className="flex-1 min-w-0">
-        <p className="text-[15px] font-semibold text-gray-900 dark:text-white truncate mb-0.5">
-          {restaurant.name}
-        </p>
+      <div className="flex-1 min-w-0 z-10">
+        <div className="flex items-center gap-2">
+          <p
+            className={cn(
+              "text-[15px] font-semibold truncate mb-0.5",
+              isInDatabase
+                ? "text-purple-900 dark:text-purple-200"
+                : "text-gray-900 dark:text-white"
+            )}
+          >
+            {restaurant.name}
+          </p>
+          {isInDatabase && (
+            <span className="flex-shrink-0 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide rounded-full bg-purple-500/20 dark:bg-purple-400/30 text-purple-700 dark:text-purple-300 border border-purple-400/50 dark:border-purple-300/30">
+              In Mirch
+            </span>
+          )}
+        </div>
         {restaurant.address && (
-          <p className="text-[13px] text-gray-500 dark:text-white/40 truncate font-light">
+          <p
+            className={cn(
+              "text-[13px] truncate font-light",
+              isInDatabase
+                ? "text-purple-700/80 dark:text-purple-300/80"
+                : "text-gray-500 dark:text-white/40"
+            )}
+          >
             {restaurant.address}
           </p>
         )}
         {restaurant.distance && (
-          <p className="text-xs text-gray-400 dark:text-white/30 mt-1 font-light">
+          <p
+            className={cn(
+              "text-xs mt-1 font-light",
+              isInDatabase
+                ? "text-purple-600/70 dark:text-purple-400/70"
+                : "text-gray-400 dark:text-white/30"
+            )}
+          >
             {restaurant.distance}
           </p>
         )}

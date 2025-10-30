@@ -31,6 +31,30 @@ export interface MenuItem {
   price: string | null;
 }
 
+export interface StreamingMenuItem {
+  name: string;
+  description?: string | null;
+  price?: string | null;
+}
+
+export interface StreamingMenuCategory {
+  name: string;
+  items: StreamingMenuItem[];
+}
+
+export interface StreamingMenu {
+  description?: string;
+  cuisine?: string;
+  tags?: string[];
+  logo?: string;
+  colors?: {
+    primary?: string;
+    secondary?: string;
+    accent?: string;
+  };
+  categories: StreamingMenuCategory[];
+}
+
 export interface Restaurant {
   id: string;
   name: string;
@@ -53,6 +77,8 @@ export interface Restaurant {
   accentColor?: string | null;
   categories?: MenuCategory[];
   fromDatabase?: boolean;
+  // Streaming menu data (while scraping)
+  streamingMenu?: StreamingMenu;
 }
 
 export interface VideoStats {

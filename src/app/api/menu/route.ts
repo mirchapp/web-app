@@ -98,31 +98,12 @@ export async function GET(request: NextRequest) {
       return [null, null];
     });
 
-    let websiteContent = typeof websiteData === 'string' ? websiteData : websiteData?.text || '';
-    let websiteLogo = typeof websiteData === 'object' ? websiteData?.logo : undefined;
-    let websiteColors = typeof websiteData === 'object' ? websiteData?.colors : undefined;
+    const websiteContent = typeof websiteData === 'string' ? websiteData : websiteData?.text || '';
+    const websiteLogo = typeof websiteData === 'object' ? websiteData?.logo : undefined;
+    const websiteColors = typeof websiteData === 'object' ? websiteData?.colors : undefined;
     const googleMapsContent = googleMapsData?.text || '';
     const googleMapsLogo = googleMapsData?.logo;
     const googleMapsColors = googleMapsData?.colors;
-    const menuUrlFromGoogleMaps = googleMapsData?.menuUrl;
-
-    // If Google Maps found an external menu URL and we don't have website data, scrape it
-    if (menuUrlFromGoogleMaps && !websiteContent) {
-      console.log('🔗 Google Maps found menu URL:', menuUrlFromGoogleMaps);
-      console.log('📡 Scraping external menu from Google Maps link...');
-
-      try {
-        const externalMenuData = await scrapeRestaurantMenuWithPuppeteer(menuUrlFromGoogleMaps);
-        if (externalMenuData) {
-          websiteContent = typeof externalMenuData === 'string' ? externalMenuData : externalMenuData.text;
-          websiteLogo = typeof externalMenuData === 'object' ? externalMenuData.logo : undefined;
-          websiteColors = typeof externalMenuData === 'object' ? externalMenuData.colors : undefined;
-          console.log('✅ Successfully scraped external menu:', websiteContent.length, 'chars');
-        }
-      } catch (err) {
-        console.error('❌ Failed to scrape external menu URL:', err instanceof Error ? err.message : 'Unknown error');
-      }
-    }
 
     if (websiteContent) {
       console.log('✅ Successfully scraped restaurant website:', websiteContent.length, 'chars');

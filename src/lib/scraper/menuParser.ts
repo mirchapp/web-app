@@ -20,7 +20,7 @@ export interface ParsedMenu {
   tags?: string[];
 }
 
-function preprocessMenuContent(content: string): string {
+export function preprocessMenuContent(content: string): string {
   // Remove common noise patterns to reduce content size while preserving menu data
   const cleaned = content
     // Remove common non-menu sections (but preserve structure)

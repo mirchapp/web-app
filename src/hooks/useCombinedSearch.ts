@@ -14,6 +14,13 @@ export interface RestaurantResult {
   placeId: string;
   photo?: string;
   distance?: string;
+  // Database fields
+  inDatabase?: boolean;
+  logo_url?: string;
+  primaryColor?: string;
+  secondaryColor?: string;
+  accentColor?: string;
+  verified?: boolean;
 }
 
 interface PlacePhoto {
@@ -293,8 +300,34 @@ export function useCombinedSearch({
           .slice(0, 5) // Take only the 5 closest
           .map(({ _distanceKm: _, ...rest }) => rest as RestaurantResult);
 
-        console.log('Restaurant results:', restaurants.map(r => ({ name: r.name, distance: r.distance })));
-        setRestaurantResults(restaurants);
+        // Check which restaurants exist in our database
+        const supabase = createClient();
+        const placeIds = restaurants.map(r => r.placeId);
+
+        const { data: dbRestaurants } = await supabase
+          .from('Restaurant')
+          .select('google_place_id, logo_url, primary_colour, secondary_colour, accent_colour, verified')
+          .in('google_place_id', placeIds);
+
+        // Merge DB data with restaurant results
+        const enrichedRestaurants = restaurants.map(restaurant => {
+          const dbData = dbRestaurants?.find(db => db.google_place_id === restaurant.placeId);
+          if (dbData) {
+            return {
+              ...restaurant,
+              inDatabase: true,
+              logo_url: dbData.logo_url || undefined,
+              primaryColor: dbData.primary_colour || undefined,
+              secondaryColor: dbData.secondary_colour || undefined,
+              accentColor: dbData.accent_colour || undefined,
+              verified: dbData.verified || false,
+            };
+          }
+          return restaurant;
+        });
+
+        console.log('Restaurant results:', enrichedRestaurants.map(r => ({ name: r.name, distance: r.distance, inDatabase: r.inDatabase })));
+        setRestaurantResults(enrichedRestaurants);
       } catch (err) {
         console.error("Error searching restaurants:", err);
         setRestaurantResults([]);

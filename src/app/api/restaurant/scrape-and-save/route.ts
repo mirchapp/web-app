@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
         // Wait for the existing job to complete
         await existingJob.promise;
         console.log('✅ [WAIT] Existing job completed, returning success');
-      } catch (error) {
+      } catch (_error) {
         console.log('⚠️  [WAIT] Existing job failed, will retry');
         ongoingScrapeJobs.delete(placeId);
       }
